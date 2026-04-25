@@ -1,0 +1,8 @@
+{
+  "PrivateKeyPath": "alice-key.pem",
+  "Peers": [],
+  "Listen": ["tls://0.0.0.0:9001"],
+  "api_port": 9002,
+  "router_port": 9003,
+  "a2a_port": 9004
+}

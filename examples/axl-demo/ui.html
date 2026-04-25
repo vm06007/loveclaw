@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>LoveClaw x AXL P2P</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2307070f'/%3E%3Crect x='17' y='14' width='5' height='5' fill='%23D4537E'/%3E%3Crect x='22' y='14' width='5' height='5' fill='%23D4537E'/%3E%3Crect x='37' y='14' width='5' height='5' fill='%23D4537E'/%3E%3Crect x='42' y='14' width='5' height='5' fill='%23D4537E'/%3E%3Crect x='12' y='19' width='40' height='5' fill='%23D4537E'/%3E%3Crect x='12' y='24' width='40' height='5' fill='%23D4537E'/%3E%3Crect x='12' y='29' width='40' height='5' fill='%23D4537E'/%3E%3Crect x='17' y='34' width='30' height='5' fill='%23ED93B1'/%3E%3Crect x='22' y='39' width='20' height='5' fill='%23ED93B1'/%3E%3Crect x='27' y='44' width='10' height='5' fill='%23ED93B1'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">LOVE<span>CLAW</span> · AXL P2P</div>
+        <div class="topbar-right">
+            <div class="tab-links" id="tab-links">
+                open in tabs:
+                <a href="?node=alice" target="_blank">alice</a>
+                <a href="?node=boris" target="_blank">boris</a>
+            </div>
+            <div class="conn-pill" id="conn-pill">
+                <div class="conn-dot"></div>
+                <span id="conn-label">connecting…</span>
+            </div>
+        </div>
+    </div>
+    <div class="panels-wrap">
+        <!-- offline overlay -->
+        <div class="offline-overlay visible" id="offline-banner">
+            <div class="empty-icon">◇</div>
+            <div class="empty-title">DEMO NOT RUNNING</div>
+            <div class="offline-instructions">
+                <span class="step-label">TERMINAL — start the demo</span>
+                <code>cd loveclaw-hack/examples/axl-demo</code>
+                <code>python3 a2a.py</code>
+                <code>python3 a2a.py --test&nbsp;&nbsp;&nbsp;# run scripted test first</code>
+            </div>
+            <div class="offline-footer">listening for a2a.py…</div>
+        </div>
+
+        <!-- panels injected by JS -->
+        <div id="panels" style="display:flex;flex:1;overflow:hidden;width:100%"></div>
+    </div>
+    <script src="ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# AXL — cloned and built by setup.sh, not committed
+/examples/axl-demo/axl
+
+# Generated Ed25519 key pairs — never commit private keys
+*.pem
+
+# Python cache
+__pycache__/
+*.pyc
+.editorconfig
