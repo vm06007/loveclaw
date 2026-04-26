@@ -1,0 +1,92 @@
+/* QR modal */
+.modal-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(7, 7, 15, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+.modal-sheet.hidden { display: none; }
+.modal-sheet-inner {
+    width: 100%;
+    max-width: 320px;
+    background: var(--bg2);
+    border: 2px solid var(--teal-d);
+    border-radius: 12px;
+    padding: 22px 20px 18px;
+    text-align: center;
+}
+.modal-sheet-title {
+    font-size: 9px;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+.modal-sheet-sub {
+    font-size: 6px;
+    color: var(--purple-l);
+    line-height: 1.8;
+    margin-bottom: 16px;
+}
+.modal-qr-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+.modal-qr-wrap canvas { display: block; max-width: 100%; height: auto; }
+.modal-qr-url {
+    font-size: 5px;
+    color: var(--teal);
+    word-break: break-all;
+    font-family: ui-monospace, monospace;
+    margin-bottom: 14px;
+    line-height: 1.6;
+}
+.modal-sheet-close { width: 100%; }
+.modal-sheet-inner .modal-sheet-actions {
+    margin-top: 4px;
+}
+/* Break pact confirmation — red / warning (destructive) */
+.modal-sheet--break-pact {
+    background: rgba(12, 5, 8, 0.9);
+}
+.modal-sheet--break-pact .modal-sheet-inner {
+    border: 2px solid var(--red);
+    box-shadow: 0 0 0 1px rgba(226, 75, 74, 0.2), 0 0 32px rgba(226, 75, 74, 0.15);
+}
+.modal-sheet--break-pact .modal-sheet-title {
+    color: #ff8a88;
+    text-shadow: 0 0 20px rgba(226, 75, 74, 0.35);
+}
+.modal-sheet--break-pact .modal-sheet-sub {
+    color: #c8a0a0;
+}
+.modal-sheet--break-pact .btn-warn.btn-primary,
+.pact-break-overlay .btn-warn.btn-primary {
+    background: #c23a39;
+    border: 1px solid #e85c5a;
+    color: #fff;
+}
+.modal-sheet--break-pact .btn-warn.btn-primary:hover,
+.pact-break-overlay .btn-warn.btn-primary:hover {
+    background: #e24b4a;
+    border-color: #ff7a78;
+    filter: none;
+}
+.modal-sheet--break-pact .btn-warn-ghost,
+.pact-break-overlay .btn-warn-ghost {
+    border-color: rgba(226, 75, 74, 0.45);
+    color: var(--text-dim);
+}
+.modal-sheet--break-pact .btn-warn-ghost:hover,
+.pact-break-overlay .btn-warn-ghost:hover {
+    border-color: #e24b4a;
+    color: #ffb0ae;
+    background: rgba(226, 75, 74, 0.08);
+}

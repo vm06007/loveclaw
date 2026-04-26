@@ -1,0 +1,94 @@
+/* ── Logo / Home ───────────────────────────────────────── */
+.logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 36px 0 8px;
+    text-align: center;
+}
+.logo-brand {
+    display: flex;
+    justify-content: center;
+    line-height: 0;
+}
+.logo-pixel-heart {
+    display: block;
+    width: min(132px, 40vw);
+    height: auto;
+    filter: drop-shadow(0 0 18px rgba(212, 83, 126, 0.45));
+}
+.logo-title {
+    font-size: clamp(16px, 4.2vw, 22px);
+    letter-spacing: 2px;
+    color: #fff;
+    line-height: 1.45;
+    margin: 0;
+    padding: 0 4px;
+}
+.logo-claw {
+    color: var(--pink-l);
+}
+.logo-sub {
+    font-size: 7px;
+    line-height: 1.8;
+    letter-spacing: 1px;
+    max-width: 22rem;
+    margin: 0;
+}
+.logo-sub--1 {
+    color: #9a9ab8;
+}
+.logo-sub--2 {
+    color: #6b6b90;
+    font-size: 6px;
+    margin-top: -4px;
+}
+.teal { color: var(--teal); }
+/* ── Buttons ───────────────────────────────────────────── */
+.btn-stack { display: flex; flex-direction: column; gap: 12px; }
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(.97); opacity: .85; }
+.btn-primary {
+    background: var(--teal-d);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--teal); }
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+.btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.42;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-primary:disabled:hover { background: var(--teal-d); }
+.btn-ghost:disabled:hover { border-color: var(--border); color: var(--text-dim); }
+.btn-sm { width: auto; padding: 8px 14px; font-size: 8px; }
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 8px;
+    cursor: pointer;
+    padding: 0;
+}
+.btn-back:hover { color: var(--teal); }
+.back-row { display: flex; }

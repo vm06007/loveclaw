@@ -1,5 +1,7 @@
 // Namespaced per role so two Tauri instances don't share storage.
 // Updated in boot() when role is known from get_instance_config or ?role=.
+import { migrateTriggers } from "./pact-triggers.js";
+
 const DEFAULT_KEY = "loveclaw-state";
 
 const DEFAULT_STATE = {
@@ -7,15 +9,18 @@ const DEFAULT_STATE = {
     partnerName: "",
     coupleId: "",
     code: "",
-    triggers: ["tinder", "bumble", "hinge", "grindr", "badoo", "okcupid"],
+    triggers: ["dating_app", "location", "diary"],
     createdAt: null,
     paired: false,
     myAxlKey: "",
     partnerAxlKey: "",
     trustScore: 100,
     partnerTrustScore: 100,
+    breakPactIncoming: null,
+    breakPactOutgoingPending: false,
     signals: [],
     diary: [],
+    stakeEth: 0,
 };
 
 let storageKey = DEFAULT_KEY;
@@ -23,7 +28,14 @@ let storageKey = DEFAULT_KEY;
 function loadState() {
     try {
         const raw = localStorage.getItem(storageKey);
-        return raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE };
+        if (!raw) {
+            return { ...DEFAULT_STATE };
+        }
+        const parsed = { ...DEFAULT_STATE, ...JSON.parse(raw) };
+        parsed.triggers = migrateTriggers(parsed.triggers);
+        const se = Number(parsed.stakeEth);
+        parsed.stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
+        return parsed;
     } catch {
         return { ...DEFAULT_STATE };
     }

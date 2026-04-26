@@ -2,6 +2,11 @@ import { state, saveState } from "../lib/state.js";
 import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
 import { renderDiaryFeed, renderTodayTab } from "../dashboard/render.js";
+import {
+    onBreakPactDenyReceived,
+    onBreakPactGrantReceived,
+    onBreakPactProposeReceived,
+} from "./breakPact.js";
 
 export function handleAxlMessage(msg) {
     switch (msg.type) {
@@ -32,6 +37,15 @@ export function handleAxlMessage(msg) {
                 saveState(state);
                 renderDiaryFeed();
             }
+            break;
+        case "break_pact_propose":
+            onBreakPactProposeReceived(msg);
+            break;
+        case "break_pact_deny":
+            onBreakPactDenyReceived(msg);
+            break;
+        case "break_pact_grant":
+            onBreakPactGrantReceived();
             break;
         default:
             break;

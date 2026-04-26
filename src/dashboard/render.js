@@ -2,6 +2,12 @@ import { state, saveState } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
 import { renderPingStatus } from "../app/ping.js";
+import {
+    syncPactBadge,
+    syncPactBreakOverlay,
+    syncProposeBreakPactButton,
+} from "../app/breakPact.js";
+import { pactRuleLabel, formatStakeSummary } from "../lib/invite.js";
 
 const SIGNAL_CARDS = [
     { key: "location", mark: "loc", label: "location" },
@@ -107,15 +113,21 @@ export function renderPact() {
     if (!view) {
         return;
     }
+    const s = formatStakeSummary(state.stakeEth);
+    const stakeText = s === "—" ? "not proposed (optional)" : s;
     const pactTriggers = state.triggers.length
-        ? state.triggers.map(t => `<div class="pact-item">${t}</div>`).join("")
+        ? state.triggers.map(t => `<div class="pact-item">${pactRuleLabel(t)}</div>`).join("")
         : `<p class="hint">no breach triggers set</p>`;
     view.innerHTML = `
     <div class="pact-item">couple id: ${state.coupleId || "—"}</div>
     <div class="pact-item">paired since: ${state.createdAt ? new Date(state.createdAt).toLocaleDateString() : "—"}</div>
+    <div class="pact-item">propose ETH stake: ${stakeText}</div>
     <div class="pact-item">breach triggers:</div>
     ${pactTriggers}
   `;
+    syncProposeBreakPactButton();
+    syncPactBadge();
+    syncPactBreakOverlay();
 }
 
 export function renderTodayTab() {

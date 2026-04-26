@@ -104,12 +104,18 @@ export async function boot() {
 
     if (state.paired && !hasCoupleSession) {
         state.paired = false;
+        state.breakPactIncoming = null;
+        state.breakPactOutgoingPending = false;
         saveState(state);
     }
 
     const params = new URLSearchParams(location.search);
     if (params.get("pact")) {
-        document.getElementById("join-code").value = params.get("pact");
+        const jc = document.getElementById("join-code");
+        if (jc) {
+            jc.value = params.get("pact");
+            jc.dispatchEvent(new Event("input", { bubbles: true }));
+        }
         showScreen("join");
         return;
     }

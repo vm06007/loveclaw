@@ -1,0 +1,106 @@
+.btn-disconnect {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.15s, border-color 0.15s;
+}
+.btn-disconnect:hover { color: var(--teal); border-color: var(--teal-d); }
+.dash-tabs {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+}
+.tab {
+    flex: 1;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 9px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s, background-color .15s;
+}
+.tab:hover:not(.active) {
+    color: var(--text);
+    border-bottom-color: rgba(93, 202, 165, 0.35);
+    background: rgba(93, 202, 165, 0.06);
+}
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+.tab.active:hover {
+    color: #7fe8cc;
+    border-bottom-color: #7fe8cc;
+    background: rgba(93, 202, 165, 0.08);
+}
+.tab:focus-visible {
+    outline: 2px solid var(--teal-d);
+    outline-offset: -2px;
+    z-index: 1;
+}
+.tab-content { padding: 20px; }
+.tab-content.hidden { display: none; }
+/* ── Signal grid (today tab) ───────────────────────────── */
+.signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.signal-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.signal-card-icon { font-size: 20px; }
+.signal-card-label { font-size: 7px; color: var(--text-dim); }
+.signal-card-value { font-size: 9px; color: var(--text); }
+/* ── Signal list (signals tab) ─────────────────────────── */
+.signal-list { display: flex; flex-direction: column; gap: 8px; }
+.signal-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.signal-row-icon { font-size: 16px; flex-shrink: 0; }
+.signal-row-body { flex: 1; }
+.signal-row-name { font-size: 8px; color: var(--text); }
+.signal-row-val  { font-size: 7px; color: var(--text-dim); margin-top: 2px; }
+.signal-row-time { font-size: 6px; color: var(--text-dim); flex-shrink: 0; }
+/* ── Diary ─────────────────────────────────────────────── */
+.diary-feed { display: flex; flex-direction: column; gap: 12px; padding-bottom: 64px; }
+.diary-entry {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+}
+.diary-entry-date { font-size: 7px; color: var(--text-dim); margin-bottom: 8px; }
+.diary-entry-text { font-size: 8px; line-height: 1.9; color: var(--text); }
+.fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 20;
+    background: var(--bg3);
+    border-color: var(--teal);
+    color: var(--teal);
+}

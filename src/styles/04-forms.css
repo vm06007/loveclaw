@@ -1,0 +1,32 @@
+/* ── Screen titles ─────────────────────────────────────── */
+.screen-title {
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: 1px;
+}
+/* ── Form fields ───────────────────────────────────────── */
+.field-group { display: flex; flex-direction: column; gap: 8px; }
+.field-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+.field-input {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 9px;
+    padding: 12px;
+    outline: none;
+    width: 100%;
+}
+.field-input:focus { border-color: var(--teal); }
+.field-textarea {
+    resize: vertical;
+    min-height: 133px;
+    line-height: 1.75;
+    word-break: break-all;
+    padding: 12px 14px;
+}

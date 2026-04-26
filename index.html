@@ -54,8 +54,8 @@
           <p class="logo-sub logo-sub--2">two phones · one pact</p>
         </div>
         <div class="btn-stack">
-          <button class="btn btn-primary" id="btn-create">Create couple</button>
-          <button class="btn btn-ghost" id="btn-join">Join couple</button>
+          <button class="btn btn-primary" id="btn-create">Create New Claw</button>
+          <button class="btn btn-ghost" id="btn-join">Join Existing Claw</button>
         </div>
       </div>
     </div>
@@ -64,16 +64,18 @@
     <div id="screen-create" class="screen">
       <div class="screen-inner">
         <div class="back-row"><button class="btn-back" id="back-create">← back</button></div>
-        <h2 class="screen-title">create pair</h2>
+        <h2 class="screen-title">Create New Claw</h2>
         <div class="field-group">
           <label class="field-label">your name</label>
           <input id="create-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
         </div>
-        <div class="field-group">
-          <label class="field-label">breach triggers</label>
-          <div id="triggers-list" class="triggers-grid"></div>
+        <div class="field-group pact-rules-block">
+          <label class="field-label">pact rules</label>
+          <p class="pact-rules-lead">Both partners agree to these triggers at pairing time. LoveClaw only monitors what you both consent to.</p>
+          <div class="pact-lock-note" aria-hidden="true">All data flows only between your 2 devices via AXL end-to-end encryption. No server, no third party ever sees it.</div>
+          <div id="pact-rules-mount"></div>
         </div>
-        <button class="btn btn-primary" id="btn-generate">generate invite</button>
+        <button class="btn btn-primary" id="btn-generate">Generate Invite</button>
       </div>
     </div>
 
@@ -82,6 +84,7 @@
       <div class="screen-inner">
         <div class="back-row"><button class="btn-back" id="back-code">← back</button></div>
         <h2 class="screen-title">share with partner</h2>
+        <div id="invite-pact-summary" class="invite-pact-summary-wrap"></div>
         <div id="qr-wrap" class="qr-wrap"></div>
         <div class="invite-link-box">
           <p id="invite-link" class="invite-link"></p>
@@ -96,7 +99,7 @@
     <div id="screen-join" class="screen">
       <div class="screen-inner">
         <div class="back-row"><button class="btn-back" id="back-join">← back</button></div>
-        <h2 class="screen-title">join pair</h2>
+        <h2 class="screen-title">Join Existing Claw</h2>
         <div class="field-group">
           <label class="field-label">your name</label>
           <input id="join-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
@@ -105,14 +108,37 @@
           <label class="field-label">invite code</label>
           <textarea id="join-code" class="field-input field-textarea" placeholder="paste invite code here"></textarea>
         </div>
-        <button class="btn btn-primary" id="btn-join-submit">join</button>
+        <div id="join-pact-preview" class="join-pact-preview hidden" role="status" aria-live="polite"></div>
+        <button class="btn btn-primary" id="btn-join-submit">Join</button>
       </div>
     </div>
 
     <!-- ── PAIRED (transition) ───────────────────────────── -->
     <div id="screen-paired" class="screen">
       <div class="screen-inner center">
-        <div class="paired-icon">💕</div>
+        <div class="paired-icon" aria-hidden="true">
+          <div class="paired-icon-float">
+            <svg
+              class="logo-pixel-heart"
+              viewBox="10 12 44 40"
+              width="100"
+              height="91"
+              xmlns="http://www.w3.org/2000/svg"
+              focusable="false"
+            >
+              <rect x="17" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="22" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="37" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="42" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="12" y="19" width="40" height="5" fill="#D4537E" />
+              <rect x="12" y="24" width="40" height="5" fill="#D4537E" />
+              <rect x="12" y="29" width="40" height="5" fill="#D4537E" />
+              <rect x="17" y="34" width="30" height="5" fill="#ED93B1" />
+              <rect x="22" y="39" width="20" height="5" fill="#ED93B1" />
+              <rect x="27" y="44" width="10" height="5" fill="#ED93B1" />
+            </svg>
+          </div>
+        </div>
         <h2 class="screen-title">paired!</h2>
         <p id="paired-msg" class="hint"></p>
         <div class="pulse-dot"></div>
@@ -149,7 +175,7 @@
         <button class="tab active" data-tab="today">today</button>
         <button class="tab" data-tab="signals">signals</button>
         <button class="tab" data-tab="diary">diary</button>
-        <button class="tab" data-tab="pact">pact</button>
+        <button class="tab" data-tab="pact">pact<span class="tab-badge hidden" id="pact-badge"></span></button>
         <button class="tab" data-tab="chat">chat<span class="tab-badge hidden" id="chat-badge"></span></button>
       </div>
 
@@ -256,8 +282,22 @@
         <button class="btn btn-ghost btn-sm fab" id="btn-diary-gen">+ generate entry</button>
       </div>
 
-      <div class="tab-content hidden" id="tab-pact">
-        <div class="pact-view" id="pact-view"></div>
+      <div class="tab-content hidden pact-tab-root" id="tab-pact">
+        <div class="pact-tab-body">
+          <div class="pact-view" id="pact-view"></div>
+        </div>
+        <button type="button" class="btn btn-ghost pact-propose-btn" id="btn-propose-break-pact">
+          propose break pact
+        </button>
+        <div id="pact-break-overlay" class="pact-break-overlay hidden" aria-hidden="true">
+          <div class="pact-break-overlay-inner">
+            <p class="pact-break-overlay-title" id="pact-break-overlay-title">partner proposed to break pact</p>
+            <div class="pact-break-overlay-actions">
+              <button type="button" class="btn btn-primary btn-warn" id="btn-break-pact-grant">Grant</button>
+              <button type="button" class="btn btn-ghost btn-warn-ghost" id="btn-break-pact-deny">Deny</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="tab-content tab-chat hidden" id="tab-chat">
@@ -291,6 +331,23 @@
         <div class="modal-qr-wrap" id="modal-qr-target"></div>
         <p class="modal-qr-url" id="modal-qr-url"></p>
         <button type="button" class="btn btn-ghost modal-sheet-close" id="modal-qr-close">close</button>
+      </div>
+    </div>
+
+    <div
+      id="modal-break-propose"
+      class="modal-sheet modal-sheet--break-pact hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-break-title"
+    >
+      <div class="modal-sheet-inner">
+        <h2 class="modal-sheet-title" id="modal-break-title">Break pact</h2>
+        <p class="modal-sheet-sub">Are you sure you want to propose break pact?</p>
+        <div class="modal-sheet-actions">
+          <button type="button" class="btn btn-primary btn-warn" id="modal-break-propose-yes">Yes</button>
+          <button type="button" class="btn btn-ghost btn-warn-ghost" id="modal-break-propose-no">No</button>
+        </div>
       </div>
     </div>
 

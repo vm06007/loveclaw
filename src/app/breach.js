@@ -1,17 +1,24 @@
 import { state, saveState } from "../lib/state.js";
+import { DATING_APP_SUBSTRINGS, pactRuleLabel } from "../lib/invite.js";
 
 export function checkBreaches() {
     const recentApps = state.signals.filter(s => s.type === "apps").map(s => s.value.toLowerCase());
-    const hit = state.triggers.find(t => recentApps.some(a => a.includes(t)));
-    if (hit) {
-        triggerBreach(hit);
+    const triggers = state.triggers || [];
+    if (!triggers.includes("dating_app")) {
+        return;
+    }
+    const hitPkg = DATING_APP_SUBSTRINGS.find(pkg => recentApps.some(a => a.includes(pkg)));
+    if (hitPkg) {
+        triggerBreach("dating_app", hitPkg);
     }
 }
 
-export function triggerBreach(trigger) {
+export function triggerBreach(trigger, detail) {
+    const label = pactRuleLabel(trigger);
+    const extra = detail ? ` (${detail})` : "";
     const msgEl = document.getElementById("breach-msg");
     if (msgEl) {
-        msgEl.textContent = `${trigger} detected on device. trust score has been updated.`;
+        msgEl.textContent = `${label}${extra} detected on device. trust score has been updated.`;
     }
     const overlay = document.getElementById("overlay-breach");
     if (overlay) {

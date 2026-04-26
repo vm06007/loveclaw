@@ -1,6 +1,7 @@
 import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { clearPingBadge } from "../app/ping.js";
 import { onDiaryGenerateClick } from "./render.js";
+import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
 
 /**
  * Top-level dashboard tab strip (not to be confused with the screen router).
@@ -18,6 +19,8 @@ export function initDashboardTabs() {
             if (tab.dataset.tab === "chat") {
                 clearPingBadge();
             }
+            syncPactBadge();
+            syncPactBreakOverlay();
         });
     });
 

@@ -141,6 +141,23 @@ export function handlePong(msg) {
     bumpPingBadge();
 }
 
+/**
+ * Partner declined your break-pact request (in-chat, same as pong ack).
+ * @param {string} fromName
+ */
+export function addBreakPactDenyReceivedLine(fromName) {
+    const who = (fromName && String(fromName).trim()) || "partner";
+    addBubble("left", `deny: ${who} declined your break pact request`, true);
+    bumpPingBadge();
+}
+
+/**
+ * You denied their request — echo on your side, like "pong: sent to partner".
+ */
+export function addBreakPactDenySentLine() {
+    addBubble("right", "deny: sent to partner", true);
+}
+
 export function handleChat(msg) {
     const who = (msg.from || "partner").trim() || "partner";
     const body = typeof msg.text === "string" ? msg.text : "";

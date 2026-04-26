@@ -1,0 +1,19 @@
+/* ── Design tokens ─────────────────────────────────────── */
+:root {
+    --teal:     #5DCAA5;
+    --teal-d:   #1D9E75;
+    --purple:   #534AB7;
+    --purple-l: #AFA9EC;
+    --pink:     #D4537E;
+    --pink-l:   #ED93B1;
+    --amber:    #FAC775;
+    --red:      #E24B4A;
+    --bg:       #07070f;
+    --bg2:      #0d0d1e;
+    --bg3:      #13132a;
+    --border:   #1e1e3a;
+    --text:     #e8e8f0;
+    --text-dim: #6b6b90;
+    --font:     'Press Start 2P', monospace;
+    --radius:   4px;
+}

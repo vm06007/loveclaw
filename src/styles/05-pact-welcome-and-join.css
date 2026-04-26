@@ -1,0 +1,165 @@
+/* ── Pact rules (create + invite summary) ─────────────── */
+.pact-rules-block { gap: 12px; }
+.pact-rules-block .field-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+}
+.pact-rules-lead {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin: 0;
+}
+.pact-lock-note {
+    font-size: 8px;
+    color: var(--teal);
+    background: rgba(93, 202, 165, 0.06);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    line-height: 1.7;
+    margin: 0;
+}
+.pact-rule-block {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-top: 1px solid var(--border);
+    margin: 0;
+}
+.pact-rule-block:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+.pact-rule-block:last-of-type { padding-bottom: 0; }
+.pact-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.pact-toggle-name {
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.45;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.pact-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.pact-toggle-input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--teal);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.pact-toggle-val {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4ch;
+    min-width: 4ch;
+    max-width: 4ch;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--teal);
+    text-align: center;
+    font-family: var(--font);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    box-sizing: content-box;
+    white-space: nowrap;
+}
+.pact-toggle-val.off { color: var(--text-dim); }
+.pact-rule-hint {
+    font-size: 8px;
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin: 8px 0 0;
+    padding-left: 2px;
+    max-width: 100%;
+}
+.invite-pact-summary-wrap { margin-bottom: 12px; }
+.invite-pact-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+}
+.pact-rules-heading {
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.invite-pact-card .pact-rules-lead { margin-bottom: 10px; }
+.invite-pact-readonly .pact-toggle-val { font-size: 10px; }
+.invite-pact-card .invite-pact-readonly {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    align-items: center;
+}
+.invite-pact-card .pact-rules-lead + .invite-pact-readonly {
+    border-top: none;
+    padding-top: 0;
+}
+.invite-pact-readonly .pact-toggle-name { font-weight: 600; }
+.pact-stake-amount {
+    font-size: 10px;
+    color: var(--teal);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-align: right;
+    min-width: 4.5ch;
+}
+.pact-stake-amount.off {
+    color: var(--text-dim);
+    font-weight: 500;
+    min-width: 1.25em;
+}
+.pact-stake-control {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 0;
+}
+.pact-stake-input {
+    min-width: 6.5rem;
+    max-width: 9rem;
+    width: 7.25rem;
+    box-sizing: border-box;
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    text-align: right;
+    -webkit-appearance: none;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+.pact-stake-input::-webkit-outer-spin-button,
+.pact-stake-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.pact-stake-suffix {
+    font-size: 9px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+.pact-stake-header-row { align-items: center; }
+.pact-partner-name { color: var(--teal); }
+.join-pact-preview {
+    margin: 0 0 12px;
+}
+.join-pact-preview .invite-pact-card {
+    margin: 0;
+}

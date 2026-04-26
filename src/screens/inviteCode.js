@@ -1,7 +1,11 @@
 import { showScreen } from "../lib/router.js";
+import { renderPactRuleToggles } from "./create.js";
 
 export function initInviteCodeScreen() {
-    document.getElementById("back-code").addEventListener("click", () => showScreen("create"));
+    document.getElementById("back-code").addEventListener("click", () => {
+        renderPactRuleToggles();
+        showScreen("create");
+    });
 
     document.getElementById("btn-copy-link").addEventListener("click", () => {
         const text = document.getElementById("invite-link").textContent;

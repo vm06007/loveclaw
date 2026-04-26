@@ -4,6 +4,7 @@ import { completePairing } from "./app/pairing.js";
 import "./app/ipc-inbox.js";
 import { boot } from "./app/boot.js";
 import { initBreachUi } from "./app/breach.js";
+import { initBreakPactUi } from "./app/breakPact.js";
 import { initPingActions } from "./app/ping.js";
 import { initDisconnect } from "./app/disconnect.js";
 import { initHomeScreen } from "./screens/home.js";
@@ -17,6 +18,7 @@ await initTauri();
 registerAxlPairing(completePairing);
 
 initBreachUi();
+initBreakPactUi();
 initPingActions();
 initDisconnect();
 initHomeScreen();

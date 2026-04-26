@@ -1,0 +1,71 @@
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 10px;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+#app {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+/* ── Screens ───────────────────────────────────────────── */
+.screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    overflow-y: auto;
+    background: var(--bg);
+}
+.screen.active { display: block; }
+.screen-inner {
+    min-height: 100%;
+    padding: 32px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.screen-inner.center {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+/* Welcome: already paired (returned from dashboard) */
+.home-paired-banner {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto 8px;
+    padding: 10px 12px;
+    background: rgba(29, 158, 117, 0.12);
+    border: 1px solid var(--teal-d);
+    border-radius: var(--radius);
+    font-size: 10px;
+    color: var(--teal);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+.home-paired-banner.hidden { display: none; }
+.link-ghost {
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 10px;
+    color: var(--text);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    letter-spacing: 1px;
+}
+.link-ghost:hover { color: var(--teal); }

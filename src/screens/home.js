@@ -1,10 +1,10 @@
 import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
-import { renderTriggers } from "./create.js";
+import { renderPactRuleToggles } from "./create.js";
 
 export function initHomeScreen() {
     document.getElementById("btn-create").addEventListener("click", () => {
-        renderTriggers();
+        renderPactRuleToggles();
         showScreen("create");
     });
 
