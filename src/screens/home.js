@@ -1,4 +1,5 @@
 import { showScreen } from "../lib/router.js";
+import { renderDashboard } from "../dashboard/render.js";
 import { renderTriggers } from "./create.js";
 
 export function initHomeScreen() {
@@ -15,4 +16,12 @@ export function initHomeScreen() {
         }
         showScreen("join");
     });
+
+    const backDash = document.getElementById("btn-back-dashboard");
+    if (backDash) {
+        backDash.addEventListener("click", () => {
+            showScreen("dashboard");
+            renderDashboard();
+        });
+    }
 }

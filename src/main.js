@@ -11,6 +11,7 @@ import { initCreateScreen } from "./screens/create.js";
 import { initInviteCodeScreen } from "./screens/inviteCode.js";
 import { initJoinScreen } from "./screens/join.js";
 import { initDashboardTabs } from "./dashboard/tabs.js";
+import { initDashboardShell } from "./app/dashboard-pwa.js";
 
 await initTauri();
 registerAxlPairing(completePairing);
@@ -23,5 +24,6 @@ initCreateScreen();
 initInviteCodeScreen();
 initJoinScreen();
 initDashboardTabs();
+initDashboardShell();
 
-boot();
+await boot();

@@ -18,9 +18,9 @@ export function triggerBreach(trigger) {
         overlay.classList.remove("hidden");
     }
     state.trustScore = Math.max(0, (state.trustScore ?? 100) - 50);
-    const trustEl = document.getElementById("trust-score");
+    const trustEl = document.getElementById("today-trust-me");
     if (trustEl) {
-        trustEl.textContent = state.trustScore;
+        trustEl.textContent = String(state.trustScore);
     }
     saveState(state);
 }

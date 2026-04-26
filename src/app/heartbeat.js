@@ -1,6 +1,11 @@
 import { state, saveState } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
-import { renderSignalGrid, renderSignalList } from "../dashboard/render.js";
+import {
+    appendTodayHeartbeatEntry,
+    renderSignalGrid,
+    renderSignalList,
+    renderTodayTab,
+} from "../dashboard/render.js";
 import { checkBreaches } from "./breach.js";
 import { startAxlPoll } from "../axl/poll.js";
 import { handleAxlMessage } from "./messages.js";
@@ -29,6 +34,17 @@ async function heartbeat() {
     saveState(state);
     renderSignalGrid();
     renderSignalList();
+    renderTodayTab();
+    const n = state.signals.length;
+    const last = n > 0 ? state.signals[n - 1] : null;
+    const summary = last ? `${last.type}: ${last.value}` : "signals refreshed";
+    const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    appendTodayHeartbeatEntry(`[${stamp}] ${summary}`);
+}
+
+/** Manual “Run check” from the today tab. */
+export async function runHeartbeatCheck() {
+    await heartbeat();
 }
 
 function pushDemoSignal() {

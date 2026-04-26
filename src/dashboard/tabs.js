@@ -1,4 +1,6 @@
+import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { clearPingBadge } from "../app/ping.js";
+import { showScreen } from "../lib/router.js";
 import { onDiaryGenerateClick } from "./render.js";
 
 /**
@@ -24,6 +26,28 @@ export function initDashboardTabs() {
     if (gen) {
         gen.addEventListener("click", () => {
             onDiaryGenerateClick();
+        });
+    }
+
+    const welcome = document.getElementById("btn-welcome");
+    if (welcome) {
+        welcome.addEventListener("click", () => {
+            showScreen("home");
+        });
+    }
+
+    const runCheck = document.getElementById("btn-run-check");
+    if (runCheck) {
+        runCheck.addEventListener("click", async () => {
+            const prev = runCheck.textContent;
+            runCheck.disabled = true;
+            runCheck.textContent = "Checking…";
+            try {
+                await runHeartbeatCheck();
+            } finally {
+                runCheck.textContent = prev;
+                runCheck.disabled = false;
+            }
         });
     }
 }

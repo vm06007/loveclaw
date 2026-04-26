@@ -1,0 +1,34 @@
+{
+    "name": "LoveClaw",
+    "short_name": "LoveClaw",
+    "description": "Two phones, one pact — commit · protect · remember",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#07070f",
+    "theme_color": "#07070f",
+    "orientation": "portrait-primary",
+    "categories": ["social", "lifestyle"],
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Open Dashboard",
+            "short_name": "Dashboard",
+            "url": "/?action=dashboard",
+            "description": "Go to couple dashboard"
+        },
+        {
+            "name": "Join a Pact",
+            "short_name": "Join",
+            "url": "/?action=join",
+            "description": "Enter an invite code"
+        }
+    ]
+}

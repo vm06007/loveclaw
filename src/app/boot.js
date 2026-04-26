@@ -1,4 +1,4 @@
-import { state, getStorageKey, setStorageKeyAndReload, resetToDefault } from "../lib/state.js";
+import { state, getStorageKey, saveState, setStorageKeyAndReload, resetToDefault } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
@@ -75,7 +75,32 @@ export async function boot() {
 
     maybeTauriSessionReset();
 
-    if (state.paired) {
+    // Only skip the welcome screen when we have a real couple session. A lone
+    // `paired: true` in storage (no partner name) used to open the dashboard
+    // while the UI still showed "solo mode" — send those users to welcome.
+    const hasCoupleSession =
+        Boolean(state.paired) && Boolean(String(state.partnerName || "").trim());
+
+    if (state.paired && !hasCoupleSession) {
+        state.paired = false;
+        saveState(state);
+    }
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("pact")) {
+        document.getElementById("join-code").value = params.get("pact");
+        showScreen("join");
+        return;
+    }
+
+    // UX rule: in desktop app always start at welcome (Create/Join),
+    // even when a previous couple session exists.
+    if (isTauri()) {
+        showScreen("home");
+        return;
+    }
+
+    if (hasCoupleSession) {
         renderDashboard();
         showScreen("dashboard");
         startHeartbeat();
@@ -86,13 +111,6 @@ export async function boot() {
                 renderPingStatus();
             }
         });
-        return;
-    }
-
-    const params = new URLSearchParams(location.search);
-    if (params.get("pact")) {
-        document.getElementById("join-code").value = params.get("pact");
-        showScreen("join");
         return;
     }
 

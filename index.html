@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#07070f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LoveClaw" />
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,14 +23,39 @@
     <!-- ── HOME ─────────────────────────────────────────── -->
     <div id="screen-home" class="screen active">
       <div class="screen-inner">
+        <div class="home-paired-banner hidden" id="home-paired-banner" role="status">
+          <span>You're already in a couple together.</span>
+          <button type="button" class="link-ghost" id="btn-back-dashboard">back to dashboard</button>
+        </div>
         <div class="logo-wrap">
-          <div class="logo-icon">💘</div>
-          <h1 class="logo-title">LOVE<span class="teal">CLAW</span></h1>
-          <p class="logo-sub">relationship trust monitor</p>
+          <div class="logo-brand" aria-hidden="true">
+            <svg
+              class="logo-pixel-heart"
+              viewBox="10 12 44 40"
+              width="132"
+              height="120"
+              xmlns="http://www.w3.org/2000/svg"
+              focusable="false"
+            >
+              <rect x="17" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="22" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="37" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="42" y="14" width="5" height="5" fill="#D4537E" />
+              <rect x="12" y="19" width="40" height="5" fill="#D4537E" />
+              <rect x="12" y="24" width="40" height="5" fill="#D4537E" />
+              <rect x="12" y="29" width="40" height="5" fill="#D4537E" />
+              <rect x="17" y="34" width="30" height="5" fill="#ED93B1" />
+              <rect x="22" y="39" width="20" height="5" fill="#ED93B1" />
+              <rect x="27" y="44" width="10" height="5" fill="#ED93B1" />
+            </svg>
+          </div>
+          <h1 class="logo-title">LOVE<span class="logo-claw">CLAW</span></h1>
+          <p class="logo-sub logo-sub--1">commit · protect · remember</p>
+          <p class="logo-sub logo-sub--2">two phones · one pact</p>
         </div>
         <div class="btn-stack">
-          <button class="btn btn-primary" id="btn-create">create pair</button>
-          <button class="btn btn-ghost" id="btn-join">join pair</button>
+          <button class="btn btn-primary" id="btn-create">Create couple</button>
+          <button class="btn btn-ghost" id="btn-join">Join couple</button>
         </div>
       </div>
     </div>
@@ -90,31 +120,92 @@
     </div>
 
     <!-- ── DASHBOARD ─────────────────────────────────────── -->
-    <div id="screen-dashboard" class="screen">
-      <div class="dash-header">
-        <div class="dash-couple" id="dash-couple-label"></div>
-        <div class="dash-header-right">
-          <div class="trust-badge" id="trust-badge">
-            <span id="trust-score">100</span>
-            <span class="trust-label">trust</span>
-          </div>
-          <button class="btn-disconnect" id="btn-disconnect" title="disconnect &amp; reset">✕</button>
+    <div id="screen-dashboard" class="screen dash-screen">
+      <div class="install-banner hidden" id="install-banner" role="region" aria-label="Install app">
+        <span class="install-banner-text">Add LoveClaw as Application</span>
+        <div class="install-banner-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="install-banner-btn">Install</button>
+          <button type="button" class="install-dismiss" id="install-banner-dismiss" aria-label="Dismiss">×</button>
         </div>
       </div>
 
+      <div class="dash-top">
+        <div class="dash-brand">
+          <div class="dash-logo">LOVE<span class="teal">CLAW</span></div>
+          <div class="dash-tagline" id="dash-status-tag">solo mode</div>
+          <button type="button" class="dash-welcome" id="btn-welcome">← welcome</button>
+        </div>
+        <div class="dash-top-actions">
+          <button type="button" class="dash-pill-btn" id="btn-qr-phone" title="Open on phone" aria-label="QR open on phone">
+            <svg class="dash-qr-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm8 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm2-4h2v2h-2v-2z"/></svg>
+          </button>
+          <button type="button" class="dash-pill-btn dash-pill-btn--info" id="btn-dash-info" title="About this screen">
+            <span class="dash-info-dot"></span>INFO
+          </button>
+          <button class="btn-disconnect" id="btn-disconnect" title="disconnect &amp; reset">✕</button>
+        </div>
+      </div>
+      <p class="dash-info-hint hidden" id="dash-info-hint">Trust scores and heartbeat pull live signals from LoveClaw when the desktop agent is running.</p>
+
       <div class="dash-tabs">
-        <button class="tab" data-tab="today">today</button>
+        <button class="tab active" data-tab="today">today</button>
         <button class="tab" data-tab="signals">signals</button>
         <button class="tab" data-tab="diary">diary</button>
         <button class="tab" data-tab="pact">pact</button>
-        <button class="tab active" data-tab="chat">chat<span class="tab-badge hidden" id="chat-badge"></span></button>
+        <button class="tab" data-tab="chat">chat<span class="tab-badge hidden" id="chat-badge"></span></button>
       </div>
 
-      <div class="tab-content hidden" id="tab-today">
-        <div class="signal-grid" id="signal-grid"></div>
+      <div class="dash-panel-host">
+      <div class="tab-content today-tab" id="tab-today">
+        <div class="today-card today-couple-card">
+          <div class="today-couple-row">
+            <div class="today-avatar today-avatar--me" id="today-avatar-me">?</div>
+            <div class="today-couple-mid">
+              <span class="today-heart" aria-hidden="true">♥</span>
+              <span class="today-day-pill" id="today-day-pill">day 1</span>
+            </div>
+            <div class="today-avatar today-avatar--partner" id="today-avatar-partner">?</div>
+          </div>
+          <div class="today-couple-labels">
+            <span id="today-label-me">You</span>
+            <span id="today-label-partner">Partner</span>
+          </div>
+          <div class="today-streak-head">loyal streak</div>
+          <div class="today-streak-row">
+            <div class="today-streak-cells" id="today-streak-cells">
+              <span class="today-streak-cell"></span><span class="today-streak-cell"></span><span class="today-streak-cell"></span>
+              <span class="today-streak-cell"></span><span class="today-streak-cell"></span><span class="today-streak-cell"></span>
+              <span class="today-streak-cell"></span>
+            </div>
+            <span class="today-streak-days" id="today-streak-days">1 day</span>
+          </div>
+        </div>
+
+        <div class="today-card today-trust-card">
+          <div class="today-card-title">Trust score today</div>
+          <div class="today-trust-row">
+            <div class="today-trust-col">
+              <div class="today-trust-score" id="today-trust-me">100</div>
+              <div class="today-trust-who" id="today-trust-label-me">you</div>
+            </div>
+            <div class="today-trust-col today-trust-col--partner">
+              <div class="today-trust-score today-trust-score--muted" id="today-trust-partner">—</div>
+              <div class="today-trust-who">partner</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="today-card today-hb-card">
+          <div class="today-card-title">Heartbeat log</div>
+          <p class="today-hb-sub" id="today-hb-sub">today · waiting for first check…</p>
+          <p class="today-hb-hint">Tap <strong>Run check</strong> to pull live signals from LoveClaw.</p>
+          <div class="today-hb-log" id="today-hb-log"></div>
+          <button type="button" class="btn btn-primary today-run-btn" id="btn-run-check">Run check now</button>
+        </div>
       </div>
 
       <div class="tab-content hidden" id="tab-signals">
+        <div class="signal-grid" id="signal-grid"></div>
         <div class="signal-list" id="signal-list"></div>
       </div>
 
@@ -127,7 +218,7 @@
         <div class="pact-view" id="pact-view"></div>
       </div>
 
-      <div class="tab-content tab-chat" id="tab-chat">
+      <div class="tab-content tab-chat hidden" id="tab-chat">
         <div class="ping-status-bar" id="ping-status-bar">
           <div class="ping-status-node" id="ping-status-me"></div>
           <div class="ping-status-sep">↔</div>
@@ -147,6 +238,17 @@
           <input type="text" id="chat-input" class="chat-input" maxlength="2000" placeholder="type a message..." autocomplete="off" />
           <button type="button" class="btn btn-primary btn-chat-send" id="btn-chat-send">send</button>
         </div>
+      </div>
+      </div>
+    </div>
+
+    <div id="modal-qr-phone" class="modal-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="modal-qr-title">
+      <div class="modal-sheet-inner">
+        <h2 class="modal-sheet-title" id="modal-qr-title">OPEN ON PHONE</h2>
+        <p class="modal-sheet-sub">Scan with your phone camera to open this page</p>
+        <div class="modal-qr-wrap" id="modal-qr-target"></div>
+        <p class="modal-qr-url" id="modal-qr-url"></p>
+        <button type="button" class="btn btn-ghost modal-sheet-close" id="modal-qr-close">close</button>
       </div>
     </div>
 

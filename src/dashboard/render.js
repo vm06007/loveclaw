@@ -1,5 +1,6 @@
 import { state, saveState } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
+import { showScreen } from "../lib/router.js";
 import { renderPingStatus } from "../app/ping.js";
 
 const SIGNAL_CARDS = [
@@ -107,15 +108,76 @@ export function renderPact() {
   `;
 }
 
+export function renderTodayTab() {
+    const tag = document.getElementById("dash-status-tag");
+    if (tag) {
+        tag.textContent = state.paired ? "linked · active" : "solo mode";
+    }
+    const meAv = document.getElementById("today-avatar-me");
+    const ptAv = document.getElementById("today-avatar-partner");
+    const la = document.getElementById("today-label-me");
+    const lb = document.getElementById("today-label-partner");
+    const rawMe = (state.myName || "?").trim();
+    const rawPt = (state.partnerName || "?").trim();
+    const nMe = rawMe.slice(0, 2).toUpperCase() || "?";
+    const nPt = rawPt.slice(0, 2).toUpperCase() || "?";
+    if (meAv) meAv.textContent = nMe;
+    if (ptAv) ptAv.textContent = state.paired ? nPt : "?";
+    if (la) la.textContent = state.myName || "You";
+    if (lb) lb.textContent = state.paired ? (state.partnerName || "Partner") : "Partner";
+    const trustMe = document.getElementById("today-trust-me");
+    const trustPt = document.getElementById("today-trust-partner");
+    const labMe = document.getElementById("today-trust-label-me");
+    if (trustMe) trustMe.textContent = String(state.trustScore ?? 100);
+    if (trustPt) trustPt.textContent = "—";
+    if (labMe) {
+        const short = (state.myName || "you").trim().slice(0, 10).toLowerCase() || "you";
+        labMe.textContent = short;
+    }
+    const dayPill = document.getElementById("today-day-pill");
+    let days = 1;
+    if (state.paired && state.createdAt) {
+        const t = typeof state.createdAt === "number" ? state.createdAt : Date.parse(state.createdAt);
+        if (!Number.isNaN(t)) {
+            days = Math.max(1, Math.floor((Date.now() - t) / 86400000) + 1);
+        }
+    }
+    if (dayPill) dayPill.textContent = `day ${days}`;
+    const streakDays = document.getElementById("today-streak-days");
+    if (streakDays) {
+        streakDays.textContent = days === 1 ? "1 day" : `${days} days`;
+    }
+    document.querySelectorAll("#today-streak-cells .today-streak-cell").forEach((el, i) => {
+        el.classList.toggle("filled", i < Math.min(7, days));
+    });
+}
+
+export function appendTodayHeartbeatEntry(line) {
+    const sub = document.getElementById("today-hb-sub");
+    if (sub) {
+        sub.textContent = "today · last check just now";
+    }
+    const log = document.getElementById("today-hb-log");
+    if (!log || !line) {
+        return;
+    }
+    const row = document.createElement("div");
+    row.className = "today-hb-entry";
+    row.textContent = line;
+    log.prepend(row);
+    while (log.children.length > 24) {
+        log.removeChild(log.lastChild);
+    }
+}
+
 export function renderDashboard() {
-    const label = document.getElementById("dash-couple-label");
-    if (label) {
-        label.textContent = `${state.myName} + ${state.partnerName || "?"}`;
+    if (!state.paired) {
+        if (document.getElementById("screen-dashboard")?.classList.contains("active")) {
+            showScreen("home");
+        }
+        return;
     }
-    const trust = document.getElementById("trust-score");
-    if (trust) {
-        trust.textContent = state.trustScore ?? 100;
-    }
+    renderTodayTab();
     renderSignalGrid();
     renderSignalList();
     renderDiaryFeed();
