@@ -21,6 +21,16 @@ function signalTypeMark(type) {
     }[t] ?? t.slice(0, 3);
 }
 
+function trustNameLabel(raw, fallback) {
+    const s = String(raw != null && raw !== "" ? raw : fallback)
+        .trim()
+        .slice(0, 10) || fallback;
+    if (!s) {
+        return fallback;
+    }
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 function relTime(ts) {
     const diff = Date.now() - ts;
     if (diff < 60000) {
@@ -109,10 +119,6 @@ export function renderPact() {
 }
 
 export function renderTodayTab() {
-    const tag = document.getElementById("dash-status-tag");
-    if (tag) {
-        tag.textContent = state.paired ? "linked · active" : "solo mode";
-    }
     const meAv = document.getElementById("today-avatar-me");
     const ptAv = document.getElementById("today-avatar-partner");
     const la = document.getElementById("today-label-me");
@@ -128,11 +134,28 @@ export function renderTodayTab() {
     const trustMe = document.getElementById("today-trust-me");
     const trustPt = document.getElementById("today-trust-partner");
     const labMe = document.getElementById("today-trust-label-me");
+    const labPt = document.getElementById("today-trust-label-partner");
     if (trustMe) trustMe.textContent = String(state.trustScore ?? 100);
-    if (trustPt) trustPt.textContent = "—";
+    if (trustPt) {
+        if (state.paired) {
+            const p = state.partnerTrustScore;
+            const n = p != null && p !== "" && !Number.isNaN(Number(p)) ? Number(p) : 100;
+            trustPt.textContent = String(n);
+            trustPt.classList.remove("today-trust-score--muted");
+        } else {
+            trustPt.textContent = "—";
+            trustPt.classList.add("today-trust-score--muted");
+        }
+    }
     if (labMe) {
-        const short = (state.myName || "you").trim().slice(0, 10).toLowerCase() || "you";
-        labMe.textContent = short;
+        labMe.textContent = trustNameLabel(state.myName, "you");
+    }
+    if (labPt) {
+        if (state.paired) {
+            labPt.textContent = trustNameLabel(state.partnerName, "Partner");
+        } else {
+            labPt.textContent = "Partner";
+        }
     }
     const dayPill = document.getElementById("today-day-pill");
     let days = 1;

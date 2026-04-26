@@ -131,9 +131,7 @@
 
       <div class="dash-top">
         <div class="dash-brand">
-          <div class="dash-logo">LOVE<span class="teal">CLAW</span></div>
-          <div class="dash-tagline" id="dash-status-tag">solo mode</div>
-          <button type="button" class="dash-welcome" id="btn-welcome">← welcome</button>
+          <div class="dash-logo">LOVE<span class="logo-claw">CLAW</span></div>
         </div>
         <div class="dash-top-actions">
           <button type="button" class="dash-pill-btn" id="btn-qr-phone" title="Open on phone" aria-label="QR open on phone">
@@ -142,7 +140,7 @@
           <button type="button" class="dash-pill-btn dash-pill-btn--info" id="btn-dash-info" title="About this screen">
             <span class="dash-info-dot"></span>INFO
           </button>
-          <button class="btn-disconnect" id="btn-disconnect" title="disconnect &amp; reset">✕</button>
+          <button type="button" class="btn-disconnect" id="btn-disconnect" title="Back to welcome" aria-label="Back to welcome">✕</button>
         </div>
       </div>
       <p class="dash-info-hint hidden" id="dash-info-hint">Trust scores and heartbeat pull live signals from LoveClaw when the desktop agent is running.</p>
@@ -159,9 +157,53 @@
       <div class="tab-content today-tab" id="tab-today">
         <div class="today-card today-couple-card">
           <div class="today-couple-row">
+            <svg
+              class="today-couple-connect"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <line
+                class="today-couple-connect-line today-couple-connect-line--me"
+                x1="8"
+                y1="50"
+                x2="50"
+                y2="34"
+                vector-effect="non-scaling-stroke"
+              />
+              <line
+                class="today-couple-connect-line today-couple-connect-line--partner"
+                x1="92"
+                y1="50"
+                x2="50"
+                y2="34"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
             <div class="today-avatar today-avatar--me" id="today-avatar-me">?</div>
             <div class="today-couple-mid">
-              <span class="today-heart" aria-hidden="true">♥</span>
+              <svg
+                class="today-heart today-heart-svg"
+                viewBox="10 12 44 40"
+                width="56"
+                height="51"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="17" y="14" width="5" height="5" fill="#D4537E" />
+                <rect x="22" y="14" width="5" height="5" fill="#D4537E" />
+                <rect x="37" y="14" width="5" height="5" fill="#D4537E" />
+                <rect x="42" y="14" width="5" height="5" fill="#D4537E" />
+                <rect x="12" y="19" width="40" height="5" fill="#D4537E" />
+                <rect x="12" y="24" width="40" height="5" fill="#D4537E" />
+                <rect x="12" y="29" width="40" height="5" fill="#D4537E" />
+                <rect x="17" y="34" width="30" height="5" fill="#ED93B1" />
+                <rect x="22" y="39" width="20" height="5" fill="#ED93B1" />
+                <rect x="27" y="44" width="10" height="5" fill="#ED93B1" />
+              </svg>
               <span class="today-day-pill" id="today-day-pill">day 1</span>
             </div>
             <div class="today-avatar today-avatar--partner" id="today-avatar-partner">?</div>
@@ -170,7 +212,7 @@
             <span id="today-label-me">You</span>
             <span id="today-label-partner">Partner</span>
           </div>
-          <div class="today-streak-head">loyal streak</div>
+          <div class="today-streak-head">loyalty streak</div>
           <div class="today-streak-row">
             <div class="today-streak-cells" id="today-streak-cells">
               <span class="today-streak-cell"></span><span class="today-streak-cell"></span><span class="today-streak-cell"></span>
@@ -190,7 +232,7 @@
             </div>
             <div class="today-trust-col today-trust-col--partner">
               <div class="today-trust-score today-trust-score--muted" id="today-trust-partner">—</div>
-              <div class="today-trust-who">partner</div>
+              <div class="today-trust-who" id="today-trust-label-partner">partner</div>
             </div>
           </div>
         </div>

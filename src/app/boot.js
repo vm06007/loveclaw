@@ -10,6 +10,38 @@ import { handleAxlMessage } from "./messages.js";
 import { renderPingStatus } from "./ping.js";
 
 /**
+ * Match window title "LoveClaw — Alice": capitalize role when name matches role or name is absent.
+ */
+function displayNameFromInstance(role, name) {
+    const r = role && String(role).trim();
+    const n = name != null ? String(name).trim() : "";
+    if (!r && !n) {
+        return "";
+    }
+    if (n && r && n.toLowerCase() === r.toLowerCase()) {
+        return r.charAt(0).toUpperCase() + r.slice(1).toLowerCase();
+    }
+    if (n) {
+        return n;
+    }
+    return r.charAt(0).toUpperCase() + r.slice(1).toLowerCase();
+}
+
+function prefillNameInputsIfEmpty(value) {
+    if (!value) {
+        return;
+    }
+    const cn = document.getElementById("create-name");
+    const jn = document.getElementById("join-name");
+    if (cn && !cn.value.trim()) {
+        cn.value = value;
+    }
+    if (jn && !jn.value.trim()) {
+        jn.value = value;
+    }
+}
+
+/**
  * Tauri: each fresh app launch (not page reload) starts with a clean pairing state
  * (sessionStorage is cleared on process exit; it survives in-tab reloads).
  */
@@ -28,6 +60,8 @@ function maybeTauriSessionReset() {
 export async function boot() {
     const urlParams = new URLSearchParams(location.search);
     const urlRole = urlParams.get("role");
+    /** Same idea as title "LoveClaw — Alice"; fill inputs whenever they are still empty. */
+    let instanceDisplayName = "";
 
     if (urlRole) {
         const roleKey = `loveclaw-state-${urlRole}`;
@@ -35,17 +69,9 @@ export async function boot() {
             setStorageKeyAndReload(roleKey);
         }
         axl.setPreferPort(urlRole === "boris" ? 9012 : 9002);
-        const urlName = urlParams.get("name");
-        if (urlName && !state.myName) {
-            const cn = document.getElementById("create-name");
-            const jn = document.getElementById("join-name");
-            if (cn) {
-                cn.value = urlName;
-            }
-            if (jn) {
-                jn.value = urlName;
-            }
-        }
+        const urlNameParam = urlParams.get("name");
+        instanceDisplayName =
+            (urlNameParam && urlNameParam.trim()) || displayNameFromInstance(urlRole, null);
     } else if (isTauri()) {
         try {
             const cfg = await invoke("get_instance_config");
@@ -58,22 +84,17 @@ export async function boot() {
                     axl.setPreferPort(cfg.axlPort);
                 }
             }
-            if (cfg?.name && !state.myName) {
-                const cn = document.getElementById("create-name");
-                const jn = document.getElementById("join-name");
-                if (cn) {
-                    cn.value = cfg.name;
-                }
-                if (jn) {
-                    jn.value = cfg.name;
-                }
-            }
+            instanceDisplayName = displayNameFromInstance(cfg?.role, cfg?.name);
         } catch {
             /* */
         }
     }
 
     maybeTauriSessionReset();
+
+    if (instanceDisplayName) {
+        prefillNameInputsIfEmpty(instanceDisplayName);
+    }
 
     // Only skip the welcome screen when we have a real couple session. A lone
     // `paired: true` in storage (no partner name) used to open the dashboard

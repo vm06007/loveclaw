@@ -1,6 +1,5 @@
 import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { clearPingBadge } from "../app/ping.js";
-import { showScreen } from "../lib/router.js";
 import { onDiaryGenerateClick } from "./render.js";
 
 /**
@@ -26,13 +25,6 @@ export function initDashboardTabs() {
     if (gen) {
         gen.addEventListener("click", () => {
             onDiaryGenerateClick();
-        });
-    }
-
-    const welcome = document.getElementById("btn-welcome");
-    if (welcome) {
-        welcome.addEventListener("click", () => {
-            showScreen("home");
         });
     }
 

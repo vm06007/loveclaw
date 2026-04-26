@@ -1,7 +1,7 @@
 import { state, saveState } from "../lib/state.js";
 import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
-import { renderDiaryFeed } from "../dashboard/render.js";
+import { renderDiaryFeed, renderTodayTab } from "../dashboard/render.js";
 
 export function handleAxlMessage(msg) {
     switch (msg.type) {
@@ -14,8 +14,15 @@ export function handleAxlMessage(msg) {
         case "chat":
             handleChat(msg);
             break;
-        case "score":
+        case "score": {
+            const v = msg.score ?? msg.value ?? msg.trust;
+            if (v != null && v !== "" && !Number.isNaN(Number(v))) {
+                state.partnerTrustScore = Number(v);
+                saveState(state);
+                renderTodayTab();
+            }
             break;
+        }
         case "breach":
             triggerBreach(msg.app || "unknown app (partner report)");
             break;

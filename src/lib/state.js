@@ -13,6 +13,7 @@ const DEFAULT_STATE = {
     myAxlKey: "",
     partnerAxlKey: "",
     trustScore: 100,
+    partnerTrustScore: 100,
     signals: [],
     diary: [],
 };
