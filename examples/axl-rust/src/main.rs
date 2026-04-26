@@ -204,7 +204,7 @@ async fn cmd_poll(axl: &AxlClient) -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-/// Scripted back-and-forth exchange demonstrating the LoveClaw protocol.
+/// testing back-and-forth exchange demonstrating the LoveClaw protocol.
 async fn cmd_demo(axl: &AxlClient, partner_key: &str) -> Result<(), Box<dyn std::error::Error>> {
     let t = axl.topology().await?;
     let my_key = t.our_public_key.clone();

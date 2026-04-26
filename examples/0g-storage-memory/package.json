@@ -1,0 +1,20 @@
+{
+    "name": "0g-storage-memory-example",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "demo": "bun run src/demo.ts",
+        "demo:upload": "bun run src/demo.ts upload",
+        "demo:download": "bun run src/demo.ts download",
+        "ui": "bun run src/server.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@0gfoundation/0g-ts-sdk": "^1.2.6",
+        "ethers": "^6.13.0"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^5.7.0"
+    }
+}
