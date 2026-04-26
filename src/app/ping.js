@@ -2,26 +2,26 @@ import { state } from "../lib/state.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 
-const pingLog = [];
+const chatLog = [];
 
-let pingUnread = 0;
+let chatUnread = 0;
 
 export function bumpPingBadge() {
-    const pingTab = document.querySelector('.tab[data-tab="ping"]');
-    if (pingTab?.classList.contains("active")) {
+    const chatTab = document.querySelector('.tab[data-tab="chat"]');
+    if (chatTab?.classList.contains("active")) {
         return;
     }
-    pingUnread++;
-    const badge = document.getElementById("ping-badge");
+    chatUnread++;
+    const badge = document.getElementById("chat-badge");
     if (badge) {
-        badge.textContent = String(pingUnread);
+        badge.textContent = String(chatUnread);
         badge.classList.remove("hidden");
     }
 }
 
 export function clearPingBadge() {
-    pingUnread = 0;
-    const badge = document.getElementById("ping-badge");
+    chatUnread = 0;
+    const badge = document.getElementById("chat-badge");
     if (badge) {
         badge.textContent = "";
         badge.classList.add("hidden");
@@ -29,34 +29,43 @@ export function clearPingBadge() {
 }
 
 function addBubble(side, text, ack = false) {
-    pingLog.push({ side, text, ack, ts: Date.now() });
-    flushPingChat();
+    chatLog.push({ side, text, ack, ts: Date.now() });
+    flushChatLog();
 }
 
-function flushPingChat() {
-    const chat = document.getElementById("ping-chat");
+function flushChatLog() {
+    const chat = document.getElementById("chat-log");
     if (!chat) {
         return;
     }
-    const empty = document.getElementById("ping-empty");
+    const empty = document.getElementById("chat-empty");
     if (empty) {
         empty.remove();
     }
     const rendered = chat.querySelectorAll(".chat-row").length;
-    const toAdd = pingLog.slice(rendered);
+    const toAdd = chatLog.slice(rendered);
     toAdd.forEach(({ side, text, ack, ts }) => {
         const row = document.createElement("div");
         row.className = `chat-row ${side}`;
-        row.innerHTML = `
-      <div class="chat-bubble${ack ? " ack" : ""}">${text}</div>
-      <div class="chat-time">${new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</div>`;
+        const bubble = document.createElement("div");
+        bubble.className = `chat-bubble${ack ? " ack" : ""}`;
+        bubble.textContent = text;
+        const timeEl = document.createElement("div");
+        timeEl.className = "chat-time";
+        timeEl.textContent = new Date(ts).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+        row.appendChild(bubble);
+        row.appendChild(timeEl);
         chat.appendChild(row);
     });
     chat.scrollTop = chat.scrollHeight;
 }
 
 /**
- * Shown in dashboard ping tab header (AXL port vs. local IPC).
+ * Shown in dashboard chat tab header (AXL port vs. local IPC).
  */
 export function renderPingStatus() {
     const me = document.getElementById("ping-status-me");
@@ -77,6 +86,14 @@ export function renderPingStatus() {
     <span class="ping-status-port${isBc ? " bc" : ""}">${partnerPort}</span>`;
 }
 
+function transportSend(payload) {
+    if (axl.available) {
+        axl.send(state.partnerAxlKey, payload);
+    } else {
+        ipcSend(payload);
+    }
+}
+
 export function sendPing() {
     if (!state.paired) {
         return;
@@ -87,23 +104,33 @@ export function sendPing() {
         setTimeout(() => btn.classList.remove("pinging"), 800);
     }
     const msg = { type: "ping", from: state.myName, ts: Date.now() };
-    if (axl.available) {
-        axl.send(state.partnerAxlKey, msg);
-    } else {
-        ipcSend(msg);
-    }
+    transportSend(msg);
     addBubble("right", `ping: sent to ${state.partnerName || "partner"}`);
+}
+
+export function sendChat() {
+    if (!state.paired) {
+        return;
+    }
+    const input = document.getElementById("chat-input");
+    if (!input) {
+        return;
+    }
+    const text = input.value.trim();
+    if (!text) {
+        return;
+    }
+    input.value = "";
+    const msg = { type: "chat", from: state.myName, text, ts: Date.now() };
+    transportSend(msg);
+    addBubble("right", text);
 }
 
 export function handlePing(msg) {
     addBubble("left", `ping: ${msg.from} is checking in`);
     bumpPingBadge();
     const pong = { type: "pong", from: state.myName, pingTs: msg.ts, ts: Date.now() };
-    if (axl.available) {
-        axl.send(state.partnerAxlKey, pong);
-    } else {
-        ipcSend(pong);
-    }
+    transportSend(pong);
     addBubble("right", "pong: sent to partner", true);
 }
 
@@ -114,14 +141,38 @@ export function handlePong(msg) {
     bumpPingBadge();
 }
 
+export function handleChat(msg) {
+    const who = (msg.from || "partner").trim() || "partner";
+    const body = typeof msg.text === "string" ? msg.text : "";
+    addBubble("left", `${who}: ${body}`);
+    bumpPingBadge();
+}
+
 export function initPingActions() {
-    const btn = document.getElementById("btn-ping");
-    if (btn) {
-        btn.addEventListener("click", () => {
+    const pingBtn = document.getElementById("btn-ping");
+    if (pingBtn) {
+        pingBtn.addEventListener("click", () => {
             if (!state.paired) {
                 return;
             }
             sendPing();
+        });
+    }
+
+    const sendBtn = document.getElementById("btn-chat-send");
+    if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+            sendChat();
+        });
+    }
+
+    const input = document.getElementById("chat-input");
+    if (input) {
+        input.addEventListener("keydown", e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendChat();
+            }
         });
     }
 }

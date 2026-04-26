@@ -14,7 +14,7 @@ export function initDashboardTabs() {
             if (pane) {
                 pane.classList.remove("hidden");
             }
-            if (tab.dataset.tab === "ping") {
+            if (tab.dataset.tab === "chat") {
                 clearPingBadge();
             }
         });

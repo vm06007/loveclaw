@@ -1,5 +1,5 @@
 import { state, saveState } from "../lib/state.js";
-import { handlePing, handlePong } from "./ping.js";
+import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
 import { renderDiaryFeed } from "../dashboard/render.js";
 
@@ -10,6 +10,9 @@ export function handleAxlMessage(msg) {
             break;
         case "pong":
             handlePong(msg);
+            break;
+        case "chat":
+            handleChat(msg);
             break;
         case "score":
             break;

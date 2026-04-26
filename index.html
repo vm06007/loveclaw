@@ -107,7 +107,7 @@
         <button class="tab" data-tab="signals">signals</button>
         <button class="tab" data-tab="diary">diary</button>
         <button class="tab" data-tab="pact">pact</button>
-        <button class="tab active" data-tab="ping">ping<span class="tab-badge hidden" id="ping-badge"></span></button>
+        <button class="tab active" data-tab="chat">chat<span class="tab-badge hidden" id="chat-badge"></span></button>
       </div>
 
       <div class="tab-content hidden" id="tab-today">
@@ -127,24 +127,25 @@
         <div class="pact-view" id="pact-view"></div>
       </div>
 
-      <div class="tab-content tab-ping" id="tab-ping">
+      <div class="tab-content tab-chat" id="tab-chat">
         <div class="ping-status-bar" id="ping-status-bar">
           <div class="ping-status-node" id="ping-status-me"></div>
           <div class="ping-status-sep">↔</div>
           <div class="ping-status-node" id="ping-status-partner"></div>
         </div>
-        <div class="ping-chat" id="ping-chat">
-          <div class="ping-empty" id="ping-empty">
-            <div class="ping-empty-icon">📡</div>
-            <div class="ping-empty-text">send a ping to check connection</div>
+        <div class="ping-chat" id="chat-log">
+          <div class="ping-empty" id="chat-empty">
+            <div class="ping-empty-icon" aria-hidden="true">~</div>
+            <div class="ping-empty-text">send a message or tap ping to test the link</div>
           </div>
         </div>
-        <div class="ping-compose">
-          <button class="btn-ping" id="btn-ping">
+        <div class="chat-compose">
+          <button type="button" class="btn-ping btn-ping--compact" id="btn-ping" title="send ping">
             <span class="ping-ripple"></span>
-            <span class="ping-icon">📡</span>
-            <span class="ping-btn-label">ping</span>
+            <span class="ping-btn-label ping-btn-label--solo">ping</span>
           </button>
+          <input type="text" id="chat-input" class="chat-input" maxlength="2000" placeholder="type a message..." autocomplete="off" />
+          <button type="button" class="btn btn-primary btn-chat-send" id="btn-chat-send">send</button>
         </div>
       </div>
     </div>
