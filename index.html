@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#07070f" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <title>LoveClaw</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── HOME ─────────────────────────────────────────── -->
+    <div id="screen-home" class="screen active">
+      <div class="screen-inner">
+        <div class="logo-wrap">
+          <div class="logo-icon">💘</div>
+          <h1 class="logo-title">LOVE<span class="teal">CLAW</span></h1>
+          <p class="logo-sub">relationship trust monitor</p>
+        </div>
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="btn-create">create pair</button>
+          <button class="btn btn-ghost" id="btn-join">join pair</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CREATE ────────────────────────────────────────── -->
+    <div id="screen-create" class="screen">
+      <div class="screen-inner">
+        <div class="back-row"><button class="btn-back" id="back-create">← back</button></div>
+        <h2 class="screen-title">create pair</h2>
+        <div class="field-group">
+          <label class="field-label">your name</label>
+          <input id="create-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">breach triggers</label>
+          <div id="triggers-list" class="triggers-grid"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-generate">generate invite</button>
+      </div>
+    </div>
+
+    <!-- ── INVITE CODE ───────────────────────────────────── -->
+    <div id="screen-code" class="screen">
+      <div class="screen-inner">
+        <div class="back-row"><button class="btn-back" id="back-code">← back</button></div>
+        <h2 class="screen-title">share with partner</h2>
+        <div id="qr-wrap" class="qr-wrap"></div>
+        <div class="invite-link-box">
+          <p id="invite-link" class="invite-link"></p>
+          <button class="btn btn-ghost btn-sm" id="btn-copy-link">copy</button>
+        </div>
+        <p class="hint">waiting for partner to join…</p>
+        <div class="pulse-dot"></div>
+      </div>
+    </div>
+
+    <!-- ── JOIN ──────────────────────────────────────────── -->
+    <div id="screen-join" class="screen">
+      <div class="screen-inner">
+        <div class="back-row"><button class="btn-back" id="back-join">← back</button></div>
+        <h2 class="screen-title">join pair</h2>
+        <div class="field-group">
+          <label class="field-label">your name</label>
+          <input id="join-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">invite code</label>
+          <textarea id="join-code" class="field-input field-textarea" placeholder="paste invite code here"></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-join-submit">join</button>
+      </div>
+    </div>
+
+    <!-- ── PAIRED (transition) ───────────────────────────── -->
+    <div id="screen-paired" class="screen">
+      <div class="screen-inner center">
+        <div class="paired-icon">💕</div>
+        <h2 class="screen-title">paired!</h2>
+        <p id="paired-msg" class="hint"></p>
+        <div class="pulse-dot"></div>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD ─────────────────────────────────────── -->
+    <div id="screen-dashboard" class="screen">
+      <div class="dash-header">
+        <div class="dash-couple" id="dash-couple-label"></div>
+        <div class="dash-header-right">
+          <div class="trust-badge" id="trust-badge">
+            <span id="trust-score">100</span>
+            <span class="trust-label">trust</span>
+          </div>
+          <button class="btn-disconnect" id="btn-disconnect" title="disconnect &amp; reset">✕</button>
+        </div>
+      </div>
+
+      <div class="dash-tabs">
+        <button class="tab" data-tab="today">today</button>
+        <button class="tab" data-tab="signals">signals</button>
+        <button class="tab" data-tab="diary">diary</button>
+        <button class="tab" data-tab="pact">pact</button>
+        <button class="tab active" data-tab="ping">ping<span class="tab-badge hidden" id="ping-badge"></span></button>
+      </div>
+
+      <div class="tab-content hidden" id="tab-today">
+        <div class="signal-grid" id="signal-grid"></div>
+      </div>
+
+      <div class="tab-content hidden" id="tab-signals">
+        <div class="signal-list" id="signal-list"></div>
+      </div>
+
+      <div class="tab-content hidden" id="tab-diary">
+        <div class="diary-feed" id="diary-feed"></div>
+        <button class="btn btn-ghost btn-sm fab" id="btn-diary-gen">+ generate entry</button>
+      </div>
+
+      <div class="tab-content hidden" id="tab-pact">
+        <div class="pact-view" id="pact-view"></div>
+      </div>
+
+      <div class="tab-content tab-ping" id="tab-ping">
+        <div class="ping-status-bar" id="ping-status-bar">
+          <div class="ping-status-node" id="ping-status-me"></div>
+          <div class="ping-status-sep">↔</div>
+          <div class="ping-status-node" id="ping-status-partner"></div>
+        </div>
+        <div class="ping-chat" id="ping-chat">
+          <div class="ping-empty" id="ping-empty">
+            <div class="ping-empty-icon">📡</div>
+            <div class="ping-empty-text">send a ping to check connection</div>
+          </div>
+        </div>
+        <div class="ping-compose">
+          <button class="btn-ping" id="btn-ping">
+            <span class="ping-ripple"></span>
+            <span class="ping-icon">📡</span>
+            <span class="ping-btn-label">ping</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BREACH OVERLAY ────────────────────────────────── -->
+    <div id="overlay-breach" class="overlay hidden">
+      <div class="overlay-inner">
+        <div class="breach-icon">🚨</div>
+        <h2 class="breach-title">BREACH DETECTED</h2>
+        <p id="breach-msg" class="breach-msg"></p>
+        <button class="btn btn-primary" id="btn-breach-dismiss">acknowledge</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

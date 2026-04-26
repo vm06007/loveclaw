@@ -1,0 +1,23 @@
+{
+  "name": "loveclaw",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "bash run.sh",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "dev:alice": "LOVECLAW_ROLE=alice tauri dev",
+    "dev:boris": "LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^6"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "qrcode": "^1.5.4"
+  }
+}
