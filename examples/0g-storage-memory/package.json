@@ -7,6 +7,7 @@
         "demo:upload": "bun run src/demo.ts upload",
         "demo:download": "bun run src/demo.ts download",
         "ui": "bun run src/server.ts",
+        "ui:2": "bun run src/server.ts --scale=2",
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {

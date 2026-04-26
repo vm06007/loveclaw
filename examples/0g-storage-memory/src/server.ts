@@ -175,6 +175,52 @@ async function handleApi(req: Request, pathname: string) {
 
 await loadEnv();
 
+/** Same key as `public/app.js` (sessionStorage UI scale). */
+const UI_SCALE_SESSION_KEY = "0g-ui-scale";
+
+function parseUiStartScaleFromArgv(): string | undefined {
+    for (const a of process.argv) {
+        if (a.startsWith("--scale=")) {
+            return a.slice("--scale=".length).trim();
+        }
+    }
+    return undefined;
+}
+
+/** CLI `--scale=` or env `UI_START_SCALE` (after loadEnv). `1` / `2` / `100` / `200` / `1x` / `2x`. */
+function resolveUiStartScale(): 1 | 2 | undefined {
+    const raw =
+        parseUiStartScaleFromArgv() ?? process.env.UI_START_SCALE?.trim();
+    if (!raw) {
+        return undefined;
+    }
+    const r = raw.toLowerCase().replace(/%$/, "");
+    if (r === "2" || r === "200" || r === "2x") {
+        return 2;
+    }
+    if (r === "1" || r === "100" || r === "1x") {
+        return 1;
+    }
+    throw new Error(
+        `Invalid UI start scale (use 1 or 2, e.g. UI_START_SCALE=2 or --scale=2); got ${JSON.stringify(raw)}`,
+    );
+}
+
+const uiStartScale = resolveUiStartScale();
+
+const indexHtmlMarker = '<script src="/app.js" defer></script>';
+const indexHtmlRaw = await Bun.file(join(ROOT, "public", "index.html")).text();
+if (!indexHtmlRaw.includes(indexHtmlMarker)) {
+    throw new Error("public/index.html must contain the app.js script tag");
+}
+const indexHtmlBody =
+    uiStartScale === undefined
+        ? indexHtmlRaw
+        : indexHtmlRaw.replace(
+              indexHtmlMarker,
+              `<script>try{sessionStorage.setItem(${JSON.stringify(UI_SCALE_SESSION_KEY)},"${uiStartScale}");}catch(e){}</script>\n    ${indexHtmlMarker}`,
+          );
+
 const uiPortRaw = process.env.UI_PORT?.trim();
 const strictPort = uiPortRaw !== undefined && uiPortRaw !== "";
 const basePort = strictPort ? Number(uiPortRaw) : 4789;
@@ -200,8 +246,7 @@ for (const port of portRange) {
                 }
 
                 if (pathname === "/" || pathname === "/index.html") {
-                    const file = Bun.file(join(ROOT, "public", "index.html"));
-                    return new Response(file, {
+                    return new Response(indexHtmlBody, {
                         headers: { "Content-Type": "text/html; charset=utf-8" },
                     });
                 }
@@ -240,6 +285,15 @@ if (!server) {
 
 const url = `http://127.0.0.1:${server.port}/`;
 console.log(`0G Storage UI → ${url}`);
+if (uiStartScale === 2) {
+    console.log(
+        "Initial UI scale: 2x (UI_START_SCALE or --scale=2). URL ?scale=1 still forces 1x on first paint.",
+    );
+} else if (uiStartScale === 1) {
+    console.log(
+        "Initial UI scale: 1x (UI_START_SCALE=1 or --scale=1 primes sessionStorage).",
+    );
+}
 if (!strictPort && server.port !== basePort) {
     console.log(`(default ${basePort} was in use - using ${server.port})`);
 }

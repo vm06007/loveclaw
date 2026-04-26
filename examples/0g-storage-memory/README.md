@@ -42,7 +42,20 @@ Local-only server on **127.0.0.1** (default port **4789**). The browser never se
 ```bash
 bun run ui
 # open http://127.0.0.1:4789/
+# optional 200% preview: top bar 1x / 2x or http://127.0.0.1:4789/?scale=2
 ```
+
+Start **already at 2x** (server injects a one-line script so `sessionStorage` is set before `app.js` loads):
+
+```bash
+UI_START_SCALE=2 bun run ui
+# or pass a flag (same process):
+bun run ui -- --scale=2
+# or npm-style shortcut:
+bun run ui:2
+```
+
+Use **`UI_START_SCALE=1`** or **`--scale=1`** to prime **1x** on first load (overrides a previously saved 2x in `sessionStorage`). **`?scale=1`** or **`?scale=2`** in the URL still wins over both when you open that URL.
 
 Optional: `UI_PORT=8080 bun run ui` (only that port is tried).
 
@@ -56,6 +69,7 @@ Confirm on storage explorer: **testnet** [storagescan-galileo.0g.ai](https://sto
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
+| `UI_START_SCALE` | _(unset)_ | Optional `1` or `2`: first paint at 1x or 2x UI zoom (same as top bar). Also available as **`bun run ui -- --scale=2`**. |
 | `OG_NETWORK` | `testnet` | `testnet` / `galileo` → Galileo testnet; `mainnet` / `aristotle` → 0G Mainnet |
 | `RPC_URL` | _(from network)_ | Optional full override |
 | `INDEXER_RPC` | _(from network)_ | Optional full override |

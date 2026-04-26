@@ -560,3 +560,65 @@ body {
     color: var(--teal);
     border-color: var(--teal);
 }
+
+/*
+ * 0G Storage UI scale: top bar 1x / 2x buttons or ?scale=2|1 in the URL (public/app.js).
+ * Uses CSS zoom (Chromium, Safari, recent Firefox); for OS zoom use the browser zoom instead.
+ */
+html.lc-ui-scale-200 {
+    zoom: 2;
+}
+
+.lc-zoom-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.lc-zoom-btn {
+    font-family: var(--px);
+    font-size: 6px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--bg3);
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.lc-zoom-btn:hover {
+    color: #fff;
+    border-color: var(--muted);
+}
+.lc-zoom-btn.active {
+    color: var(--teal);
+    border-color: var(--teal-d);
+    background: #0a1f18;
+}
+
+@keyframes lc-zoom-2x-nudge {
+    0%,
+    100% {
+        opacity: 1;
+        border-color: var(--border);
+        color: var(--muted);
+        box-shadow: none;
+    }
+    50% {
+        opacity: 1;
+        border-color: var(--purple);
+        color: var(--purple-l);
+        box-shadow: 0 0 8px rgba(83, 74, 183, 0.45);
+    }
+}
+#zoom2x.lc-zoom-btn:not(.active) {
+    animation: lc-zoom-2x-nudge 2.4s ease-in-out infinite;
+}
+#zoom2x.lc-zoom-btn:not(.active):hover {
+    animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+    #zoom2x.lc-zoom-btn:not(.active) {
+        animation: none;
+    }
+}
