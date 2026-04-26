@@ -40,9 +40,10 @@ from rgb import R, G, Y, B, M, C, DIM, BOLD, RST
 
 AXL_BIN  = './axl/node'
 UI_PORT  = int(os.environ.get('UI_PORT', 8090))
-HTML     = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ui.html')
-CSS      = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ui.css')
-JS       = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ui.js')
+_DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
+HTML     = os.path.join(_DEMO_DIR, 'ui.html')
+CSS      = os.path.join(_DEMO_DIR, '..', 'loveclaw-style', 'pixel-ui.css')
+JS       = os.path.join(_DEMO_DIR, 'ui.js')
 
 # ── SSE broadcast infrastructure ───────────────────────────────────────────────
 
@@ -236,7 +237,7 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
 
-        elif self.path == '/ui.css':
+        elif self.path == '/pixel-ui.css':
             with open(CSS, 'rb') as f:
                 content = f.read()
             self.send_response(200)
