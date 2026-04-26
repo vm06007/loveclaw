@@ -1,0 +1,338 @@
+/**
+ * Signal console only — load after pixel-ui.css (uses its :root tokens).
+ * Scope: body.lc-signal-console (prototype/console/signal-console.html).
+ */
+
+.lc-signal-console #conn-label {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.65;
+    word-break: break-word;
+}
+.lc-signal-console #conn-pill {
+    white-space: normal;
+    max-width: min(52vw, 420px);
+}
+
+.lc-signal-console .stats {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+}
+.lc-signal-console .stat {
+    flex: 1;
+    padding: 8px 14px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.lc-signal-console .stat:last-child {
+    border-right: none;
+}
+.lc-signal-console .stat-val {
+    font-size: 16px;
+    color: #fff;
+}
+.lc-signal-console .stat-val.red {
+    color: var(--red);
+}
+.lc-signal-console .stat-val.amber {
+    color: var(--amber);
+}
+.lc-signal-console .stat-label {
+    font-size: 5px;
+    color: var(--muted);
+    letter-spacing: 1px;
+}
+
+.lc-signal-console .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+.lc-signal-console .filter-btn {
+    font-family: var(--px);
+    font-size: 5px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    transition: all 0.15s;
+}
+.lc-signal-console .filter-btn.active {
+    background: var(--bg4);
+    color: #fff;
+    border-color: var(--purple-l);
+}
+.lc-signal-console .filter-btn:hover {
+    color: #fff;
+}
+.lc-signal-console .filter-btn.f-breach.active {
+    color: var(--red);
+    border-color: var(--red);
+    background: #200505;
+}
+.lc-signal-console .filter-btn.f-app.active {
+    color: var(--amber);
+    border-color: var(--amber-d);
+    background: #1a1000;
+}
+.lc-signal-console .filter-btn.f-location.active {
+    color: var(--teal);
+    border-color: var(--teal-d);
+    background: #0a1a14;
+}
+.lc-signal-console .filter-btn.f-notif.active {
+    color: var(--purple-l);
+    border-color: var(--purple);
+    background: #10092a;
+}
+.lc-signal-console .filter-btn.f-call.active {
+    color: var(--pink-l);
+    border-color: var(--pink);
+    background: #1a0810;
+}
+.lc-signal-console .toolbar .sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.lc-signal-console .clear-wrap {
+    margin-left: auto;
+    position: relative;
+}
+.lc-signal-console .clear-btn {
+    font-family: var(--px);
+    font-size: 5px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+}
+.lc-signal-console .clear-btn:hover {
+    color: var(--red);
+    border-color: var(--red);
+}
+.lc-signal-console .clear-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-width: 160px;
+    z-index: 100;
+    overflow: hidden;
+}
+.lc-signal-console .clear-menu.open {
+    display: block;
+}
+.lc-signal-console .clear-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--px);
+    font-size: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+.lc-signal-console .clear-menu-item:last-child {
+    border-bottom: none;
+}
+.lc-signal-console .clear-menu-item:hover {
+    background: var(--bg4);
+    color: var(--red);
+}
+.lc-signal-console .clear-menu-item.all {
+    color: #c8c8e8;
+}
+.lc-signal-console .clear-menu-item.all:hover {
+    color: var(--red);
+}
+.lc-signal-console .pause-btn {
+    font-family: var(--px);
+    font-size: 5px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+}
+.lc-signal-console .pause-btn.paused {
+    color: var(--amber);
+    border-color: var(--amber-d);
+}
+.lc-signal-console .pause-btn:hover {
+    color: #fff;
+}
+
+.lc-signal-console .log-wrap {
+    padding: 8px 0;
+}
+.lc-signal-console .log-wrap::-webkit-scrollbar {
+    width: 4px;
+}
+.lc-signal-console .entry {
+    cursor: pointer;
+    padding: 5px 14px;
+}
+.lc-signal-console .entry.breach-entry {
+    animation: lc-signal-breach-flash 0.4s 3;
+}
+@keyframes lc-signal-breach-flash {
+    0%,
+    100% {
+        background: #200505;
+    }
+    50% {
+        background: #3a0808;
+    }
+}
+
+.lc-signal-console .e-expand {
+    display: none;
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #9fe1cb;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+}
+.lc-signal-console .entry.expanded .e-expand {
+    display: block;
+}
+
+.lc-signal-console .t-app_installed {
+    background: #2a1a00;
+    color: var(--amber);
+}
+.lc-signal-console .t-apps_diff {
+    background: #2a1a00;
+    color: var(--amber);
+}
+.lc-signal-console .t-app_opened {
+    background: #1a0d2a;
+    color: var(--purple-l);
+}
+.lc-signal-console .t-apps {
+    background: #1a0d2a;
+    color: var(--purple-l);
+}
+.lc-signal-console .t-notification {
+    background: #0d1a2a;
+    color: #7ab8e8;
+}
+.lc-signal-console .t-location {
+    background: #0a1f18;
+    color: var(--teal);
+}
+.lc-signal-console .t-call {
+    background: #2a0d1a;
+    color: var(--pink-l);
+}
+.lc-signal-console .t-heartbeat {
+    background: var(--bg3);
+    color: var(--muted);
+}
+.lc-signal-console .t-axl_handshake {
+    background: #0a1f18;
+    color: var(--teal);
+}
+.lc-signal-console .t-_clear {
+    background: var(--bg3);
+    color: var(--muted);
+}
+.lc-signal-console .t-default {
+    background: var(--bg3);
+    color: var(--gray);
+}
+
+.lc-signal-console .maps-link {
+    display: inline-block;
+    margin-left: 12px;
+    font-family: var(--px);
+    font-size: 8px;
+    color: var(--teal);
+    text-decoration: none;
+    padding: 1px 6px;
+    border: 1px solid var(--teal-d);
+    border-radius: 3px;
+    vertical-align: middle;
+}
+.lc-signal-console .maps-link:hover {
+    background: var(--teal-d);
+    color: #000;
+}
+
+.lc-signal-console .breach-card {
+    margin: 6px 0 10px;
+    padding: 14px 18px;
+    background: #1a0404;
+    border: 1px solid var(--red);
+    border-radius: 6px;
+    font-family: Georgia, serif;
+    font-size: 12px;
+    color: #f0a0a0;
+    line-height: 1.8;
+}
+.lc-signal-console .breach-card-label {
+    font-family: var(--px);
+    font-size: 6px;
+    color: var(--red);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.lc-signal-console .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+}
+.lc-signal-console .empty-icon {
+    font-family: var(--px);
+    font-size: 32px;
+    line-height: 1;
+    opacity: 0.3;
+    color: var(--muted);
+}
+.lc-signal-console .empty-title {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+}
+.lc-signal-console .empty-sub {
+    font-size: 6px;
+    color: var(--muted);
+    line-height: 2;
+    text-align: center;
+}

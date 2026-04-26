@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LoveClaw / Signal Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../examples/loveclaw-style/pixel-ui.css" />
+    <link rel="stylesheet" href="../../examples/loveclaw-style/signal-console-ui.css" />
+</head>
+<body class="lc-signal-console">
+    <div class="topbar">
+        <div class="logo">
+            LOVE<span>CLAW</span><span class="logo-sep" aria-hidden="true">/</span>SIGNAL CONSOLE
+        </div>
+        <div class="topbar-right">
+            <div class="lc-zoom-group" role="group" aria-label="UI scale">
+                <button type="button" class="lc-zoom-btn active" id="zoom1x" aria-pressed="true">
+                    1x
+                </button>
+                <button type="button" class="lc-zoom-btn" id="zoom2x" aria-pressed="false">
+                    2x
+                </button>
+            </div>
+            <div class="conn-pill" id="conn-pill">
+                <div class="conn-dot"></div>
+                <span id="conn-label">connecting...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-val" id="stat-total">0</div>
+            <div class="stat-label">SIGNALS</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val red" id="stat-breach">0</div>
+            <div class="stat-label">BREACHES</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val amber" id="stat-apps">0</div>
+            <div class="stat-label">APP EVENTS</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val" id="stat-hb">-</div>
+            <div class="stat-label">LAST HB</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <button class="filter-btn active" id="btn-all" onclick="toggleAll()">ALL</button>
+        <div class="sep"></div>
+        <button class="filter-btn f-breach" data-filter="breach" onclick="toggleFilter('breach',this)">BREACH</button>
+        <button class="filter-btn f-app" data-filter="app" onclick="toggleFilter('app',this)">APPS</button>
+        <button class="filter-btn f-location" data-filter="location" onclick="toggleFilter('location',this)">LOCATION</button>
+        <button class="filter-btn f-notif" data-filter="notification" onclick="toggleFilter('notification',this)">NOTIFS</button>
+        <button class="filter-btn f-call" data-filter="call" onclick="toggleFilter('call',this)">CALLS</button>
+        <div class="sep"></div>
+        <button class="pause-btn" id="pause-btn" onclick="togglePause()">▐▐ PAUSE</button>
+        <div class="clear-wrap">
+            <button class="clear-btn" onclick="toggleClearMenu()">CLEAR ▾</button>
+            <div class="clear-menu" id="clear-menu">
+                <button class="clear-menu-item all" onclick="closeClearMenu();clearLog()">Clear ALL signals</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('breach')">Clear BREACH</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('app')">Clear APPS</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('location')">Clear LOCATION</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('notification')">Clear NOTIFS</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('call')">Clear CALLS</button>
+                <button class="clear-menu-item" onclick="closeClearMenu();clearType('heartbeat')">Clear HEARTBEATS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-wrap" id="log"></div>
+
+    <script src="signal-console.js" defer></script>
+</body>
+</html>
