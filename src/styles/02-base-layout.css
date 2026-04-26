@@ -26,6 +26,13 @@ html, body {
     background: var(--bg);
 }
 .screen.active { display: block; }
+/* Offset for fixed PWA install banner (see dashboard-pwa.js) */
+body.pwa-install-banner-on .screen {
+    padding-top: calc(48px + env(safe-area-inset-top, 0px));
+}
+body.pwa-install-banner-on .screen .screen-inner {
+    padding-top: 20px;
+}
 .screen-inner {
     min-height: 100%;
     padding: 32px 24px 48px;

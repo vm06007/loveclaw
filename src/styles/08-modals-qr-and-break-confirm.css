@@ -1,4 +1,4 @@
-/* QR modal */
+/* Modals (above fixed install strip z-index 200) */
 .modal-sheet {
     position: fixed;
     inset: 0;
@@ -9,15 +9,56 @@
     justify-content: center;
     padding: 24px;
 }
+.modal-pwa-setup {
+    z-index: 250;
+}
 .modal-sheet.hidden { display: none; }
 .modal-sheet-inner {
     width: 100%;
     max-width: 320px;
+    max-height: min(92vh, 640px);
+    overflow-y: auto;
     background: var(--bg2);
     border: 2px solid var(--teal-d);
     border-radius: 12px;
     padding: 22px 20px 18px;
     text-align: center;
+}
+.modal-pwa-inner {
+    -webkit-overflow-scrolling: touch;
+}
+.modal-pwa-block {
+    text-align: left;
+    margin-bottom: 10px;
+}
+.modal-pwa-block .btn {
+    width: 100%;
+    margin-top: 8px;
+}
+.modal-pwa-block-title {
+    font-size: 7px;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.modal-pwa-hint {
+    font-size: 5px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 0;
+}
+.modal-pwa-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+}
+.modal-pwa-block-title--center {
+    text-align: center;
+}
+.modal-pwa-sep + .modal-pwa-block-title--center {
+    margin-top: 0;
+    margin-bottom: 4px;
 }
 .modal-sheet-title {
     font-size: 9px;

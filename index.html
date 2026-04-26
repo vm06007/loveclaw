@@ -19,10 +19,34 @@
 </head>
 <body>
   <div id="app">
+    <div class="install-banner install-banner--fixed hidden" id="install-banner" role="region" aria-label="Set up app and open on phone">
+      <span class="install-banner-text" id="install-banner-text">Add the app and open on your phone</span>
+      <div class="install-banner-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="install-banner-open">set up</button>
+        <button type="button" class="install-dismiss" id="install-banner-dismiss" aria-label="Dismiss">×</button>
+      </div>
+    </div>
 
     <!-- ── HOME ─────────────────────────────────────────── -->
     <div id="screen-home" class="screen active">
       <div class="screen-inner">
+        <div class="home-pwa-cta hidden" id="home-pwa-cta">
+          <button
+            type="button"
+            class="home-pwa-cta-btn"
+            id="home-btn-pwa-setup"
+            title="Set up app and open on phone"
+            aria-label="Set up app and open on phone"
+          >
+            <svg class="home-pwa-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm8 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm2-4h2v2h-2v-2z"
+              />
+            </svg>
+            <span>phone &amp; app</span>
+          </button>
+        </div>
         <div class="home-paired-banner hidden" id="home-paired-banner" role="status">
           <span>You're already in a couple together.</span>
           <button type="button" class="link-ghost" id="btn-back-dashboard">back to dashboard</button>
@@ -147,14 +171,6 @@
 
     <!-- ── DASHBOARD ─────────────────────────────────────── -->
     <div id="screen-dashboard" class="screen dash-screen">
-      <div class="install-banner hidden" id="install-banner" role="region" aria-label="Install app">
-        <span class="install-banner-text">Add LoveClaw as Application</span>
-        <div class="install-banner-actions">
-          <button type="button" class="btn btn-primary btn-sm" id="install-banner-btn">Install</button>
-          <button type="button" class="install-dismiss" id="install-banner-dismiss" aria-label="Dismiss">×</button>
-        </div>
-      </div>
-
       <div class="dash-top">
         <div class="dash-brand">
           <div class="dash-logo">LOVE<span class="logo-claw">CLAW</span></div>
@@ -324,13 +340,30 @@
       </div>
     </div>
 
-    <div id="modal-qr-phone" class="modal-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="modal-qr-title">
-      <div class="modal-sheet-inner">
-        <h2 class="modal-sheet-title" id="modal-qr-title">OPEN ON PHONE</h2>
+    <div
+      id="modal-pwa-setup"
+      class="modal-sheet modal-pwa-setup hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-pwa-title"
+    >
+      <div class="modal-sheet-inner modal-pwa-inner">
+        <h2 class="modal-sheet-title" id="modal-pwa-title">set up</h2>
+        <p class="modal-sheet-sub">Install on this device, then open the same page on your phone (same Wi‑Fi).</p>
+
+        <div class="modal-pwa-block" id="modal-pwa-install-block">
+          <h3 class="modal-pwa-block-title">add as app</h3>
+          <p class="modal-pwa-hint" id="modal-pwa-install-hint">Add LoveClaw as an application for quick access.</p>
+          <button type="button" class="btn btn-primary btn-sm" id="modal-pwa-install-btn">install</button>
+        </div>
+
+        <div class="modal-pwa-sep" id="modal-pwa-sep" aria-hidden="true"></div>
+
+        <h3 class="modal-pwa-block-title modal-pwa-block-title--center" id="modal-qr-title">open on phone</h3>
         <p class="modal-sheet-sub">Scan with your phone camera to open this page</p>
         <div class="modal-qr-wrap" id="modal-qr-target"></div>
         <p class="modal-qr-url" id="modal-qr-url"></p>
-        <button type="button" class="btn btn-ghost modal-sheet-close" id="modal-qr-close">close</button>
+        <button type="button" class="btn btn-ghost modal-sheet-close" id="modal-pwa-close">close</button>
       </div>
     </div>
 

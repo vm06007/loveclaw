@@ -1,4 +1,37 @@
 /* ── Logo / Home ───────────────────────────────────────── */
+.home-pwa-cta {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 4px;
+}
+.home-pwa-cta.hidden { display: none; }
+.home-pwa-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font);
+    font-size: 6px;
+    letter-spacing: 1px;
+    color: var(--teal);
+    background: rgba(30, 126, 94, 0.12);
+    border: 1px solid var(--teal-d);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.home-pwa-cta-btn:hover {
+    color: var(--text);
+    border-color: var(--teal);
+    background: rgba(30, 126, 94, 0.2);
+}
+.home-pwa-ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
 .logo-wrap {
     display: flex;
     flex-direction: column;
