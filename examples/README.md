@@ -6,6 +6,21 @@ workflows.
 
 ---
 
+## Signal relay (`prototype/`)
+
+`prototype/signal-relay.py` starts the relay (implementation in `prototype/relay/`). It exposes **POST /signal**, **GET /stream** (SSE), and serves static files under `/examples/` and `/prototype/` so the signal console loads from the same origin on port **9090**.
+
+**Quick start:**
+```bash
+cd ..   # repo root
+python3 prototype/signal-relay.py
+# open http://127.0.0.1:9090/  → redirects to prototype/console/signal-console.html
+```
+
+Optional: `pip install cryptography` for Android attestation verification. Optional memory and image features expect `memory_router.py` / `image_gen.py` (not included in this repo) on their usual ports.
+
+---
+
 ## `0g-storage-memory/` — 0G Storage (chat / pact memory)
 
 Bun + TypeScript CLI: builds a JSON **pact memory snapshot**, uploads it with
