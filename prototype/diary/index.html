@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1e120a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>US · Our Pixel World</title>
+<meta name="version" content="17">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css" id="main-css">
+<script>
+(function(){
+  var c=document.getElementById('main-css');
+  if(c)c.href='style.css?v='+Date.now();
+})();
+</script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="animations.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="phone">
+  <!-- 背景层：与屏幕同级，在 .phone 下铺满内容区 -->
+  <div class="phone-bg" id="phone-home-bg" aria-hidden="true">
+    <img class="phone-bg-img"        src="images/carcamping.png"  alt="" data-state="1">
+    <img class="phone-bg-img"        src="images/beachparty.jpg"  alt="" data-state="2">
+    <img class="phone-bg-img"        src="images/citywalk.jpg"    alt="" data-state="3">
+    <img class="phone-bg-img"        src="images/diving.jpg"      alt="" data-state="4">
+    <img class="phone-bg-img"        src="images/citymotor.jpg"   alt="" data-state="5">
+    <img class="phone-bg-img"        src="images/driving.jpg"     alt="" data-state="6">
+    <img class="phone-bg-img"        src="images/working.png"     alt="" data-state="7">
+    <img class="phone-bg-img"        src="images/sleep.png"       alt="" data-state="8">
+    <img class="phone-bg-img"        src="images/movie.png"       alt="" data-state="9">
+    <img class="phone-bg-img active" src="images/adventure.png"   alt="" data-state="10">
+  </div>
+
+  <!-- 日历：作为 .phone 直接子元素，仅 HOME 时显示 -->
+  <div class="px-cal-wrap px-cal-home-only cal-on-home" id="home-px-cal">
+    <div class="px-cal">
+      <div class="px-cal-rings"><span></span><span></span><span></span><span></span></div>
+      <div class="px-cal-head"><span id="cal-month-abbr">—</span></div>
+      <div class="px-cal-body">
+        <span class="px-cal-day" id="cal-day-n">—</span>
+        <div class="px-cal-curl" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 透明点击层：主屏专用，在背景之上、按钮之下，确保 iOS Safari 能收到点击 -->
+  <div id="home-tap-zone"
+    style="position:absolute;left:0;right:0;top:0;bottom:72px;z-index:6;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);background:rgba(0,0,0,0.001);"
+    onclick="if(window._htap)window._htap(event)"></div>
+
+  <!-- 每日诗句：HOME 时显示，右侧顶部 -->
+  <div id="home-poem">
+    <div class="poem-card">
+      <span class="poem-lbl">✦ TODAY</span>
+      <span id="poem-text">…</span>
+    </div>
+  </div>
+
+<div class="screen active" id="s-home" data-home-state="1">
+
+  <div class="mtst" id="mtst" style="font-family:-apple-system,sans-serif">💌 SENDING MISS YOU…</div>
+
+  <div class="home-toolbar" style="font-family:-apple-system,sans-serif">
+    <button type="button" class="home-tool" onclick="switchTo('s-map')" title="地图">MAP</button>
+    <button type="button" class="home-tool" onclick="switchTo('s-bottle')" title="漂流瓶">BTL</button>
+    <button type="button" class="home-tool home-tool-heart" id="hbtn" onclick="sendMiss()" title="想念">♥</button>
+  </div>
+
+</div><!-- /s-home -->
+
+
+<!-- MAP — REAL LEAFLET MAP -->
+<div class="screen" id="s-map">
+
+  <div class="mhud">
+    <div class="mhud-t">🗺 THE PIXEL ATLAS</div>
+    <div class="mhud-m" id="mmode">OSM · PIXEL STYLE · TAP + TO MARK</div>
+    <button type="button" class="mhud-loc" onclick="mapLocateMe()" title="定位到我">⌖</button>
+  </div>
+
+  <div class="msrch">
+    <input id="srch" placeholder="SEARCH A PLACE…" maxlength="80">
+    <button onclick="doSearch()">GO ▶</button>
+  </div>
+
+  <!-- Leaflet renders here -->
+  <div id="leaflet-map"></div>
+
+  <!-- Stats -->
+  <div class="mstats">
+    <div class="msr"><div class="msd" style="background:var(--pp)"></div><span id="c-pp">YIYING: 0</span></div>
+    <div class="msr"><div class="msd" style="background:var(--bp)"></div><span id="c-bp">VITALIK: 0</span></div>
+    <div class="msr"><div class="msd" style="background:var(--gp)"></div><span id="c-gp">PLAN: 0</span></div>
+    <div class="msr"><div class="msd" style="background:var(--pk)"></div><span id="c-pk">DONE: 0</span></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="mleg">
+    <div class="mlr"><div class="mld" style="background:var(--pp)"></div>YIYING</div>
+    <div class="mlr"><div class="mld" style="background:var(--bp)"></div>VITALIK</div>
+    <div class="mlr"><div class="mld" style="background:var(--gp)"></div>PLANNED</div>
+    <div class="mlr"><div class="mld" style="background:var(--pk)"></div>TOGETHER ♥</div>
+  </div>
+
+  <!-- Add pin -->
+  <div class="addbtn" id="addbtn" onclick="toggleAdd()">+</div>
+
+  <!-- Add panel -->
+  <div class="amp" id="amp">
+    <div class="amp-ttl">📍 NEW MARK</div>
+    <div class="amp-loc" id="amp-loc">TAP ON THE MAP TO PLACE PIN</div>
+    <div class="amp-row">
+      <div class="amp-lbl">TYPE</div>
+      <select class="amp-sel" id="amp-type">
+        <option value="purple">YIYING'S VISIT</option>
+        <option value="blue">VITALIK'S VISIT</option>
+        <option value="green">PLANNED TRIP ✈</option>
+        <option value="pink">TOGETHER ♥</option>
+      </select>
+    </div>
+    <div class="amp-row">
+      <div class="amp-lbl">NOTE</div>
+      <input class="amp-inp" id="amp-note" placeholder="ADD A MEMORY…">
+    </div>
+    <div class="amp-btns">
+      <button class="amp-save" onclick="savePin()">SAVE ✓</button>
+      <button class="amp-cancel" onclick="cancelAdd()">CANCEL</button>
+    </div>
+  </div>
+
+  <div id="mtoast">MSG</div>
+
+  <!-- Countdown: hourglass icon + popup -->
+  <button id="map-cd-icon" onclick="toggleMapCountdown()" title="Next Meet">⏳</button>
+  <div id="map-countdown" style="display:none">
+    <div class="mcd-hd">
+      <span class="mcd-hd-title">⏳ NEXT MEET</span>
+      <button class="mcd-close-btn" onclick="toggleMapCountdown()">✕</button>
+    </div>
+    <div id="mcd-body">
+      <div class="mcd-nums">
+        <div class="mcd-cell"><span id="mcd-days">--</span><div class="mcd-unit">DAYS</div></div>
+        <div class="mcd-sep">:</div>
+        <div class="mcd-cell"><span id="mcd-hrs">--</span><div class="mcd-unit">HRS</div></div>
+        <div class="mcd-sep">:</div>
+        <div class="mcd-cell"><span id="mcd-mins">--</span><div class="mcd-unit">MIN</div></div>
+      </div>
+      <div id="mcd-edit" style="display:none">
+        <input type="date" id="mcd-date-input" class="mcd-date-inp">
+        <button onclick="saveMeetDate()" class="mcd-save">SET ✓</button>
+      </div>
+      <button onclick="editMeetDate()" id="mcd-edit-btn" class="mcd-editbtn">✎ SET DATE</button>
+    </div>
+  </div>
+
+</div><!-- /s-map -->
+
+
+<!-- BOTTLE — THE PIXEL BEACH -->
+<div class="screen" id="s-bottle">
+
+  <div class="bhud">
+    <div class="bhud-t">🍾 THE PIXEL BEACH</div>
+    <div class="bhud-s">1 BOTTLE WAITING</div>
+  </div>
+
+  <div class="bsky">
+    <div class="bstr" style="top:20px;left:40px;animation-delay:-.5s"></div>
+    <div class="bstr" style="top:35px;left:100px;animation-delay:-1s"></div>
+    <div class="bstr" style="top:15px;left:160px;animation-delay:-1.5s"></div>
+    <div class="bstr" style="top:45px;left:230px;animation-delay:-.8s"></div>
+    <div class="bstr" style="top:10px;left:290px;animation-delay:-.3s"></div>
+    <div class="moon"></div>
+  </div>
+
+  <div class="bocean">
+    <div class="bwave w1">
+      <svg viewBox="0 0 430 100" preserveAspectRatio="none">
+        <path d="M0 50 Q54 20 108 50 Q162 80 216 50 Q270 20 324 50 Q378 80 432 50 L432 100 L0 100Z" fill="#2a5aa0" opacity=".8"/>
+        <path d="M0 60 Q54 30 108 60 Q162 90 216 60 Q270 30 324 60 Q378 90 432 60 L432 100 L0 100Z" fill="#1e3a7a" opacity=".9"/>
+      </svg>
+    </div>
+    <div class="bwave w2" style="top:10px">
+      <svg viewBox="0 0 430 100" preserveAspectRatio="none">
+        <path d="M0 55 Q54 25 108 55 Q162 85 216 55 Q270 25 324 55 Q378 85 432 55 L432 100 L0 100Z" fill="#4a8ac8" opacity=".3"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="bsand"></div>
+
+  <div class="dind">✉ LATEST: 8H AGO<br><span>⏱ OPENS IN: 16H 23M</span></div>
+
+  <div class="bwrap" id="bwrap" onclick="openBottle()">
+    <div class="btl">
+      <div class="btl-cork"></div>
+      <div class="btl-neck"></div>
+      <div class="btl-body">
+        <div class="btl-hl"></div>
+        <div class="btl-scr">📜</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="thint">[ TAP BOTTLE TO OPEN ]</div>
+
+  <div class="btabs">
+    <button class="btab active" onclick="setTab(0,this)">INBOX (1)</button>
+    <button class="btab" onclick="setTab(1,this)">WRITE</button>
+    <button class="btab" onclick="setTab(2,this)">SENT</button>
+  </div>
+
+  <!-- Write panel -->
+  <div class="wpanel" id="wpanel">
+    <div class="wphd">
+      <div class="wphd-t">✍ WRITE A MESSAGE</div>
+      <button style="background:#c84a4a;color:#fff;font-family:var(--F);font-size:6px;border:3px solid var(--ib);padding:5px 8px;cursor:pointer" onclick="closeWrite()">CLOSE</button>
+    </div>
+    <div class="parch">
+      <textarea id="btxt" placeholder="DEAR ___,&#10;&#10;TODAY I THOUGHT OF YOU…"></textarea>
+    </div>
+    <div style="padding:5px 14px;font-size:5px;color:#8a6040;background:rgba(245,232,192,.5)">
+      ♥ ARRIVES IN: <span style="color:var(--rose)" id="dft">~14 HOURS</span> (RANDOM 1–24H)
+    </div>
+    <div class="wpft">
+      <button class="mbtn" id="mbtn" onclick="toggleMusic()"><span>📼</span> ATTACH SONG</button>
+      <button class="sbtn" onclick="sendBottle()">THROW 🍾</button>
+    </div>
+  </div>
+  <!-- Receive overlay -->
+  <div class="rpanel" id="rpanel">
+    <div class="letter">
+      <div class="l-hd">💌 BOTTLE FROM TOKYO · 14H AGO</div>
+      <div class="l-bd">
+        DEAR YOU,<br><br>
+        IT SNOWED HERE TODAY.<br>
+        I WATCHED FROM THE WINDOW<br>
+        AND PRETENDED YOU WERE<br>
+        SITTING NEXT TO ME.<br><br>
+        47 DAYS. I LOVE YOU.
+      </div>
+      <div class="l-mu">
+        <div class="l-mu-i">📼</div>
+        <div class="l-mu-t">ATTACHED: "FIRST LOVE"<br>HIKARU UTADA</div>
+        <button class="l-mu-p">▶</button>
+      </div>
+    </div>
+    <button class="rcls" onclick="closeRecv()">[ CLOSE BOTTLE ]</button>
+  </div>
+
+</div><!-- /s-bottle -->
+
+
+<!-- BOTTOM NAVIGATION -->
+<nav class="bnav">
+  <button class="nbtn active" id="nb-home" onclick="switchTo('s-home')">
+    <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">
+      <div class="ni-house">
+        <div class="ni-roof"></div>
+        <div class="ni-body"><div class="ni-door"></div></div>
+      </div>
+    </div>
+    <div class="nlbl">HOME</div>
+  </button>
+
+  <button class="nbtn" id="nb-map" onclick="switchTo('s-map')">
+    <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">
+      <div class="ni-globe">
+        <div class="ni-land" style="width:10px;height:6px;top:6px;left:4px"></div>
+        <div class="ni-land" style="width:8px;height:5px;top:13px;left:10px"></div>
+      </div>
+    </div>
+    <div class="nlbl">MAP</div>
+  </button>
+
+  <button class="nbtn" id="nb-btl" onclick="switchTo('s-bottle')">
+    <div style="width:32px;height:32px;position:relative;display:flex;align-items:center;justify-content:center">
+      <div class="ni-btl">
+        <div class="ni-cork"></div>
+        <div class="ni-neck"></div>
+        <div class="ni-bdy"></div>
+      </div>
+      <div class="nbadge">1</div>
+    </div>
+    <div class="nlbl">BOTTLE</div>
+  </button>
+</nav>
+
+<div id="gtst">MSG</div>
+
+<!-- 状态切换按钮：.phone 直接子元素，避免被 #s-home overflow:hidden 裁剪 -->
+<nav id="home-state-nav" class="home-state-nav" aria-label="home scene" style="display:flex;">
+  <button type="button" class="home-state-btn" data-state="1" onclick="setHomeState(1)">
+    <span class="home-state-icon home-icon-forest"></span>
+    <span class="home-state-label">FOREST</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="2" onclick="setHomeState(2)">
+    <span class="home-state-icon home-icon-seaside"></span>
+    <span class="home-state-label">SEASIDE</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="3" onclick="setHomeState(3)">
+    <span class="home-state-icon home-icon-city"></span>
+    <span class="home-state-label">CITY</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="4" onclick="setHomeState(4)">
+    <span class="home-state-icon home-icon-diving"></span>
+    <span class="home-state-label">DIVING</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="5" onclick="setHomeState(5)">
+    <span class="home-state-icon home-icon-moto"></span>
+    <span class="home-state-label">MOTO</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="6" onclick="setHomeState(6)">
+    <span class="home-state-icon home-icon-drive"></span>
+    <span class="home-state-label">DRIVE</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="7" onclick="setHomeState(7)">
+    <span class="home-state-icon home-icon-work"></span>
+    <span class="home-state-label">WORK</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="8" onclick="setHomeState(8)">
+    <span class="home-state-icon home-icon-sleep"></span>
+    <span class="home-state-label">SLEEP</span>
+  </button>
+  <button type="button" class="home-state-btn" data-state="9" onclick="setHomeState(9)">
+    <span class="home-state-icon home-icon-movie"></span>
+    <span class="home-state-label">MOVIE</span>
+  </button>
+  <button type="button" class="home-state-btn active" data-state="10" onclick="setHomeState(10)">
+    <span class="home-state-icon home-icon-adventure"></span>
+    <span class="home-state-label">ADVENTURE</span>
+  </button>
+</nav>
+
+<!-- ══ MOVIE SCENE: pixel TV icon (visible only on state 9) ══ -->
+<div id="home-tv-btn" onclick="openMoviePanel()" title="电影清单">
+  <svg class="tv-svg" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <!-- antennas -->
+    <rect x="17" y="1" width="3" height="9" fill="#aaaaaa"/>
+    <rect x="30" y="1" width="3" height="9" fill="#aaaaaa"/>
+    <rect x="16" y="1" width="5" height="3" fill="#cccccc"/>
+    <rect x="29" y="1" width="5" height="3" fill="#cccccc"/>
+    <!-- body -->
+    <rect x="3"  y="9"  width="44" height="30" fill="#2e2e2e"/>
+    <rect x="5"  y="11" width="40" height="26" fill="#1a1a1a"/>
+    <!-- screen -->
+    <rect x="8"  y="13" width="34" height="21" fill="#071428"/>
+    <!-- screen glow rect (CSS animated) -->
+    <rect class="tv-screen" x="8" y="13" width="34" height="21" fill="#3377ee" opacity="0.14"/>
+    <!-- content lines -->
+    <rect x="11" y="17" width="12" height="2" fill="#5599ff" opacity="0.55"/>
+    <rect x="11" y="21" width="18" height="2" fill="#5599ff" opacity="0.38"/>
+    <rect x="11" y="25" width="9"  height="2" fill="#5599ff" opacity="0.25"/>
+    <!-- play triangle -->
+    <polygon points="36,23.5 30,19.5 30,27.5" fill="#88ccff" opacity="0.8"/>
+    <!-- stand -->
+    <rect x="20" y="39" width="10" height="5"  fill="#333333"/>
+    <rect x="14" y="44" width="22" height="3"  fill="#3a3a3a"/>
+  </svg>
+  <span class="tv-label">WATCH LIST</span>
+</div>
+
+<!-- ══ MOVIE LIST PANEL ══ -->
+<div id="movie-panel" style="display:none">
+  <div class="mvp-head">
+    <span class="mvp-title">🎬 MOVIE LIST</span>
+    <div class="mvp-stats" id="mv-stats">0 / 0 WATCHED</div>
+    <button class="mvp-close" onclick="closeMoviePanel()">✕</button>
+  </div>
+  <div class="mvp-list" id="mv-list">
+    <div class="mvp-empty">🎬<br><br>NO MOVIES YET<br><br>ADD SOMETHING TO WATCH !</div>
+  </div>
+  <div class="mvp-add-row">
+    <input class="mvp-inp" id="mv-inp" placeholder="MOVIE TITLE…" maxlength="80"
+      onkeydown="if(event.key==='Enter')addMovie()">
+    <button class="mvp-addbtn" onclick="addMovie()">＋</button>
+  </div>
+</div>
+
+</div><!-- .phone -->
+
+<div id="ver-badge" style="position:fixed;top:8px;left:8px;background:rgba(0,0,0,.8);color:#0f0;padding:8px 12px;font-size:14px;z-index:99999;border-radius:4px;font-family:monospace;pointer-events:none;border:2px solid #0f0">v40</div>
+<div id="fresh-badge" style="position:fixed;top:10px;right:10px;background:#2a6a2a;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none"></div>
+<script>
+(function(){
+  var b=document.getElementById('fresh-badge');
+  if(b){ b.textContent='已更新 v22'; b.style.opacity='1'; setTimeout(function(){ b.style.opacity='0'; },3000); }
+})();
+</script>
+<!-- Scripts: Leaflet → map module → app -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  var v='?v='+Date.now();
+  function load(src,next){
+    var e=document.createElement('script');e.src=src+v;
+    if(next)e.onload=function(){load(next,null);};
+    document.body.appendChild(e);
+  }
+  load('map.js','app.js');
+})();
+</script>
+</body>
+</html>

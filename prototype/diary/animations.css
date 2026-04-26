@@ -1,0 +1,122 @@
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes home-bg-kenburns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.08) translate(-1%, -1%); }
+}
+
+@keyframes twink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .1; }
+}
+
+@keyframes hPulse {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(232,112,138,.4)); transform: translateX(-50%) scale(1); }
+    50% { filter: drop-shadow(0 0 14px rgba(232,112,138,1)); transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes pFlot {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--px,0), var(--py,-40px)) scale(.4); }
+}
+
+@keyframes wSh {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-40px); }
+}
+
+@keyframes bSwy {
+    0%, 100% { transform: translateX(-50%) rotate(-5deg); }
+    50% { transform: translateX(-50%) rotate(5deg); }
+}
+
+@keyframes tHt {
+    0%, 100% { opacity: .4; }
+    50% { opacity: 1; }
+}
+
+@keyframes lUnf {
+    from { transform: scaleY(.1); opacity: 0; }
+    to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes cPp {
+    0% { transform: translateX(-50%) translateY(0) rotate(0) scale(1); opacity: 1; }
+    50% { transform: translateX(-50%) translateY(-40px) rotate(30deg) scale(1.2); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-80px) rotate(60deg) scale(.4); opacity: 0; }
+}
+
+@keyframes bgPulse {
+    0%, 100% { filter: brightness(1) saturate(1); }
+    40% { filter: brightness(1.18) saturate(1.28) contrast(1.06); }
+    60% { filter: brightness(1.22) saturate(1.32) contrast(1.08); }
+}
+
+@keyframes bgSweep {
+    0%, 100% { transform: translateX(-140%) skewX(-14deg); opacity: 0; }
+    5% { opacity: 1; }
+    30% { transform: translateX(260%) skewX(-14deg); opacity: 1; }
+    36% { opacity: 0; transform: translateX(300%) skewX(-14deg); }
+}
+
+@keyframes sparkDot {
+    0% { opacity: 0; transform: scale(0); }
+    20% { opacity: 1; transform: scale(2.2); }
+    60% { opacity: 0.85; transform: scale(1.4); }
+    100% { opacity: 0; transform: scale(0.2); }
+}
+
+@keyframes tvGlow {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(50,120,255,0.4)); }
+    50% { filter: drop-shadow(0 0 10px rgba(50,140,255,0.95)) drop-shadow(0 0 4px rgba(120,190,255,0.7)); }
+}
+
+@keyframes tvScreenFlicker {
+    0%, 100% { opacity: 0.12; }
+    45% { opacity: 0.35; }
+    55% { opacity: 0.28; }
+}
+
+@keyframes tapHeart {
+    0% { opacity: 1; transform: translate(0,0) scale(1.1) rotate(var(--rot,0deg)); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--hx,0px),var(--hy,-85px)) scale(0.2) rotate(var(--rot2,20deg)); }
+}
+
+@keyframes tapStar {
+    0% { opacity: 1; transform: translate(0,0) scale(1.4) rotate(0deg); }
+    35% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--sx,30px),var(--sy,-30px)) scale(0.1) rotate(var(--sr,240deg)); }
+}
+
+@keyframes tapRipple {
+    0% { opacity: 0.9; transform: translate(-50%,-50%) scale(0); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(7.5); }
+}
+
+@keyframes tapBubble {
+    0% { transform: scale(0.1) translateY(0); opacity: 0; }
+    14% { transform: scale(1.2) translateY(0); opacity: 1; }
+    28% { transform: scale(1.0) translateY(0); opacity: 1; }
+    72% { transform: scale(1.0) translateY(-10px); opacity: 1; }
+    100% { transform: scale(0.8) translateY(-26px); opacity: 0; }
+}
+
+@keyframes tapCombo {
+    0% { transform: scale(0.2) translateY(0); opacity: 0; }
+    18% { transform: scale(1.4) translateY(0); opacity: 1; }
+    40% { transform: scale(1.0) translateY(-5px); opacity: 1; }
+    75% { transform: scale(1.0) translateY(-18px); opacity: 1; }
+    100% { transform: scale(0.7) translateY(-34px); opacity: 0; }
+}
+
+@keyframes bgBounce {
+    0% { transform: scale(1) translateY(0); }
+    25% { transform: scale(1.022) translateY(-4px); }
+    60% { transform: scale(1.008) translateY(0); }
+    80% { transform: scale(1.003) translateY(-2px); }
+    100% { transform: scale(1) translateY(0); }
+}
