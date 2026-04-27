@@ -7,6 +7,7 @@ import { startAxlPoll } from "../axl/poll.js";
 import { completePairing } from "../app/pairing.js";
 import { handleAxlMessage } from "../app/messages.js";
 import { ipcSend } from "../app/ipc-send.js";
+import { initJoinQrScan } from "./join-qr-scan.js";
 
 function runJoinPactPreview() {
     const raw = document.getElementById("join-code")?.value ?? "";
@@ -28,6 +29,8 @@ export function initJoinScreen() {
             queueMicrotask(runJoinPactPreview);
         });
     }
+
+    initJoinQrScan(() => document.getElementById("join-code"));
 
     document.getElementById("btn-join-submit").addEventListener("click", async () => {
         const name = document.getElementById("join-name").value.trim();

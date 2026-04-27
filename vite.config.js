@@ -1,5 +1,9 @@
+import basicSsl from "@vitejs/plugin-basic-ssl";
 import { defineConfig } from "vite";
 import os from "node:os";
+
+/** Set `LOVECLAW_DEV_HTTPS=1` so phones can use getUserMedia over LAN (https + self-signed). */
+const useDevHttps = process.env.LOVECLAW_DEV_HTTPS === "1";
 
 /** Tauri can set this; otherwise bind all interfaces (0.0.0.0) so the phone can use the QR LAN URL. */
 const tauriHost = process.env.TAURI_DEV_HOST;
@@ -59,12 +63,14 @@ const axlProxy = (port) => ({
 });
 
 export default defineConfig({
-  plugins: [localIpPlugin()],
+  plugins: [localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
   clearScreen: false,
   server: {
     port: 1420,
     strictPort: true,
     host: devServerHost,
+    /* So https://*.ngrok-free.app (etc.) proxied to this dev server passes Vite’s host check */
+    allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app", ".ngrok.dev"],
     hmr: tauriHost
       ? { protocol: "ws", host: tauriHost, port: 1421 }
       : undefined,
@@ -72,6 +78,11 @@ export default defineConfig({
     proxy: {
       "/axl9002": axlProxy(9002),
       "/axl9012": axlProxy(9012),
+      "/relay": {
+        target: "http://127.0.0.1:9095",
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/relay/, ""),
+      },
     },
   },
   envPrefix: ["VITE_", "TAURI_ENV_*"],

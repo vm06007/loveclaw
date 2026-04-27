@@ -13,6 +13,7 @@ import { initInviteCodeScreen } from "./screens/inviteCode.js";
 import { initJoinScreen } from "./screens/join.js";
 import { initDashboardTabs } from "./dashboard/tabs.js";
 import { initDashboardShell } from "./app/dashboard-pwa.js";
+import { initRelayNotify } from "./app/relay-notify.js";
 
 await initTauri();
 registerAxlPairing(completePairing);
@@ -29,3 +30,4 @@ initDashboardTabs();
 initDashboardShell();
 
 await boot();
+initRelayNotify();

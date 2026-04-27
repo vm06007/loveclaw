@@ -75,7 +75,7 @@ export function renderPactRuleToggles() {
     stakeRow.className = "pact-toggle-row pact-stake-header-row";
     const stakeName = document.createElement("span");
     stakeName.className = "pact-toggle-name";
-    stakeName.textContent = "Propose ETH Stake";
+    stakeName.textContent = "Mandatory ETH stake";
     const stakeControl = document.createElement("div");
     stakeControl.className = "pact-stake-control";
     const stakeInp = document.createElement("input");
@@ -113,7 +113,7 @@ export function renderPactRuleToggles() {
     const stakeHint = document.createElement("p");
     stakeHint.className = "pact-rule-hint";
     stakeHint.textContent =
-        "Optional. Leave 0 to skip. Set e.g. 0.01 to encode a proposed lock in the invite; partner sees it before joining. (Enforcement TBD.)";
+        "Optional. Leave 0 to skip. Set e.g. 0.01 to encode a proposed lock in the invite.";
     stakeBlock.appendChild(stakeRow);
     stakeBlock.appendChild(stakeHint);
     mount.appendChild(stakeBlock);

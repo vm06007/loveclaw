@@ -85,7 +85,7 @@ export function formatStakeSummary(n) {
 
 
 /**
- * Renders 4 on/off rows plus proposed ETH stake (read-only on invite / join preview).
+ * Renders 4 on/off rows plus mandatory ETH stake (read-only on invite / join preview).
  * @param {{ triggers: string[]; stakeEth: number; }} p
  * @param {{ heading: string; lead: string; leadHtml?: boolean; }} head
  */
@@ -100,7 +100,7 @@ export function buildPactSummaryCardHtml(p, head) {
         <span class="pact-toggle-val${active.has(r.id) ? "" : " off"}">${active.has(r.id) ? "on" : "off"}</span>
       </div>`,
     ).join("");
-    const stakeLabel = "Propose ETH Stake";
+    const stakeLabel = "Mandatory ETH stake";
     const sv = Number(p.stakeEth);
     const hasStake = Number.isFinite(sv) && sv > 0;
     const stakeText = formatStakeSummary(p.stakeEth);
@@ -127,7 +127,7 @@ export function renderInvitePactSummary(container) {
         { triggers: state.triggers, stakeEth: state.stakeEth },
         {
             heading: "pact rules on this invite",
-            lead: "Your partner sees the same rules. Set a positive ETH stake to propose a lock (optional; leave 0 to skip for now).",
+            lead: "Your partner sees the same rules.",
         },
     );
     container.innerHTML = html;
@@ -213,6 +213,14 @@ export function renderJoinPactPreview(container, pact) {
     container.innerHTML = html;
 }
 
+/** Rounded white frame around QR canvas (invite + modal). */
+export function wrapQrCanvas(canvas) {
+    const wrap = document.createElement("div");
+    wrap.className = "qr-canvas-wrap";
+    wrap.appendChild(canvas);
+    return wrap;
+}
+
 export async function renderQR(container, text) {
     if (!container) {
         return;
@@ -230,5 +238,5 @@ export async function renderQR(container, text) {
         container.appendChild(placeholder);
         return;
     }
-    container.appendChild(canvas);
+    container.appendChild(wrapQrCanvas(canvas));
 }

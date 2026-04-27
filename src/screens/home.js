@@ -3,6 +3,15 @@ import { renderDashboard } from "../dashboard/render.js";
 import { renderPactRuleToggles } from "./create.js";
 
 export function initHomeScreen() {
+    const infoPill = document.getElementById("home-info-pill");
+    const infoHint = document.getElementById("home-info-hint");
+    if (infoPill && infoHint) {
+        infoPill.addEventListener("click", () => {
+            infoHint.classList.toggle("hidden");
+            infoPill.classList.toggle("is-on", !infoHint.classList.contains("hidden"));
+        });
+    }
+
     document.getElementById("btn-create").addEventListener("click", () => {
         renderPactRuleToggles();
         showScreen("create");
