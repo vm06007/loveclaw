@@ -121,7 +121,7 @@ export function renderPact() {
     view.innerHTML = `
     <div class="pact-item">couple id: ${state.coupleId || "—"}</div>
     <div class="pact-item">paired since: ${state.createdAt ? new Date(state.createdAt).toLocaleDateString() : "—"}</div>
-    <div class="pact-item">propose ETH stake: ${stakeText}</div>
+    <div class="pact-item">mandatory ETH stake: ${stakeText}</div>
     <div class="pact-item">breach triggers:</div>
     ${pactTriggers}
   `;

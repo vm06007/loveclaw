@@ -1,7 +1,32 @@
 import QRCode from "qrcode";
+import { wrapQrCanvas } from "../lib/invite.js";
 import { isTauri } from "../lib/tauri.js";
 
 let deferredPrompt = null;
+
+/**
+ * Show the install strip only on a desktop-class browser (mouse + wide viewport),
+ * not on phones / most tablets or the Tauri shell.
+ */
+function isDesktopBrowserView() {
+    if (typeof window === "undefined" || !window.matchMedia) {
+        return false;
+    }
+    if (window.matchMedia("(pointer: coarse)").matches) {
+        return false;
+    }
+    if (!window.matchMedia("(pointer: fine)").matches) {
+        return false;
+    }
+    if (!window.matchMedia("(min-width: 768px)").matches) {
+        return false;
+    }
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+    if (/iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        return false;
+    }
+    return true;
+}
 
 /**
  * URL the phone should open: same page, with host swapped from loopback to LAN IP when possible
@@ -50,19 +75,49 @@ function getIsIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
-export function initDashboardShell() {
-    initPwaSetupModal();
-    if (!isTauri()) {
-        initInstallBanner();
-        initHomePwaCta();
-    }
-    registerServiceWorker();
-    initDashInfoToggle();
+function hideTopInstallBar() {
+    const bar = document.getElementById("install-banner");
+    if (bar) bar.classList.add("hidden");
+    document.body.classList.remove("pwa-install-banner-on");
 }
 
-function initHomePwaCta() {
-    const wrap = document.getElementById("home-pwa-cta");
-    if (wrap) wrap.classList.remove("hidden");
+function hideModalInstallSection() {
+    const installBlock = document.getElementById("modal-pwa-install-block");
+    const installSep = document.getElementById("modal-pwa-sep");
+    if (installBlock) installBlock.classList.add("hidden");
+    if (installSep) installSep.classList.add("hidden");
+}
+
+/**
+ * loveclaw-app.html installApp() — prompt() or ⊕ toast; iOS is handled on the bar button in initPWA, not here.
+ */
+async function installApp({ source = "bar" } = {}) {
+    if (isTauri()) {
+        return;
+    }
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        try {
+            await deferredPrompt.userChoice;
+        } catch (err) {
+            /* */
+        }
+        deferredPrompt = null;
+        sessionStorage.setItem("install-dismissed", "1");
+        hideTopInstallBar();
+        if (source === "modal") {
+            hideModalInstallSection();
+        }
+        return;
+    }
+    showPwaToast("Use your browser's install option (⊕ in address bar)");
+}
+
+export function initDashboardShell() {
+    initPwaSetupModal();
+    initInstallBanner();
+    registerServiceWorker();
+    initDashInfoToggle();
 }
 
 function initDashInfoToggle() {
@@ -96,48 +151,67 @@ function showPwaToast(msg) {
 function initInstallBanner() {
     const bar = document.getElementById("install-banner");
     const textEl = document.getElementById("install-banner-text");
+    const installBtn = document.getElementById("install-banner-btn");
     const no = document.getElementById("install-banner-dismiss");
     if (!bar || !no) return;
 
+    const tauri = isTauri();
     const isIOS = getIsIOS();
-    const isStandalone = getStandalone();
 
     if (textEl) {
-        textEl.textContent = isIOS
-            ? "Add to home and open on your phone"
-            : "Add the app and open on your phone";
+        textEl.textContent = "Add LoveClaw as Application";
     }
 
-    const showBar = () => {
-        bar.classList.remove("hidden");
-        document.body.classList.add("pwa-install-banner-on");
-    };
-    const hideBar = () => {
-        bar.classList.add("hidden");
-        document.body.classList.remove("pwa-install-banner-on");
+    const canShowStrip = () =>
+        !tauri && !getStandalone() && !sessionStorage.getItem("install-dismissed") && isDesktopBrowserView();
+
+    const applyStripVisibility = () => {
+        if (canShowStrip()) {
+            bar.classList.remove("hidden");
+            document.body.classList.add("pwa-install-banner-on");
+        } else {
+            bar.classList.add("hidden");
+            document.body.classList.remove("pwa-install-banner-on");
+        }
     };
 
-    if (!isStandalone && !sessionStorage.getItem("install-dismissed")) {
-        showBar();
+    applyStripVisibility();
+    window.addEventListener("resize", applyStripVisibility);
+    window.addEventListener("orientationchange", applyStripVisibility);
+
+    /* loveclaw-app: Install → prompt or ⊕ toast; iOS (desktop iPad only here) → Share. Tauri → toast. */
+    if (installBtn) {
+        if (tauri) {
+            installBtn.addEventListener("click", () => {
+                showPwaToast(
+                    "PWA “Install” works in Chrome or Safari in the browser — not inside this desktop app."
+                );
+            });
+        } else if (isIOS) {
+            installBtn.addEventListener("click", () => {
+                showPwaToast('Tap Share ⬆ then "Add to Home Screen"');
+            });
+        } else {
+            installBtn.addEventListener("click", () => installApp({ source: "bar" }));
+        }
     }
 
     window.addEventListener("beforeinstallprompt", e => {
+        if (tauri) return;
         e.preventDefault();
         deferredPrompt = e;
-        if (!isStandalone && !sessionStorage.getItem("install-dismissed")) {
-            showBar();
-        }
+        applyStripVisibility();
     });
 
     no.addEventListener("click", () => {
         sessionStorage.setItem("install-dismissed", "1");
-        hideBar();
+        applyStripVisibility();
     });
 
     window.addEventListener("appinstalled", () => {
         deferredPrompt = null;
         sessionStorage.setItem("install-dismissed", "1");
-        hideBar();
+        applyStripVisibility();
         showPwaToast("LoveClaw installed!");
     });
 }
@@ -168,36 +242,15 @@ function initPwaSetupModal() {
 
     const isIOS = getIsIOS();
 
-    const hideTopInstallBar = () => {
-        const bar = document.getElementById("install-banner");
-        if (bar) bar.classList.add("hidden");
-        document.body.classList.remove("pwa-install-banner-on");
-    };
-
-    const runModalInstall = async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            try {
-                await deferredPrompt.userChoice;
-            } catch (err) {
-                /* */
-            }
-            deferredPrompt = null;
-            sessionStorage.setItem("install-dismissed", "1");
-            if (installBlock) installBlock.classList.add("hidden");
-            if (installSep) installSep.classList.add("hidden");
-            hideTopInstallBar();
-            return;
-        }
-        if (isIOS) {
-            showPwaToast('Tap Share ⬆ then "Add to Home Screen"');
-        } else {
-            showPwaToast("Use your browser's install option (⊕ in the address bar)");
-        }
-    };
-
     if (installBtn) {
-        installBtn.addEventListener("click", runModalInstall);
+        installBtn.addEventListener("click", () => {
+            if (isTauri()) return;
+            if (isIOS) {
+                showPwaToast('Tap Share ⬆ then "Add to Home Screen"');
+            } else {
+                installApp({ source: "modal" });
+            }
+        });
     }
     if (installHint) {
         installHint.textContent = isIOS
@@ -230,18 +283,13 @@ function initPwaSetupModal() {
                 margin: 1,
                 color: { dark: "#07070fff", light: "#ffffffff" },
             });
-            target.appendChild(canvas);
+            target.appendChild(wrapQrCanvas(canvas));
         } catch (e) {
             urlEl.textContent = "Could not build QR — copy the URL from the address bar.";
         }
     };
 
-    const ids = [
-        "install-banner-open",
-        "home-btn-pwa-setup",
-        "btn-qr-phone",
-    ];
-    for (const id of ids) {
+    for (const id of ["home-qr-btn", "btn-qr-phone"]) {
         const el = document.getElementById(id);
         if (el) el.addEventListener("click", open);
     }

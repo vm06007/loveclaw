@@ -19,34 +19,49 @@
 </head>
 <body>
   <div id="app">
-    <div class="install-banner install-banner--fixed hidden" id="install-banner" role="region" aria-label="Set up app and open on phone">
-      <span class="install-banner-text" id="install-banner-text">Add the app and open on your phone</span>
-      <div class="install-banner-actions">
-        <button type="button" class="btn btn-primary btn-sm" id="install-banner-open">set up</button>
-        <button type="button" class="install-dismiss" id="install-banner-dismiss" aria-label="Dismiss">×</button>
+    <div class="notif-banner notif-banner--fixed hidden" id="notif-banner">
+      <span class="notif-banner-text">🔔 Enable breach alerts</span>
+      <button type="button" class="notif-banner-btn" id="notif-banner-btn">Allow</button>
+      <button type="button" class="notif-banner-dismiss" id="notif-banner-dismiss">✕</button>
+    </div>
+    <div class="install-banner install-banner--fixed hidden" id="install-banner" role="region" aria-label="PWA install">
+      <div class="install-text" id="install-banner-text">Add LoveClaw as Application</div>
+      <div class="install-btns">
+        <button type="button" class="install-btn yes" id="install-banner-btn">Install</button>
+        <button type="button" class="install-btn no" id="install-banner-dismiss" aria-label="Dismiss">×</button>
       </div>
     </div>
 
     <!-- ── HOME ─────────────────────────────────────────── -->
     <div id="screen-home" class="screen active">
-      <div class="screen-inner">
-        <div class="home-pwa-cta hidden" id="home-pwa-cta">
-          <button
-            type="button"
-            class="home-pwa-cta-btn"
-            id="home-btn-pwa-setup"
-            title="Set up app and open on phone"
-            aria-label="Set up app and open on phone"
-          >
-            <svg class="home-pwa-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm8 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm2-4h2v2h-2v-2z"
-              />
-            </svg>
-            <span>phone &amp; app</span>
-          </button>
+      <div class="screen-inner home-screen-inner">
+        <div class="home-topbar topbar" aria-label="Home nav">
+          <div>
+            <div class="topbar-logo">LOVE<span class="logo-claw">CLAW</span></div>
+          </div>
+          <div class="topbar-right">
+            <button
+              type="button"
+              class="qr-btn"
+              id="home-qr-btn"
+              title="Open on phone"
+              aria-label="Open on phone"
+            >
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M3 3h7v7H3V3zm1 1v5h5V4H4zm1 1h3v3H5V5zM14 3h7v7h-7V3zm1 1v5h5V4h-5zm1 1h3v3h-3V5zM3 14h7v7H3v-7zm1 1v5h5v-5H4zm1 1h3v3H5v-3zm9-1h2v2h-2v-2zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm2-4h2v2h-2v-2z"
+                />
+              </svg>
+            </button>
+            <button type="button" class="LoveClaw-pill" id="home-info-pill" title="Info">
+              <span class="LoveClaw-dot-sm" aria-hidden="true"></span>INFO
+            </button>
+          </div>
         </div>
+        <p class="home-info-hint hidden" id="home-info-hint">
+          two phones · one pact — pair via invite, then the dashboard is your shared space
+        </p>
         <div class="home-paired-banner hidden" id="home-paired-banner" role="status">
           <span>You're already in a couple together.</span>
           <button type="button" class="link-ghost" id="btn-back-dashboard">back to dashboard</button>
@@ -74,8 +89,7 @@
             </svg>
           </div>
           <h1 class="logo-title">LOVE<span class="logo-claw">CLAW</span></h1>
-          <p class="logo-sub logo-sub--1">commit · protect · remember</p>
-          <p class="logo-sub logo-sub--2">two phones · one pact</p>
+          <p class="logo-sub logo-sub--1">commit / protect / remember</p>
         </div>
         <div class="btn-stack">
           <button class="btn btn-primary" id="btn-create">Create New Claw</button>
@@ -93,8 +107,7 @@
           <label class="field-label">your name</label>
           <input id="create-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
         </div>
-        <div class="field-group pact-rules-block">
-          <label class="field-label">pact rules</label>
+        <div class="field-group pact-rules-block" aria-label="pact rules">
           <p class="pact-rules-lead">Both partners agree to these triggers at pairing time. LoveClaw only monitors what you both consent to.</p>
           <div class="pact-lock-note" aria-hidden="true">All data flows only between your 2 devices via AXL end-to-end encryption. No server, no third party ever sees it.</div>
           <div id="pact-rules-mount"></div>
@@ -128,12 +141,39 @@
           <label class="field-label">your name</label>
           <input id="join-name" class="field-input" type="text" placeholder="enter your name" maxlength="24" />
         </div>
-        <div class="field-group">
+        <div class="field-group join-invite-field">
           <label class="field-label">invite code</label>
           <textarea id="join-code" class="field-input field-textarea" placeholder="paste invite code here"></textarea>
+          <button type="button" class="btn btn-ghost join-scan-qr-btn" id="btn-join-scan-qr">scan QR</button>
         </div>
         <div id="join-pact-preview" class="join-pact-preview hidden" role="status" aria-live="polite"></div>
         <button class="btn btn-primary" id="btn-join-submit">Join</button>
+      </div>
+    </div>
+
+    <div
+      id="join-qr-scan-modal"
+      class="modal-sheet join-qr-scan-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Scan invite QR code"
+    >
+      <div class="modal-sheet-inner join-qr-scan-inner">
+        <h2 class="screen-title join-qr-scan-title">scan QR</h2>
+        <p class="modal-sheet-sub join-qr-scan-hint">
+          Tap <strong>start camera</strong> below (required on many phones). When the browser asks, tap <strong>Allow</strong>. On a plain <strong>http://</strong> link to your computer, the camera is blocked — use <strong>https://</strong>, <strong>localhost</strong>, or <strong>use camera photo</strong> / paste the code.
+        </p>
+        <div id="join-qr-video-host" class="join-qr-video-host"></div>
+        <div id="join-qr-picked-wrap" class="join-qr-picked-wrap hidden" aria-live="polite">
+          <div class="join-qr-picked-label">QR picked</div>
+          <pre id="join-qr-picked-data" class="join-qr-picked-data"></pre>
+        </div>
+        <button type="button" class="btn btn-primary join-start-camera-btn" id="btn-join-start-camera">
+          start camera
+        </button>
+        <input type="file" id="join-qr-photo" class="join-qr-photo-input" accept="image/*" capture="environment" />
+        <label for="join-qr-photo" class="btn btn-ghost join-qr-photo-label">use camera photo</label>
+        <button type="button" class="btn btn-ghost join-qr-scan-cancel" id="btn-join-scan-cancel">cancel</button>
       </div>
     </div>
 
@@ -345,16 +385,13 @@
       class="modal-sheet modal-pwa-setup hidden"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-pwa-title"
+      aria-label="Install LoveClaw and open on phone"
     >
       <div class="modal-sheet-inner modal-pwa-inner">
-        <h2 class="modal-sheet-title" id="modal-pwa-title">set up</h2>
-        <p class="modal-sheet-sub">Install on this device, then open the same page on your phone (same Wi‑Fi).</p>
-
         <div class="modal-pwa-block" id="modal-pwa-install-block">
           <h3 class="modal-pwa-block-title">add as app</h3>
           <p class="modal-pwa-hint" id="modal-pwa-install-hint">Add LoveClaw as an application for quick access.</p>
-          <button type="button" class="btn btn-primary btn-sm" id="modal-pwa-install-btn">install</button>
+          <button type="button" class="btn btn-primary" id="modal-pwa-install-btn">install</button>
         </div>
 
         <div class="modal-pwa-sep" id="modal-pwa-sep" aria-hidden="true"></div>
