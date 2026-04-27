@@ -1,4 +1,6 @@
-# 0G Storage - pact / chat memory (example)
+# 0G Storage — pact / chat memory (example)
+
+Part of the [LoveClaw](https://github.com/vm06007/loveclaw) monorepo (`examples/0g-storage-memory`). See the [examples index](../README.md) and [root README](../../README.md) for how this fits next to AXL demos and the main LoveClaw app.
 
 Minimal **Bun + TypeScript** demo: serialize a small “pact memory” JSON snapshot, upload it with [`@0gfoundation/0g-ts-sdk`](https://docs.0g.ai/developer-hub/building-on-0g/storage/sdk) + `MemData`, then download with Merkle proof verification.
 

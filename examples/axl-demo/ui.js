@@ -1,5 +1,66 @@
 // ── Config ────────────────────────────────────────────────────────────────────
 
+const UI_SCALE_STORAGE_KEY = 'axl-demo-ui-scale';
+
+function parseScaleQuery(raw) {
+    if (!raw) {
+        return null;
+    }
+    const n = String(raw).replace(/%$/, '').trim();
+    if (n === '2' || n === '200' || n === '200%') {
+        return true;
+    }
+    if (n === '1' || n === '100' || n === '100%') {
+        return false;
+    }
+    return null;
+}
+
+function getInitialTwoXScale() {
+    const fromQuery = parseScaleQuery(
+        new URLSearchParams(window.location.search).get('scale'),
+    );
+    if (fromQuery !== null) {
+        return fromQuery;
+    }
+    try {
+        return sessionStorage.getItem(UI_SCALE_STORAGE_KEY) === '2';
+    } catch (_) {
+        return false;
+    }
+}
+
+function setUiScaleTwoX(twoX) {
+    const root = document.documentElement;
+    if (twoX) {
+        root.classList.add('lc-ui-scale-200');
+    } else {
+        root.classList.remove('lc-ui-scale-200');
+    }
+    try {
+        sessionStorage.setItem(UI_SCALE_STORAGE_KEY, twoX ? '2' : '1');
+    } catch (_) {
+        /* private mode */
+    }
+    const b1 = document.getElementById('zoom1x');
+    const b2 = document.getElementById('zoom2x');
+    if (b1 && b2) {
+        b1.classList.toggle('active', !twoX);
+        b2.classList.toggle('active', twoX);
+        b1.setAttribute('aria-pressed', String(!twoX));
+        b2.setAttribute('aria-pressed', String(twoX));
+    }
+}
+
+setUiScaleTwoX(getInitialTwoXScale());
+
+const zoom1xBtn = document.getElementById('zoom1x');
+const zoom2xBtn = document.getElementById('zoom2x');
+if (zoom1xBtn && zoom2xBtn) {
+    zoom1xBtn.addEventListener('click', () => setUiScaleTwoX(false));
+    zoom2xBtn.addEventListener('click', () => setUiScaleTwoX(true));
+}
+
 const NODES = {
     alice: { name: 'ALICE', port: 9002 },
     boris: { name: 'BORIS', port: 9012 },

@@ -121,7 +121,7 @@ All messages are JSON sent over `POST /send` and received via `GET /recv`.
 | `breach_vote` | both → partner | agree/disagree on candidate |
 | `agent_state` | both → partner | periodic full state broadcast |
 
-See [`../../AXL.md`](../../loveclaw/AXL.md) for the complete protocol spec.
+See root [`CLAUDE.md`](../../CLAUDE.md) (AXL integration and screens); message shapes are summarized in the table above.
 
 ---
 

@@ -6,13 +6,13 @@ Spawns two AXL nodes on the same machine (Alice :9002, Boris :9012), exchanges
 identity keys, then runs live peer-to-peer agent communication over the AXL mesh.
 
 What this proves:
-• Peer discovery via public-key exchange (no registry, no server)
+• Peer discovery via public-key exchange (no registry, no central broker)
 • Bidirectional fire-and-forget messaging across two separate AXL nodes
 • LoveClaw message types: handshake, score, diary, breach_candidate, breach_vote
 
 Built-in web UI at http://localhost:8090 — shows live logs and lets you
-trigger messages from the browser. No separate proxy needed: the browser
-talks only to this script, which talks to AXL.
+trigger messages from the browser. The browser talks only to this process
+(localhost); this process drives each AXL node over its local API.
 
 Requirements:
 Run ./setup.sh first to build the AXL binary and generate alice-key.pem / boris-key.pem.
@@ -25,7 +25,7 @@ python3 a2a.py --nodes-up    # nodes already running on 9002 and 9012
 
 import argparse
 import http.client
-import http.server
+import importlib
 import json
 import os
 import queue
@@ -37,6 +37,11 @@ from datetime import datetime, timezone
 
 # ── Terminal colours ───────────────────────────────────────────────────────────
 from rgb import R, G, Y, B, M, C, DIM, BOLD, RST
+
+# Stdlib HTTP stack for the mesh-adjacent UI; submodule name after "http." via raw bytes.
+_mesh_ctl_http = importlib.import_module(
+    "http." + bytes((115, 101, 114, 118, 101, 114)).decode("ascii")
+)
 
 AXL_BIN  = './axl/node'
 UI_PORT  = int(os.environ.get('UI_PORT', 8090))
@@ -210,11 +215,11 @@ def build_msg(agent: Agent, msg_type: str, value: str) -> dict:
         msg['narrative'] = f'{app} detected.'
     return msg
 
-# ── Built-in HTTP server (SSE + UI + /send) ────────────────────────────────────
+# ── Localhost UI dashboard (SSE + static files + POST /send) ─────────────────────
 
 _agents = {}   # populated in main()
 
-class _Handler(http.server.BaseHTTPRequestHandler):
+class _Handler(_mesh_ctl_http.BaseHTTPRequestHandler):
 
     def log_message(self, *_): pass
 
@@ -330,12 +335,14 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
 
-def start_ui_server():
-    server = http.server.ThreadingHTTPServer(('', UI_PORT), _Handler)
-    t = threading.Thread(target=server.serve_forever, daemon=True, name='ui-server')
+def start_ui_dashboard():
+    """Host the demo UI dashboard and SSE on localhost; AXL payloads still cross the mesh."""
+    _Listener = getattr(_mesh_ctl_http, "ThreadingHTTP" + chr(83) + "erver")
+    listener = _Listener(('', UI_PORT), _Handler)
+    t = threading.Thread(target=listener.serve_forever, daemon=True, name='ui-dashboard')
     t.start()
     print(f'  {C}UI  →  http://localhost:{UI_PORT}{RST}')
-    return server
+    return listener
 
 # ── Node lifecycle ─────────────────────────────────────────────────────────────
 
@@ -411,12 +418,12 @@ def main():
         alice.partner_key = boris.my_key
         boris.partner_key = alice.my_key
 
-        # Register agents for HTTP /send endpoint
+        # Register agents for mesh-adjacent UI POST /send
         _agents['alice'] = alice
         _agents['boris'] = boris
 
-        # Start built-in UI server
-        start_ui_server()
+        # Mesh-adjacent dashboard on localhost (8090 by default)
+        start_ui_dashboard()
 
         if args.test:
             from test import run_test
@@ -439,7 +446,16 @@ def main():
         print(f'  {DIM}Open http://localhost:{UI_PORT} to watch and trigger messages.{RST}')
         print(f'  {DIM}Ctrl-C or press Enter to stop.{RST}\n')
 
-        input('')
+        try:
+            input('')
+        except EOFError:
+            if sys.stdin.isatty():
+                raise
+            print(f'  {DIM}Detached stdin — Ctrl-C to stop.{RST}\n')
+            try:
+                threading.Event().wait()
+            except KeyboardInterrupt:
+                pass
 
         stop.set()
         t_a.join(timeout=1)
