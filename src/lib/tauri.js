@@ -15,6 +15,9 @@ export async function initTauri() {
     if (!isTauri()) {
         return;
     }
+    if (tauriInvoke) {
+        return;
+    }
     try {
         const tauri = await import("@tauri-apps/api/core");
         tauriInvoke = tauri.invoke;

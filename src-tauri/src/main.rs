@@ -70,6 +70,8 @@ struct DeviceSignal {
     value: String,
 }
 
+/// Battery only. Location comes from the WebView via `navigator.geolocation` in `heartbeat.js`
+/// (real device / OS position when the user allows it — not IP-based).
 #[tauri::command]
 fn get_device_signals() -> Vec<DeviceSignal> {
     let mut signals = Vec::new();
@@ -82,18 +84,149 @@ fn get_device_signals() -> Vec<DeviceSignal> {
         if let Some(cap) = parse_ioreg_int(&raw, "CurrentCapacity") {
             if let Some(max) = parse_ioreg_int(&raw, "MaxCapacity") {
                 if max > 0 {
+                    let mut value = format!("{}%", cap * 100 / max);
+                    if ioreg_battery_charging(&raw) {
+                        value.push_str(" (charging)");
+                    }
                     signals.push(DeviceSignal {
                         signal_type: "battery".into(),
-                        value: format!("{}%", cap * 100 / max),
+                        value,
                     });
                 }
             }
         }
     }
 
-    signals.push(DeviceSignal { signal_type: "motion".into(),   value: "still".into() });
-    signals.push(DeviceSignal { signal_type: "location".into(), value: "home area".into() });
+    if !signals.iter().any(|s| s.signal_type == "battery") {
+        if let Some(v) = battery_from_pmset() {
+            signals.push(DeviceSignal {
+                signal_type: "battery".into(),
+                value: v,
+            });
+        } else {
+            signals.push(DeviceSignal {
+                signal_type: "battery".into(),
+                value: "No built-in battery (desktop) or sensors unavailable".into(),
+            });
+        }
+    }
+
     signals
+}
+
+fn json_coord_geojs(v: Option<&serde_json::Value>) -> Option<f64> {
+    let v = v?;
+    v.as_f64().or_else(|| v.as_str()?.parse().ok())
+}
+
+/// Coarse lat/lon from public IP (geojs). Used in Tauri only when WebView geolocation fails.
+#[tauri::command]
+async fn get_ip_location_coords() -> Option<String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .build()
+        .ok()?;
+    let resp = client
+        .get("https://get.geojs.io/v1/ip/geo.json")
+        .header("User-Agent", "LoveClaw/0.1 (tauri)")
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let body: serde_json::Value = resp.json().await.ok()?;
+    let lat = json_coord_geojs(body.get("latitude"))?;
+    let lon = json_coord_geojs(body.get("longitude"))?;
+    Some(format!("{:.4}°, {:.4}°", lat, lon))
+}
+
+fn extract_percent_from_line(line: &str) -> Option<i32> {
+    let bytes = line.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'%' {
+            let mut j = i;
+            while j > 0 && bytes[j - 1].is_ascii_digit() {
+                j -= 1;
+            }
+            if j < i {
+                let slice = &line[j..i];
+                if let Ok(n) = slice.parse::<i32>() {
+                    if (0..=100).contains(&n) {
+                        return Some(n);
+                    }
+                }
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn pmset_line_charging(line: &str) -> bool {
+    let lower = line.to_lowercase();
+    if lower.contains("discharging") {
+        return false;
+    }
+    lower.contains("charging") && !lower.contains("not charging")
+}
+
+fn battery_from_pmset() -> Option<String> {
+    let output = std::process::Command::new("pmset")
+        .args(["-g", "batt"])
+        .output()
+        .ok()?;
+    let text = String::from_utf8_lossy(&output.stdout);
+    let mut best: Option<i32> = None;
+    let mut charging = false;
+    for line in text.lines() {
+        if line.contains("InternalBattery") {
+            if let Some(pct) = extract_percent_from_line(line) {
+                best = Some(pct);
+                charging = pmset_line_charging(line);
+            }
+        }
+    }
+    if best.is_none() {
+        for line in text.lines() {
+            if let Some(pct) = extract_percent_from_line(line) {
+                best = Some(pct);
+                charging = pmset_line_charging(line);
+                break;
+            }
+        }
+    }
+    best.map(|p| {
+        let mut s = format!("{}%", p);
+        if charging {
+            s.push_str(" (charging)");
+        }
+        s
+    })
+}
+
+fn parse_ioreg_yes_no(text: &str, key: &str) -> Option<bool> {
+    let needle = format!("\"{}\" = ", key);
+    let line = text.lines().find(|l| l.contains(&needle))?;
+    let val = line.split('=').nth(1)?.trim();
+    if val.eq_ignore_ascii_case("Yes") || val == "1" {
+        return Some(true);
+    }
+    if val.eq_ignore_ascii_case("No") || val == "0" {
+        return Some(false);
+    }
+    None
+}
+
+/// Align with browser `BatteryManager.charging`: AC connected and not fully charged, or actively charging.
+fn ioreg_battery_charging(raw: &str) -> bool {
+    if parse_ioreg_yes_no(raw, "IsCharging") == Some(true) {
+        return true;
+    }
+    let external = parse_ioreg_yes_no(raw, "ExternalConnected");
+    let full = parse_ioreg_yes_no(raw, "FullyCharged");
+    external == Some(true) && full != Some(true)
 }
 
 fn parse_ioreg_int(text: &str, key: &str) -> Option<i64> {
@@ -322,6 +455,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_device_signals,
+            get_ip_location_coords,
             generate_diary_entry,
             get_instance_config,
         ])

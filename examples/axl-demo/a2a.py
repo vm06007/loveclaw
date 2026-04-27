@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LoveClaw × AXL  —  Two-Agent A2A Demo
+LoveClaw / AXL  —  Two-Agent A2A Demo
 --------------------------------------
 Spawns two AXL nodes on the same machine (Alice :9002, Boris :9012), exchanges
 identity keys, then runs live peer-to-peer agent communication over the AXL mesh.

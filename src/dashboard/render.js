@@ -10,18 +10,16 @@ import {
 import { pactRuleLabel, formatStakeSummary } from "../lib/invite.js";
 
 const SIGNAL_CARDS = [
-    { key: "location", mark: "loc", label: "location" },
-    { key: "motion", mark: "mov", label: "motion" },
     { key: "battery", mark: "bat", label: "battery" },
+    { key: "location", mark: "loc", label: "location" },
     { key: "apps", mark: "app", label: "apps" },
 ];
 
 function signalTypeMark(type) {
     const t = String(type);
     return {
-        location: "loc",
-        motion: "mov",
         battery: "bat",
+        location: "loc",
         apps: "app",
         notification: "ntf",
     }[t] ?? t.slice(0, 3);

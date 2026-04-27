@@ -1,9 +1,13 @@
 {
+  "Listen": [
+    "tls://0.0.0.0:7001"
+  ],
+  "Peers": [
+    "tls://127.0.0.1:9001"
+  ],
   "PrivateKeyPath": "boris-key.pem",
-  "Peers": ["tls://127.0.0.1:9001"],
-  "Listen": ["tls://0.0.0.0:7001"],
+  "a2a_port": 9014,
   "api_port": 9012,
-  "tcp_port": 7000,
   "router_port": 9013,
-  "a2a_port": 9014
+  "tcp_port": 7000
 }
