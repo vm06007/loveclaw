@@ -2,9 +2,24 @@
 .qr-wrap {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 16px;
-    background: #fff;
+    background: url(https://ethglobal.b-cdn.net/events/openagents/images/jh6cb/default.jpg);
+    background-size: cover;
+    background-position: center;
     border-radius: 8px;
+}
+.qr-canvas-wrap {
+    margin: 10px;
+    background-color: #fff;
+    overflow: hidden;
+    line-height: 0;
+}
+.qr-canvas-wrap canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    vertical-align: top;
 }
 .invite-link-box {
     display: flex;
@@ -22,13 +37,19 @@
     word-break: break-all;
     line-height: 1.6;
 }
-.hint { font-size: 8px; color: var(--text-dim); text-align: center; }
+.hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.6;
+}
 /* ── Pulse dot ─────────────────────────────────────────── */
 .pulse-dot {
-    width: 10px; height: 10px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: var(--teal);
-    margin: 0 auto;
+    margin: 12px auto 0;
     animation: pulse 1.4s ease-in-out infinite;
 }
 @keyframes pulse {

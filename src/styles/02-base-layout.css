@@ -40,6 +40,10 @@ body.pwa-install-banner-on .screen .screen-inner {
     flex-direction: column;
     gap: 24px;
 }
+/* Home: topbar is flush to viewport top (no outer gap above header). */
+.screen-inner.home-screen-inner {
+    padding-top: 0;
+}
 .screen-inner.center {
     align-items: center;
     justify-content: center;

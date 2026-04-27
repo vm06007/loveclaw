@@ -9,10 +9,12 @@
 }
 .install-banner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px 12px;
     padding: 10px 16px;
+    padding-top: max(10px, env(safe-area-inset-top));
     background: linear-gradient(90deg, #0d1a2a, #1a0d2a);
     border-bottom: 1px solid var(--purple, #5a3a6e);
     flex-shrink: 0;
@@ -28,24 +30,105 @@
     padding-right: max(16px, env(safe-area-inset-right));
 }
 .install-banner.hidden { display: none; }
-.install-banner-text {
-    font-size: 6px;
-    color: var(--text-dim, #a8a8c8);
-    letter-spacing: 0.5px;
-    line-height: 1.6;
-    max-width: 65%;
+
+/* Notification permission banner */
+.notif-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #1a0d0d, #2a0d1a);
+    border-bottom: 1px solid var(--pink, #D4537E);
+    flex-shrink: 0;
 }
-.install-banner-actions { display: flex; align-items: center; gap: 8px; }
-.install-dismiss {
+.notif-banner--fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 300;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    border-bottom: none;
+    border-top: 1px solid var(--pink, #D4537E);
+}
+.notif-banner.hidden { display: none; }
+.notif-banner-text {
+    font-family: var(--font);
+    font-size: 6px;
+    color: var(--pink-l, #ED93B1);
+    flex: 1;
+}
+.notif-banner-btn {
+    font-family: var(--font);
+    font-size: 6px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--pink, #D4537E);
+    background: transparent;
+    color: var(--pink-l, #ED93B1);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.notif-banner-dismiss {
+    font-family: var(--font);
+    font-size: 8px;
     background: none;
     border: none;
-    color: var(--text-dim);
-    font-size: 14px;
+    color: var(--pink, #D4537E);
     cursor: pointer;
-    padding: 4px 8px;
-    line-height: 1;
+    padding: 4px;
+    -webkit-tap-highlight-color: transparent;
 }
-.install-dismiss:hover { color: var(--text); }
+/* loveclaw-app.html: .install-text */
+.install-text {
+    font-size: 6px;
+    color: var(--purple-l, #AFA9EC);
+    line-height: 1.7;
+    max-width: 100%;
+    flex: 1 1 140px;
+    min-width: 0;
+}
+/* loveclaw-app: .install-btns, .install-btn.yes, .install-btn.no */
+.install-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.install-btn {
+    font-family: var(--font);
+    font-size: 6px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+    -webkit-tap-highlight-color: transparent;
+}
+.install-btn.yes {
+    background: #1a0d2a;
+    color: var(--purple-l);
+    border: 1px solid var(--purple);
+}
+.install-btn.yes:hover {
+    filter: brightness(1.1);
+    color: #fff;
+}
+.install-btn.no {
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    min-width: 2em;
+    font-size: 8px;
+    line-height: 1;
+    padding: 4px 10px;
+}
+.install-btn.no:hover {
+    color: var(--text);
+    border-color: var(--text-dim);
+}
 .dash-top {
     display: flex;
     align-items: center;

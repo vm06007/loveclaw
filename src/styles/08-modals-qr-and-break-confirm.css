@@ -35,6 +35,10 @@
     width: 100%;
     margin-top: 8px;
 }
+/* Match close: full .btn padding/font; border aligns box height with .btn-ghost */
+.modal-pwa-block .btn.btn-primary {
+    border: 1px solid var(--teal-d);
+}
 .modal-pwa-block-title {
     font-size: 7px;
     color: #fff;
@@ -75,12 +79,14 @@
 .modal-qr-wrap {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 12px;
-    background: #fff;
+    background: url(https://ethglobal.b-cdn.net/events/openagents/images/jh6cb/default.jpg);
+    background-size: cover;
+    background-position: center;
     border-radius: 8px;
     margin-bottom: 12px;
 }
-.modal-qr-wrap canvas { display: block; max-width: 100%; height: auto; }
 .modal-qr-url {
     font-size: 5px;
     color: var(--teal);

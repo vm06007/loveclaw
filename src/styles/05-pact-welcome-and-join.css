@@ -103,6 +103,7 @@
 .invite-pact-readonly .pact-toggle-val { font-size: 10px; }
 .invite-pact-card .invite-pact-readonly {
     padding-top: 12px;
+    padding-bottom: 12px;
     border-top: 1px solid var(--border);
     align-items: center;
 }
@@ -111,6 +112,25 @@
     padding-top: 0;
 }
 .invite-pact-readonly .pact-toggle-name { font-weight: 600; }
+/* Stake row: keep top rhythm; trim extra space below label (card padding still frames the bottom) */
+.pact-stake-row {
+    margin-bottom: 0;
+}
+.invite-pact-card .invite-pact-readonly.pact-stake-row {
+    margin-bottom: 0;
+    padding-top: 12px;
+    padding-bottom: 0;
+    border-top-width: 1px;
+}
+/* Create screen: match .pact-rule-block rhythm; override :last-of-type zero bottom on stake */
+.pact-stake-block.pact-rule-block {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-top-width: 1px;
+}
+.pact-stake-block.pact-rule-block:last-of-type {
+    padding-bottom: 14px;
+}
 .pact-stake-amount {
     font-size: 10px;
     color: var(--teal);
@@ -162,4 +182,101 @@
 }
 .join-pact-preview .invite-pact-card {
     margin: 0;
+}
+
+/* Join: scan invite QR (camera + photo fallback) */
+.join-invite-field .join-scan-qr-btn {
+    margin-top: 10px;
+}
+.join-qr-scan-modal {
+    z-index: 95;
+}
+.join-qr-scan-inner {
+    max-width: 340px;
+    text-align: center;
+}
+.join-qr-scan-title {
+    margin-bottom: 8px;
+}
+.join-qr-scan-hint {
+    margin-bottom: 14px;
+}
+.join-qr-video-host {
+    /* Explicit height so <video height:100%> is not collapsed (was a black box). */
+    width: 100%;
+    height: min(48vh, 300px);
+    min-height: 220px;
+    max-height: 320px;
+    margin: 0 auto 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: #000;
+    overflow: hidden;
+    display: block;
+    position: relative;
+}
+.join-qr-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.join-qr-picked-wrap {
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 10px 10px 8px;
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--teal-d);
+    border-radius: var(--radius);
+    max-height: 120px;
+    overflow: auto;
+    box-sizing: border-box;
+}
+.join-qr-picked-label {
+    font-size: 7px;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.join-qr-picked-data {
+    margin: 0;
+    font-family: ui-monospace, monospace;
+    font-size: 6px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+.join-qr-photo-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+.join-start-camera-btn {
+    width: 100%;
+    margin-bottom: 12px;
+}
+.join-qr-photo-label {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.join-qr-scan-cancel {
+    width: 100%;
+}
+
+/* Create screen: keep Generate Invite at the bottom of the viewport */
+#screen-create .screen-inner {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+#screen-create #btn-generate {
+    margin-top: auto;
 }
