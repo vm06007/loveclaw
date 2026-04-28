@@ -88,16 +88,98 @@ function makeAgentAddressRow(address) {
         const copyBtn = document.createElement("button");
         copyBtn.type = "button";
         copyBtn.className = "lc-profile-icon-btn";
-        copyBtn.setAttribute("aria-label", "Copy agent address");
-        copyBtn.setAttribute("title", "Copy agent address");
-        copyBtn.appendChild(copyIcon);
-        copyBtn.addEventListener("click", async () => {
-            const ok = await copyTextToClipboard(addrText);
-            showProfileToast(ok ? "Address copied" : "Copy failed");
-        });
-        return profileInputRow(valueEl, copyBtn);
+        copyBtn.setAttribute("aria-label", "Copy address");
+        copyBtn.setAttribute("title", "Copy address");
+        copyBtn.innerHTML = `<svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        if (addr) {
+            copyBtn.addEventListener("click", async () => {
+                const ok = await copyTextToClipboard(addr);
+                showProfileToast(ok ? "Address copied" : "Copy failed");
+            });
+        }
+
+        const linkBtn = document.createElement("a");
+        linkBtn.className = "lc-profile-icon-btn";
+        linkBtn.href = addr ? agentWalletExplorerUrl(addr) : agenticExplorerUrl(tokenId);
+        linkBtn.target = "_blank";
+        linkBtn.rel = "noopener noreferrer";
+        linkBtn.setAttribute("aria-label", "View agent on 0G Explorer");
+        linkBtn.setAttribute("title", "View agent on 0G Explorer");
+        linkBtn.innerHTML = `<svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+        const badge = document.createElement("span");
+        badge.className = "lc-agentic-badge";
+        badge.textContent = "0G galileo";
+
+        // address + copy + explorer in one row
+        const btns = document.createElement("div");
+        btns.className = "lc-agentic-btns";
+        btns.appendChild(copyBtn);
+        btns.appendChild(linkBtn);
+
+        wrap.appendChild(profileInputRow(addrEl, btns));
+        wrap.appendChild(badge);
+        return wrap;
     }
-    return profileInputRow(valueEl, copyIcon);
+
+    const statusEl = document.createElement("div");
+    statusEl.className = "lc-profile-static lc-agentic-unregistered";
+    statusEl.textContent = window.ethereum ? "not registered" : "MetaMask required";
+
+    const regBtn = document.createElement("button");
+    regBtn.type = "button";
+    regBtn.className = "lc-agentic-register-btn";
+    regBtn.textContent = window.ethereum ? "Register Agent" : "Install MetaMask";
+    regBtn.disabled = !window.ethereum;
+
+    regBtn.addEventListener("click", async () => {
+        regBtn.disabled = true;
+        statusEl.textContent = "";
+
+        const setBtn = (text, spinning = false) => {
+            regBtn.innerHTML = spinning
+                ? `<span class="lc-agentic-spinner"></span>${text}`
+                : text;
+        };
+
+        try {
+            const { tokenId: newId, walletAddress, agentWalletAddress, agentWalletKey } = await registerAgenticId(agentName, status => {
+                const spin = status === "confirming...";
+                setBtn(spin ? "confirming transaction..." : status, spin);
+            });
+            if (newId) {
+                const mp = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
+                mp.agenticTokenId = newId;
+                if (!mp.walletAddress && walletAddress) mp.walletAddress = walletAddress;
+                if (agentWalletAddress) mp.agentWalletAddress = agentWalletAddress;
+                if (agentWalletKey) mp.agentWalletKey = agentWalletKey;
+                state.myProfile = mp;
+                saveState(state);
+                showProfileToast(`Agent #${newId} registered!`);
+                if (onRegistered) onRegistered(newId, agentWalletAddress);
+            } else {
+                statusEl.textContent = "tx confirmed but no token id found";
+                regBtn.disabled = false;
+                regBtn.textContent = "Retry";
+            }
+        } catch (err) {
+            const msg = String(err?.message || err);
+            if (msg.includes("rejected") || msg.includes("denied")) {
+                statusEl.textContent = "rejected";
+            } else if (msg.includes("MetaMask")) {
+                statusEl.textContent = msg;
+            } else {
+                statusEl.textContent = "error — check console";
+                console.error("[agentic-id]", err);
+            }
+            regBtn.disabled = false;
+            regBtn.textContent = "Retry";
+        }
+    });
+
+    wrap.appendChild(profileInputRow(statusEl, profileIconFilled(PROFILE_ICON_PATHS.link)));
+    wrap.appendChild(regBtn);
+    return wrap;
 }
 
 function buildOutboundProfile() {
@@ -305,7 +387,65 @@ export function openCoopProfile(who) {
         hero.appendChild(meta);
         body.appendChild(hero);
 
-        body.appendChild(profileFieldBlock("Agent address (AXL)", makeAgentAddressRow(agentDisplay)));
+        const myTokenId = String(mp.agenticTokenId || "").trim();
+        const myWallet = String(mp.walletAddress || "").trim();
+        const myAgentWallet = String(mp.agentWalletAddress || "").trim();
+        const onAgenticRegistered = (newId, newWallet) => {
+            const section = body.querySelector(".lc-agentic-id-wrap");
+            const wallet = newWallet || String(state.myProfile?.agentWalletAddress || "").trim();
+            if (section) {
+                section.replaceWith(makeAgenticIdSection(newId, state.myName || "LoveClaw", null, wallet));
+            }
+            const labelEl = body.querySelector(".lc-agentic-label");
+            if (labelEl) {
+                labelEl.innerHTML = "";
+                labelEl.append("OG Agent Address ");
+                const nl = document.createElement("a");
+                nl.className = "lc-agentic-nft-link";
+                nl.textContent = `NFT ID #${newId}`;
+                nl.href = agenticExplorerUrl(newId);
+                nl.target = "_blank";
+                nl.rel = "noopener noreferrer";
+                labelEl.appendChild(nl);
+            }
+            void sendMyProfileToCoop();
+        };
+        const agenticBlock = document.createElement("div");
+        agenticBlock.className = "lc-profile-field";
+        const agenticLabel = document.createElement("label");
+        agenticLabel.className = "lc-profile-label lc-agentic-label";
+        if (myTokenId) {
+            agenticLabel.append("OG Agent Address ");
+            const nftLink = document.createElement("a");
+            nftLink.className = "lc-agentic-nft-link";
+            nftLink.textContent = `NFT ID #${myTokenId}`;
+            nftLink.href = agenticExplorerUrl(myTokenId);
+            nftLink.target = "_blank";
+            nftLink.rel = "noopener noreferrer";
+            agenticLabel.appendChild(nftLink);
+        } else {
+            agenticLabel.textContent = "OG Agent Address";
+        }
+        agenticBlock.appendChild(agenticLabel);
+        agenticBlock.appendChild(makeAgenticIdSection(myTokenId, state.myName || "LoveClaw", onAgenticRegistered, myAgentWallet));
+        body.appendChild(agenticBlock);
+
+        if (!myTokenId) {
+            silentLookup().then(result => {
+                if (!result) return;
+                const cur = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
+                if (cur.agenticTokenId) return;
+                cur.agenticTokenId = result.tokenId;
+                if (!cur.walletAddress && result.walletAddress) cur.walletAddress = result.walletAddress;
+                state.myProfile = cur;
+                saveState(state);
+                const labelEl = body.querySelector(".lc-agentic-label");
+                if (labelEl) labelEl.textContent = `OG Agent Address NFT ID #${result.tokenId}`;
+                onAgenticRegistered(result.tokenId, result.walletAddress);
+            }).catch(() => {});
+        }
+
+        body.appendChild(profileFieldBlock("AXL Agent Address", makeAgentAddressRow(agentDisplay)));
 
         const wInp = document.createElement("input");
         wInp.type = "text";

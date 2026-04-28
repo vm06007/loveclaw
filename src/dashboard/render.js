@@ -2,6 +2,7 @@ import { state, saveState } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
 import { renderPingStatus } from "../app/ping.js";
+import { axl } from "../axl/client.js";
 import {
     syncPactBadge,
     syncPactBreakOverlay,
@@ -17,6 +18,67 @@ import {
 
 function effectiveSignalShares() {
     return applyPactAgentLocks(mergeSignalShares(state.signalShares), state.triggers);
+}
+
+let pendingSignalShares = null;
+let signalSaveToastEl = null;
+let signalSaveToastTimer = null;
+
+function getRenderedSignalShares() {
+    return pendingSignalShares || effectiveSignalShares();
+}
+
+function markSignalSharesPending(nextShares) {
+    pendingSignalShares = applyPactAgentLocks(nextShares, state.triggers);
+}
+
+function savePendingSignalShares() {
+    if (!pendingSignalShares) {
+        return;
+    }
+    state.signalShares = pendingSignalShares;
+    saveState(state);
+    pendingSignalShares = null;
+}
+
+function isSignalsTabVisible() {
+    const tab = document.getElementById("tab-signals");
+    return Boolean(tab && !tab.classList.contains("hidden"));
+}
+
+function getSignalSaveToastButton() {
+    if (signalSaveToastEl) {
+        return signalSaveToastEl;
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "signal-settings-save-toast hidden";
+    btn.textContent = "Save signal settings";
+    btn.addEventListener("click", () => {
+        savePendingSignalShares();
+        btn.textContent = "Saved!";
+        btn.disabled = true;
+        window.clearTimeout(signalSaveToastTimer);
+        signalSaveToastTimer = window.setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = "Save signal settings";
+            syncSignalSaveToast();
+            renderSignalShareSettings();
+        }, 900);
+    });
+    document.body.appendChild(btn);
+    signalSaveToastEl = btn;
+    return btn;
+}
+
+function syncSignalSaveToast() {
+    const btn = getSignalSaveToastButton();
+    const shouldShow = Boolean(pendingSignalShares) && isSignalsTabVisible();
+    btn.classList.toggle("hidden", !shouldShow);
+}
+
+export function refreshSignalSaveToastVisibility() {
+    syncSignalSaveToast();
 }
 
 function setTodayAvatarButton(el, initials, avatarDataUrl) {
@@ -58,7 +120,7 @@ export function renderSignalShareSettings() {
     }
     root.replaceChildren();
     const triggers = new Set(state.triggers || []);
-    const shares = effectiveSignalShares();
+    const shares = getRenderedSignalShares();
 
     const table = document.createElement("div");
     table.className = "signal-settings-table";
@@ -111,10 +173,9 @@ export function renderSignalShareSettings() {
             agentCb.title = pactAgentLockReason(row.pactAgentLockTrigger);
         }
         agentCb.addEventListener("change", () => {
-            const next = mergeSignalShares(state.signalShares);
+            const next = { ...shares, [row.id]: { ...shares[row.id], agent: agentCb.checked } };
             next[row.id].agent = agentCb.checked;
-            state.signalShares = applyPactAgentLocks(next, state.triggers);
-            saveState(state);
+            markSignalSharesPending(next);
             renderSignalShareSettings();
         });
         agentLabel.appendChild(agentCb);
@@ -129,10 +190,9 @@ export function renderSignalShareSettings() {
         partnerCb.className = "pact-toggle-input";
         partnerCb.checked = shares[row.id].partner;
         partnerCb.addEventListener("change", () => {
-            const next = mergeSignalShares(state.signalShares);
+            const next = { ...shares, [row.id]: { ...shares[row.id], partner: partnerCb.checked } };
             next[row.id].partner = partnerCb.checked;
-            state.signalShares = applyPactAgentLocks(next, state.triggers);
-            saveState(state);
+            markSignalSharesPending(next);
             renderSignalShareSettings();
         });
         partnerLabel.appendChild(partnerCb);
@@ -143,24 +203,43 @@ export function renderSignalShareSettings() {
     }
 
     root.appendChild(table);
+    syncSignalSaveToast();
 }
 
 export function renderDiaryFeed() {
     const feed = document.getElementById("diary-feed");
-    if (!feed) {
-        return;
+    if (!feed) return;
+    const now = new Date();
+    const year = feed.dataset.viewYear !== undefined ? parseInt(feed.dataset.viewYear) : now.getFullYear();
+    const month = feed.dataset.viewMonth !== undefined ? parseInt(feed.dataset.viewMonth) : now.getMonth();
+    if (feed.dataset.viewYear === undefined) feed.dataset.viewYear = now.getFullYear();
+    if (feed.dataset.viewMonth === undefined) feed.dataset.viewMonth = now.getMonth();
+    // pre-select today on first open
+    if (feed.dataset.selectedDate === undefined) {
+        feed.dataset.selectedDate = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
     }
-    feed.innerHTML = state.diary.length === 0
-        ? `<p class="hint">no diary entries yet</p>`
-        : state.diary
-            .map(
-                e => `
-      <div class="diary-entry">
-        <div class="diary-entry-date">${new Date(e.ts).toLocaleDateString()}</div>
-        <div class="diary-entry-text">${e.text}</div>
-      </div>`,
-            )
-            .join("");
+    renderDiaryCal(feed, year, month, feed.dataset.selectedDate || null);
+    // push all local notes to partner so both sides stay in sync (throttled)
+    const t = Date.now();
+    if (state.paired && state.partnerAxlKey && t - _lastNotesSyncAt > 30000) {
+        _lastNotesSyncAt = t;
+        const notes = state.calNotes || {};
+        if (Object.keys(notes).length) {
+            axl.send(state.partnerAxlKey, { type: "diary_notes_sync", notes });
+        }
+    }
+}
+
+export function renderDiaryCalIfOpen(dayKey) {
+    const feed = document.getElementById("diary-feed");
+    if (!feed) return;
+    const now = new Date();
+    const year = feed.dataset.viewYear !== undefined ? parseInt(feed.dataset.viewYear) : now.getFullYear();
+    const month = feed.dataset.viewMonth !== undefined ? parseInt(feed.dataset.viewMonth) : now.getMonth();
+    const selected = feed.dataset.selectedDate || null;
+    if (selected === dayKey) {
+        renderDiaryCal(feed, year, month, selected);
+    }
 }
 
 export function renderPact() {
