@@ -12,7 +12,6 @@ export const EMPTY_MY_PROFILE = {
     avatarDataUrl: "",
     agenticTokenId: "",
     agentWalletAddress: "",
-    agentWalletKey: "",
 };
 
 export const EMPTY_PARTNER_PROFILE = {

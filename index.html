@@ -374,7 +374,7 @@
 
       <div class="tab-content hidden" id="tab-diary">
         <div class="diary-feed" id="diary-feed"></div>
-        <button class="btn btn-ghost btn-sm fab" id="btn-diary-gen">+ generate entry</button>
+        <button class="btn btn-ghost btn-sm fab hidden" id="btn-diary-gen">↑ store on 0G</button>
       </div>
 
       <div class="tab-content hidden pact-tab-root" id="tab-pact">
@@ -491,6 +491,17 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- 0G Storage success modal -->
+  <div class="modal-sheet lc-zg-store-sheet hidden" id="modal-zg-store" aria-modal="true" role="dialog">
+    <div class="lc-zg-store-modal">
+      <div class="lc-zg-store-head">
+        <span class="lc-zg-store-head-title">✓ stored on 0G</span>
+        <button class="lc-profile-icon-btn" id="zg-modal-close" aria-label="close">✕</button>
+      </div>
+      <div class="lc-zg-store-body" id="zg-modal-body"></div>
+    </div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

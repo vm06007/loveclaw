@@ -1,5 +1,6 @@
 import { state, saveState, EMPTY_MY_PROFILE, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
 import { registerAgenticId, setupAgentWallet, agenticExplorerUrl, agentWalletExplorerUrl, silentLookup, CONTRACT_ADDRESS, EXPLORER_BASE } from "../lib/agentic-id.js";
+import { encryptAndStoreKey, hasEncryptedKey } from "../lib/agent-key-store.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 import { renderTodayTab } from "../dashboard/render.js";
@@ -77,6 +78,18 @@ function copyTextToClipboard(text) {
     });
 }
 
+async function resolveEns(address) {
+    if (!address) return null;
+    try {
+        const res = await fetch(`https://api.ensideas.com/ens/resolve/${address}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.name || null;
+    } catch {
+        return null;
+    }
+}
+
 function makeAgentAddressRow(address) {
     const addrText = String(address || "").trim();
     const valueEl = document.createElement("div");
@@ -96,6 +109,50 @@ function makeAgentAddressRow(address) {
         showProfileToast(ok ? "Address copied" : "Copy failed");
     });
     return profileInputRow(valueEl, copyBtn);
+}
+
+function shortAddress(addr) {
+    const v = String(addr || "").trim();
+    if (v.length <= 12) {
+        return v;
+    }
+    return `${v.slice(0, 6)}...${v.slice(-3)}`;
+}
+
+function makeWalletAddressRow(walletAddress, ensName) {
+    const wallet = String(walletAddress || "").trim();
+    const ens = String(ensName || "").trim();
+    const valueEl = document.createElement("div");
+    valueEl.className = "lc-profile-static lc-profile-static--mono lc-profile-static--agent";
+    valueEl.textContent = wallet ? (ens ? `${ens} (${shortAddress(wallet)})` : wallet) : "—";
+    if (!wallet) {
+        return profileInputRow(valueEl, profileIconFilled(PROFILE_ICON_PATHS.link));
+    }
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "lc-profile-icon-btn";
+    copyBtn.setAttribute("aria-label", "Copy wallet address");
+    copyBtn.setAttribute("title", "Copy wallet address");
+    copyBtn.innerHTML = `<svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+    copyBtn.addEventListener("click", async () => {
+        const ok = await copyTextToClipboard(wallet);
+        showProfileToast(ok ? "Address copied" : "Copy failed");
+    });
+
+    const linkBtn = document.createElement("a");
+    linkBtn.className = "lc-profile-icon-btn";
+    linkBtn.href = `https://etherscan.io/address/${wallet}`;
+    linkBtn.target = "_blank";
+    linkBtn.rel = "noopener noreferrer";
+    linkBtn.setAttribute("aria-label", "View on Etherscan");
+    linkBtn.setAttribute("title", "View on Etherscan");
+    linkBtn.innerHTML = `<svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+    const btns = document.createElement("div");
+    btns.className = "lc-agentic-btns";
+    btns.appendChild(copyBtn);
+    btns.appendChild(linkBtn);
+    return profileInputRow(valueEl, btns);
 }
 
 function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr) {
@@ -121,15 +178,17 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
             setupBtn.addEventListener("click", async () => {
                 setupBtn.disabled = true;
                 try {
-                    const { agentWalletAddress, agentWalletKey } = await setupAgentWallet(tokenId, s => {
+                    const { agentWalletAddress, _agentWalletKeyOnce } = await setupAgentWallet(tokenId, s => {
                         const spin = s.includes("authorizing") || s.includes("delegating");
                         setBtn(spin ? s : s, spin);
                     });
                     const mp = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
                     mp.agentWalletAddress = agentWalletAddress;
-                    mp.agentWalletKey = agentWalletKey;
                     state.myProfile = mp;
                     saveState(state);
+                    if (_agentWalletKeyOnce) {
+                        await encryptAndStoreKey(_agentWalletKeyOnce, "0000");
+                    }
                     showProfileToast("Agent wallet ready!");
                     onRegistered(tokenId, agentWalletAddress);
                 } catch (err) {
@@ -206,7 +265,7 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
         };
 
         try {
-            const { tokenId: newId, walletAddress, agentWalletAddress, agentWalletKey } = await registerAgenticId(agentName, status => {
+            const { tokenId: newId, walletAddress, agentWalletAddress, _agentWalletKeyOnce } = await registerAgenticId(agentName, status => {
                 const spin = status === "confirming...";
                 setBtn(spin ? "confirming transaction..." : status, spin);
             });
@@ -215,9 +274,11 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
                 mp.agenticTokenId = newId;
                 if (!mp.walletAddress && walletAddress) mp.walletAddress = walletAddress;
                 if (agentWalletAddress) mp.agentWalletAddress = agentWalletAddress;
-                if (agentWalletKey) mp.agentWalletKey = agentWalletKey;
                 state.myProfile = mp;
                 saveState(state);
+                if (_agentWalletKeyOnce) {
+                    await encryptAndStoreKey(_agentWalletKeyOnce, "0000");
+                }
                 showProfileToast(`Agent #${newId} registered!`);
                 if (onRegistered) onRegistered(newId, agentWalletAddress);
             } else {
@@ -243,6 +304,67 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
     wrap.appendChild(profileInputRow(statusEl, profileIconFilled(PROFILE_ICON_PATHS.link)));
     wrap.appendChild(regBtn);
     return wrap;
+}
+
+/**
+ * Shows a PIN setup modal, waits for the user to confirm a PIN,
+ * then encrypts the private key. Resolves when done (or if skipped).
+ */
+function _showPinSetup(plainPrivateKey) {
+    return new Promise(resolve => {
+        const overlay = document.createElement("div");
+        overlay.className = "lc-pin-overlay";
+        overlay.innerHTML = `
+            <div class="lc-pin-modal">
+                <div class="lc-pin-head">Set Agent PIN</div>
+                <p class="lc-pin-desc">Your agent key will be encrypted with this PIN. You'll enter it each time your agent acts on-chain.</p>
+                <input class="lc-pin-input" id="lc-pin-a" type="password" inputmode="numeric" maxlength="12" placeholder="choose a PIN" autocomplete="new-password" />
+                <input class="lc-pin-input" id="lc-pin-b" type="password" inputmode="numeric" maxlength="12" placeholder="confirm PIN" autocomplete="new-password" />
+                <div class="lc-pin-error" id="lc-pin-error"></div>
+                <div class="lc-pin-actions">
+                    <button class="lc-agentic-register-btn" id="lc-pin-confirm">Encrypt &amp; Save</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add("lc-pin-overlay--show"));
+
+        const errEl  = overlay.querySelector("#lc-pin-error");
+        const pinA   = overlay.querySelector("#lc-pin-a");
+        const pinB   = overlay.querySelector("#lc-pin-b");
+        const btn    = overlay.querySelector("#lc-pin-confirm");
+
+        const dismiss = () => {
+            overlay.classList.remove("lc-pin-overlay--show");
+            setTimeout(() => overlay.remove(), 300);
+            resolve();
+        };
+
+        btn.addEventListener("click", async () => {
+            const a = pinA.value;
+            const b = pinB.value;
+            if (!a) { errEl.textContent = "PIN cannot be empty."; return; }
+            if (a !== b) { errEl.textContent = "PINs don't match."; return; }
+            if (a.length < 4) { errEl.textContent = "PIN must be at least 4 characters."; return; }
+            btn.disabled = true;
+            btn.innerHTML = `<span class="lc-agentic-spinner"></span>encrypting...`;
+            try {
+                await encryptAndStoreKey(plainPrivateKey, a);
+                dismiss();
+            } catch (e) {
+                errEl.textContent = "Encryption failed — try again.";
+                btn.disabled = false;
+                btn.textContent = "Encrypt & Save";
+            }
+        });
+
+        // Allow Enter key
+        [pinA, pinB].forEach(inp => inp.addEventListener("keydown", e => {
+            if (e.key === "Enter") btn.click();
+        }));
+
+        setTimeout(() => pinA.focus(), 100);
+    });
 }
 
 function buildOutboundProfile() {
@@ -491,7 +613,6 @@ export function openCoopProfile(who) {
         }
         agenticBlock.appendChild(agenticLabel);
         agenticBlock.appendChild(makeAgenticIdSection(myTokenId, state.myName || "LoveClaw", onAgenticRegistered, myAgentWallet));
-        body.appendChild(agenticBlock);
 
         if (!myTokenId) {
             silentLookup().then(result => {
@@ -508,30 +629,32 @@ export function openCoopProfile(who) {
             }).catch(() => {});
         }
 
+        const walletRowBlock = profileFieldBlock("Your wallet address", makeWalletAddressRow(mp.walletAddress, mp.ensName));
+        body.appendChild(walletRowBlock);
+
+        // Auto-resolve ENS name if wallet is set but ENS is empty
+        if (mp.walletAddress && !mp.ensName) {
+            resolveEns(mp.walletAddress).then(name => {
+                if (!name) return;
+                const cur = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
+                if (cur.ensName) return; // user already filled it manually
+                cur.ensName = name;
+                state.myProfile = cur;
+                saveState(state);
+                // refresh the wallet row in place
+                const newRow = makeWalletAddressRow(cur.walletAddress, name);
+                const oldWrap = walletRowBlock.querySelector(".lc-profile-input-wrap");
+                if (oldWrap) oldWrap.replaceWith(newRow);
+                showProfileToast(`ENS resolved: ${name}`);
+            }).catch(() => {});
+        }
         body.appendChild(profileFieldBlock("AXL Agent Address", makeAgentAddressRow(agentDisplay)));
-
-        const wInp = document.createElement("input");
-        wInp.type = "text";
-        wInp.className = "lc-profile-input";
-        wInp.placeholder = "0x… (optional)";
-        wInp.value = mp.walletAddress || "";
-        wInp.maxLength = 66;
-        wInp.id = "profile-inp-wallet";
-        body.appendChild(profileFieldBlock("Wallet address", profileInputRow(wInp, profileIconFilled(PROFILE_ICON_PATHS.mail))));
-
-        const ensInp = document.createElement("input");
-        ensInp.type = "text";
-        ensInp.className = "lc-profile-input";
-        ensInp.placeholder = "name.eth (optional)";
-        ensInp.value = mp.ensName || "";
-        ensInp.maxLength = 128;
-        ensInp.id = "profile-inp-ens";
-        body.appendChild(profileFieldBlock("ENS name", profileInputRow(ensInp, profileIconFilled(PROFILE_ICON_PATHS.globe))));
+        body.appendChild(agenticBlock);
 
         const devSt = document.createElement("div");
-        devSt.className = "lc-profile-static";
+        devSt.className = "lc-profile-static lc-profile-static--device";
         devSt.textContent = getDeviceSummary();
-        body.appendChild(profileFieldBlock("This device", profileInputRow(devSt, profileIconFilled(PROFILE_ICON_PATHS.phone))));
+        body.appendChild(profileFieldBlock("This device", profileInputRow(devSt, profileIconFilled(PROFILE_ICON_PATHS.monitor))));
 
         const noteTa = document.createElement("textarea");
         noteTa.className = "lc-profile-textarea";
@@ -607,14 +730,20 @@ export function openCoopProfile(who) {
         } else {
             partnerAgenticLabel.textContent = "OG Agent Address";
         }
+        const partnerWalletBlock = profileFieldBlock("Wallet address", makeWalletAddressRow(wallet, ens));
+        body.appendChild(partnerWalletBlock);
+        if (wallet && !ens) {
+            resolveEns(wallet).then(name => {
+                if (!name) return;
+                const newRow = makeWalletAddressRow(wallet, name);
+                const oldWrap = partnerWalletBlock.querySelector(".lc-profile-input-wrap");
+                if (oldWrap) oldWrap.replaceWith(newRow);
+            }).catch(() => {});
+        }
+        body.appendChild(profileFieldBlock("AXL Agent Address", makeAgentAddressRow(agentP)));
         partnerAgenticBlock.appendChild(partnerAgenticLabel);
         partnerAgenticBlock.appendChild(makeAgenticIdSection(partnerTokenId, coopName, null, partnerAgentWallet));
         body.appendChild(partnerAgenticBlock);
-
-        body.appendChild(profileFieldBlock("AXL Agent Address", makeAgentAddressRow(agentP)));
-
-        body.appendChild(profileFieldBlock("Wallet address", profileInputRow(mkRead(wallet, false), profileIconFilled(PROFILE_ICON_PATHS.mail))));
-        body.appendChild(profileFieldBlock("ENS name", profileInputRow(mkRead(ens, false), profileIconFilled(PROFILE_ICON_PATHS.globe))));
         body.appendChild(profileFieldBlock("Device", profileInputRow(mkRead(dev, false), profileIconFilled(PROFILE_ICON_PATHS.phone))));
         body.appendChild(profileFieldBlock("Note", profileInputRow(mkRead(note, false), profileIconFilled(PROFILE_ICON_PATHS.note))));
         body.appendChild(profileFieldBlock("Last updated", profileInputRow(mkRead(updated, false), profileIconFilled(PROFILE_ICON_PATHS.clock))));

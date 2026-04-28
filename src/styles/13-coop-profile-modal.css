@@ -155,7 +155,7 @@ button.today-avatar:not(:disabled):focus-visible {
 
 .lc-profile-lede {
     margin: 0 0 14px;
-    font-size: 6px;
+    font-size: 8px;
     line-height: 1.7;
     color: var(--text-dim);
     text-align: left;
@@ -203,7 +203,7 @@ button.today-avatar:not(:disabled):focus-visible {
 
 .lc-profile-label {
     display: block;
-    font-size: 5px;
+    font-size: 7px;
     line-height: 1.4;
     font-weight: normal;
     color: var(--text-dim);
@@ -275,9 +275,13 @@ button.today-avatar:not(:disabled):focus-visible {
 }
 .lc-profile-static--agent {
     font-family: var(--font);
-    font-size: 9px;
+    font-size: 8px;
     line-height: 1.55;
     letter-spacing: 0.015em;
+}
+.lc-profile-static--device {
+    font-size: 5px;
+    line-height: 1.6;
 }
 
 .lc-profile-ico {

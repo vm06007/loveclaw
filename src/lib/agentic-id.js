@@ -195,7 +195,9 @@ export async function registerAgenticId(agentName, onStatus) {
     const delTx = await contract.delegateAccess(agentWallet.address);
     await delTx.wait();
 
-    return { tokenId, walletAddress, agentWalletAddress: agentWallet.address, agentWalletKey: agentWallet.privateKey };
+    // Return raw key ONE TIME so caller can immediately encrypt it with a user PIN.
+    // After that the plain key must not be retained.
+    return { tokenId, walletAddress, agentWalletAddress: agentWallet.address, _agentWalletKeyOnce: agentWallet.privateKey };
 }
 
 /**
@@ -227,7 +229,7 @@ export async function setupAgentWallet(tokenId, onStatus) {
     const delTx = await contract.delegateAccess(agentWallet.address);
     await delTx.wait();
 
-    return { agentWalletAddress: agentWallet.address, agentWalletKey: agentWallet.privateKey };
+    return { agentWalletAddress: agentWallet.address, _agentWalletKeyOnce: agentWallet.privateKey };
 }
 
 /**

@@ -1,7 +1,7 @@
 import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { initHeartbeatMap } from "../app/heartbeat-map.js";
 import { clearPingBadge } from "../app/ping.js";
-import { onDiaryGenerateClick, refreshSignalSaveToastVisibility } from "./render.js";
+import { onDiaryGenerateClick, onDiaryStoreClick, refreshDiaryStoreBtn, refreshSignalSaveToastVisibility } from "./render.js";
 import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
 
 /**
@@ -30,8 +30,9 @@ export function initDashboardTabs() {
 
     const gen = document.getElementById("btn-diary-gen");
     if (gen) {
+        gen.classList.add("hidden"); // hidden until a day with image is selected
         gen.addEventListener("click", () => {
-            onDiaryGenerateClick();
+            onDiaryStoreClick(gen);
         });
     }
 
