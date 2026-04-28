@@ -79,12 +79,75 @@ function copyTextToClipboard(text) {
 
 function makeAgentAddressRow(address) {
     const addrText = String(address || "").trim();
-    const text = addrText || "—";
     const valueEl = document.createElement("div");
     valueEl.className = "lc-profile-static lc-profile-static--mono lc-profile-static--agent";
-    valueEl.textContent = text;
-    const copyIcon = profileIconFilled(PROFILE_ICON_PATHS.link);
-    if (addrText) {
+    valueEl.textContent = addrText || "—";
+    if (!addrText) {
+        return profileInputRow(valueEl, profileIconFilled(PROFILE_ICON_PATHS.link));
+    }
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "lc-profile-icon-btn";
+    copyBtn.setAttribute("aria-label", "Copy agent address");
+    copyBtn.setAttribute("title", "Copy agent address");
+    copyBtn.innerHTML = `<svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+    copyBtn.addEventListener("click", async () => {
+        const ok = await copyTextToClipboard(addrText);
+        showProfileToast(ok ? "Address copied" : "Copy failed");
+    });
+    return profileInputRow(valueEl, copyBtn);
+}
+
+function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr) {
+    const wrap = document.createElement("div");
+    wrap.className = "lc-agentic-id-wrap";
+
+    if (tokenId) {
+        const addr = String(agentWalletAddr || "").trim();
+
+        // No agent wallet yet — show setup button instead of contract address
+        if (!addr && onRegistered) {
+            const setupBtn = document.createElement("button");
+            setupBtn.type = "button";
+            setupBtn.className = "lc-agentic-register-btn";
+            setupBtn.textContent = "Setup Agent Wallet";
+
+            const setBtn = (text, spinning = false) => {
+                setupBtn.innerHTML = spinning
+                    ? `<span class="lc-agentic-spinner"></span>${text}`
+                    : text;
+            };
+
+            setupBtn.addEventListener("click", async () => {
+                setupBtn.disabled = true;
+                try {
+                    const { agentWalletAddress, agentWalletKey } = await setupAgentWallet(tokenId, s => {
+                        const spin = s.includes("authorizing") || s.includes("delegating");
+                        setBtn(spin ? s : s, spin);
+                    });
+                    const mp = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
+                    mp.agentWalletAddress = agentWalletAddress;
+                    mp.agentWalletKey = agentWalletKey;
+                    state.myProfile = mp;
+                    saveState(state);
+                    showProfileToast("Agent wallet ready!");
+                    onRegistered(tokenId, agentWalletAddress);
+                } catch (err) {
+                    const msg = String(err?.message || err);
+                    setupBtn.disabled = false;
+                    setBtn(msg.includes("rejected") ? "Rejected — retry" : "Retry");
+                    console.error("[agent-wallet]", err);
+                }
+            });
+
+            wrap.appendChild(setupBtn);
+            return wrap;
+        }
+
+        const addrEl = document.createElement("div");
+        addrEl.className = "lc-profile-static lc-profile-static--mono lc-profile-static--agent";
+        addrEl.textContent = addr || CONTRACT_ADDRESS;
+
         const copyBtn = document.createElement("button");
         copyBtn.type = "button";
         copyBtn.className = "lc-profile-icon-btn";
