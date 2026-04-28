@@ -432,3 +432,281 @@ function renderPartnerMarkerFromCoords(partnerCoords, partnerName) {
     syncHbMarkerZoomScale();
 }
 
+/* ── Incoming AXL/IPC handlers (called from `messages.js`) ───────────────── */
+
+export function onShareLocationRequestMessage(msg) {
+    if (typeof msg?.lat !== "number" || typeof msg?.lng !== "number") {
+        return;
+    }
+    /** Mutual: both sides clicked share at the same time → auto-accept. */
+    if (hbShareState === "outgoing") {
+        const me = getMyShareCoords();
+        hbPartnerSharedCoords = { lat: msg.lat, lng: msg.lng };
+        hbPartnerSharedName = String(msg.name || "").trim();
+        hbShareState = "active";
+        refreshShareUi();
+        renderPartnerMarkerFromCoords(hbPartnerSharedCoords, hbPartnerSharedName);
+        if (me) {
+            sendToPartner({
+                type: "share_location_accept",
+                from: state.myAxlKey || "",
+                name: (state.myName || "").trim(),
+                lat: me.lat,
+                lng: me.lng,
+                ts: Date.now(),
+            });
+        }
+        return;
+    }
+    if (hbShareState !== "idle") {
+        return;
+    }
+    hbPartnerSharedCoords = { lat: msg.lat, lng: msg.lng };
+    hbPartnerSharedName = String(msg.name || "").trim();
+    hbShareState = "incoming";
+    refreshShareUi();
+}
+
+export function onShareLocationAcceptMessage(msg) {
+    if (typeof msg?.lat !== "number" || typeof msg?.lng !== "number") {
+        return;
+    }
+    if (hbShareState !== "outgoing" && hbShareState !== "active") {
+        return;
+    }
+    hbPartnerSharedCoords = { lat: msg.lat, lng: msg.lng };
+    hbPartnerSharedName = String(msg.name || "").trim();
+    hbShareState = "active";
+    refreshShareUi();
+    renderPartnerMarkerFromCoords(hbPartnerSharedCoords, hbPartnerSharedName);
+}
+
+export function onShareLocationStopMessage() {
+    hbShareState = "idle";
+    hbPartnerSharedCoords = null;
+    hbPartnerSharedName = "";
+    refreshShareUi();
+    removePartnerMarker();
+}
+
+export function onShareLocationCancelMessage() {
+    if (hbShareState === "incoming") {
+        hbShareState = "idle";
+        hbPartnerSharedCoords = null;
+        hbPartnerSharedName = "";
+        refreshShareUi();
+    }
+}
+
+function ensureMap() {
+    const el = document.getElementById("heartbeat-leaflet-map");
+    if (!el || hbMap) {
+        return;
+    }
+    hbMap = L.map(el, {
+        center: [15, 0],
+        zoom: 2,
+        minZoom: 1,
+        maxZoom: 19,
+        zoomControl: true,
+        attributionControl: true,
+    });
+    setBasemap(hbMap, readBasemapPref());
+    hbMap.on("zoomend", syncHbMarkerZoomScale);
+    makeShareControl().addTo(hbMap);
+    makeAcceptControl().addTo(hbMap);
+}
+
+function refreshHbMapContent() {
+    ensureMap();
+    if (!hbMap) {
+        return;
+    }
+
+    const empty = document.getElementById("heartbeat-map-empty");
+    const locVal = latestSignalValue("location");
+    const coords = parseLatLngFromSignalValue(locVal);
+    const battery = latestSignalValue("battery") ?? "—";
+    const myRealName = (state.myName || "").trim() || "you";
+    const name = hbShareState !== "idle" ? "You" : myRealName;
+    const status = coords ? "" : "no fix";
+    const lastPingTs = latestSignalTs();
+
+    if (hbMarker) {
+        hbMap.removeLayer(hbMarker);
+        hbMarker = null;
+    }
+
+    if (coords) {
+        if (empty) {
+            empty.classList.add("hidden");
+        }
+        hbMarker = L.marker([coords.lat, coords.lng], {
+            icon: makeYouMapIcon({
+                name,
+                initialsName: myRealName,
+                battery,
+                status,
+                lastPingTs,
+                avatarDataUrl: state.myProfile?.avatarDataUrl || "",
+            }),
+        }).addTo(hbMap);
+        bindMarkerBubbleClick(hbMarker);
+        bindMarkerPinClick(hbMarker, "me");
+        if (hbFocusedMarker === hbMarker || hbFocusedMarker === hbPartnerMarker) {
+            setMarkerForeground(hbFocusedMarker);
+        }
+        if (hbShareState === "active" && hbPartnerSharedCoords) {
+            renderPartnerMarkerFromCoords(hbPartnerSharedCoords, hbPartnerSharedName);
+        } else {
+            focusHbMapOnCoords(coords.lat, coords.lng);
+        }
+    } else {
+        if (empty) {
+            empty.classList.remove("hidden");
+        }
+        hbMap.setView([20, 0], 2, { animate: false });
+    }
+
+    requestAnimationFrame(() => {
+        hbMap.invalidateSize();
+        if (coords) {
+            focusHbMapOnCoords(coords.lat, coords.lng);
+            syncHbMarkerZoomScale();
+        }
+        setTimeout(() => {
+            hbMap.invalidateSize();
+            if (coords) {
+                focusHbMapOnCoords(coords.lat, coords.lng);
+                syncHbMarkerZoomScale();
+            }
+        }, 140);
+    });
+}
+
+function updateToggleUi(showMap) {
+    const btn = document.getElementById("btn-hb-map");
+    const clearBtn = document.getElementById("btn-hb-clear");
+    const title = document.querySelector(".today-hb-card-head .today-card-title");
+    const pin = btn?.querySelector(".today-hb-map-icon-pin");
+    const list = btn?.querySelector(".today-hb-map-icon-list");
+    const styleSel = document.getElementById("hb-style-select");
+    if (!btn) {
+        return;
+    }
+    const hasPendingIncoming = hbShareState === "incoming" && !showMap;
+    btn.classList.toggle("today-hb-map-btn--pending", hasPendingIncoming);
+    if (showMap) {
+        btn.classList.add("today-hb-map-btn--active");
+        btn.setAttribute("aria-label", "Show heartbeat log");
+        btn.setAttribute("title", "Log");
+        pin?.classList.add("hidden");
+        list?.classList.remove("hidden");
+        styleSel?.classList.remove("hidden");
+        clearBtn?.classList.add("hidden");
+        if (title) {
+            title.textContent = "Heartbeat map";
+        }
+    } else {
+        btn.classList.remove("today-hb-map-btn--active");
+        btn.setAttribute("aria-label", "Show heartbeat map");
+        btn.setAttribute("title", "Map");
+        pin?.classList.remove("hidden");
+        list?.classList.add("hidden");
+        styleSel?.classList.add("hidden");
+        clearBtn?.classList.remove("hidden");
+        if (title) {
+            title.textContent = "Heartbeat log";
+        }
+    }
+}
+
+function startTimeTicker() {
+    if (hbTimeTicker) {
+        return;
+    }
+    hbTimeTicker = setInterval(() => {
+        if (mapPaneVisible) {
+            refreshHbMapContent();
+        }
+    }, 30 * 1000);
+}
+
+function stopTimeTicker() {
+    if (hbTimeTicker) {
+        clearInterval(hbTimeTicker);
+        hbTimeTicker = null;
+    }
+}
+
+function setMapPaneVisible(show) {
+    const log = document.getElementById("today-hb-log");
+    const pane = document.getElementById("today-hb-map-pane");
+    if (!log || !pane) {
+        return;
+    }
+
+    mapPaneVisible = show;
+    if (show) {
+        log.classList.add("hidden");
+        pane.classList.remove("hidden");
+        pane.setAttribute("aria-hidden", "false");
+        updateToggleUi(true);
+        refreshHbMapContent();
+        startTimeTicker();
+    } else {
+        pane.classList.add("hidden");
+        pane.setAttribute("aria-hidden", "true");
+        log.classList.remove("hidden");
+        updateToggleUi(false);
+        stopTimeTicker();
+    }
+}
+
+function toggleHbMap() {
+    setMapPaneVisible(!mapPaneVisible);
+}
+
+/** Call after a new heartbeat so the map marker stays current while the pane is open. */
+export function refreshHeartbeatMapIfOpen() {
+    if (mapPaneVisible) {
+        refreshHbMapContent();
+    }
+}
+
+export function initHeartbeatMap() {
+    const btn = document.getElementById("btn-hb-map");
+    if (btn && !btn.dataset.bound) {
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", () => toggleHbMap());
+    }
+    const clearBtn = document.getElementById("btn-hb-clear");
+    if (clearBtn && !clearBtn.dataset.bound) {
+        clearBtn.dataset.bound = "1";
+        clearBtn.addEventListener("click", () => {
+            clearTodayHeartbeatLog();
+        });
+    }
+    const styleSel = document.getElementById("hb-style-select");
+    if (styleSel && !styleSel.dataset.bound) {
+        styleSel.dataset.bound = "1";
+        /** Hide non-OSM options when no MapTiler key is configured so the dropdown
+         *  does not advertise styles that would 401. */
+        if (!MAPTILER_KEY) {
+            for (const opt of Array.from(styleSel.options)) {
+                if (opt.value !== "osm") {
+                    opt.disabled = true;
+                }
+            }
+        }
+        styleSel.value = readBasemapPref();
+        styleSel.addEventListener("change", () => {
+            const v = styleSel.value || "osm";
+            writeBasemapPref(v);
+            if (hbMap) {
+                setBasemap(hbMap, v);
+            }
+        });
+    }
+}
+
