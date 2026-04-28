@@ -124,10 +124,32 @@ function initDashInfoToggle() {
     const btn = document.getElementById("btn-dash-info");
     const hint = document.getElementById("dash-info-hint");
     if (!btn || !hint) return;
+    const hintByTab = {
+        today: "Trust scores and heartbeat pull live signals from LoveClaw when the desktop agent is running.",
+        signals: "Choose which signals your on-device agent can read and which can be shared to your coop device.",
+        diary: "Diary turns your recent activity signals into timeline entries to help you remember your day.",
+        pact: "Pact shows your active rules and breach conditions agreed by both devices.",
+        chat: "Chat and ping test end-to-end connection between both devices.",
+    };
+    const getActiveTabId = () => {
+        const active = document.querySelector(".dash-tabs .tab.active");
+        return active?.dataset?.tab || "today";
+    };
+    const updateHintForActiveTab = () => {
+        const tabId = getActiveTabId();
+        hint.textContent = hintByTab[tabId] || hintByTab.today;
+    };
     btn.addEventListener("click", () => {
+        updateHintForActiveTab();
         hint.classList.toggle("hidden");
         btn.classList.toggle("is-on", !hint.classList.contains("hidden"));
     });
+    document.querySelectorAll(".dash-tabs .tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            updateHintForActiveTab();
+        });
+    });
+    updateHintForActiveTab();
 }
 
 function showPwaToast(msg) {

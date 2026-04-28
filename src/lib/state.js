@@ -38,6 +38,7 @@ const DEFAULT_STATE = {
     breakPactOutgoingPending: false,
     signals: [],
     diary: [],
+    calNotes: {},
     signalShares: {},
     stakeEth: 0,
     myProfile: { ...EMPTY_MY_PROFILE },

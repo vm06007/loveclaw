@@ -132,6 +132,10 @@
     padding-bottom: 14px;
 }
 .pact-stake-amount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     font-size: 10px;
     color: var(--teal);
     font-weight: 600;

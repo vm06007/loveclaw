@@ -192,9 +192,10 @@ export function openCoopProfile(who) {
     }
 
     const isMe = who === "me";
+    const coopName = (state.partnerName || "").trim() || "Coop";
     profileModalWhoOpen = who;
 
-    headTitle.textContent = isMe ? "Your Profile" : `${state.partnerName || "Coop"}'s profile`;
+    headTitle.textContent = isMe ? "Your Profile" : `${coopName}'s profile`;
 
     body.innerHTML = "";
     saveBtn.classList.toggle("hidden", !isMe);
@@ -337,7 +338,7 @@ export function openCoopProfile(who) {
         noteWrap.className = "lc-profile-input-wrap lc-profile-input-wrap--stack";
         noteWrap.appendChild(noteTa);
         noteWrap.appendChild(profileIconFilled(PROFILE_ICON_PATHS.note));
-        body.appendChild(profileFieldBlock("Note to coop", noteWrap));
+        body.appendChild(profileFieldBlock(`Note to ${coopName}`, noteWrap));
     } else {
         const pp = { ...EMPTY_PARTNER_PROFILE, ...(state.partnerProfile || {}) };
         const agentP = String(pp.agentPublicKey || "").trim() || "—";
@@ -363,7 +364,7 @@ export function openCoopProfile(who) {
 
         const nameEl = document.createElement("h3");
         nameEl.className = "lc-profile-name lc-profile-name--partner";
-        nameEl.textContent = state.partnerName || "Coop";
+        nameEl.textContent = coopName;
 
         const lede = document.createElement("p");
         lede.className = "lc-profile-lede";

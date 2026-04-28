@@ -1,7 +1,7 @@
 import { state, saveState } from "../lib/state.js";
 import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
-import { renderDiaryFeed, renderTodayTab } from "../dashboard/render.js";
+import { renderDiaryFeed, renderTodayTab, renderDiaryCalIfOpen } from "../dashboard/render.js";
 import { applyCoopProfileFromMessage, refreshCoopProfileModalIfOpen } from "./coop-profile.js";
 import {
     refreshHeartbeatMapIfOpen,
@@ -46,6 +46,82 @@ export function handleAxlMessage(msg) {
                 renderDiaryFeed();
             }
             break;
+        case "diary_note": {
+            const { dayKey, text, ts } = msg;
+            if (dayKey && text) {
+                if (!state.calNotes) state.calNotes = {};
+                let arr = state.calNotes[dayKey] || [];
+                if (typeof arr === "string") arr = arr ? [{ author: "you", text: arr, ts: 0 }] : [];
+                const author = state.partnerName || "partner";
+                arr.push({ author, text, ts: ts || Date.now() });
+                state.calNotes[dayKey] = arr;
+                saveState(state);
+                renderDiaryCalIfOpen(dayKey);
+            }
+            break;
+        }
+        case "diary_note_delete": {
+            const { dayKey, ts } = msg;
+            if (dayKey && ts && state.calNotes?.[dayKey]) {
+                let arr = state.calNotes[dayKey];
+                if (typeof arr === "string") arr = arr ? [{ author: "you", text: arr, ts: 0 }] : [];
+                arr = arr.filter(n => n.ts !== ts);
+                if (arr.length) state.calNotes[dayKey] = arr;
+                else delete state.calNotes[dayKey];
+                saveState(state);
+                renderDiaryCalIfOpen(dayKey);
+            }
+            break;
+        }
+        case "diary_notes_sync": {
+            const { notes, authoritative } = msg;
+            if (!notes || typeof notes !== "object") break;
+            if (!state.calNotes) state.calNotes = {};
+            const author = state.partnerName || "partner";
+            let changed = false;
+
+            // collect all ts values the partner claims to own (across all days)
+            const partnerTs = authoritative ? new Set(
+                Object.values(notes).flatMap(entries =>
+                    Array.isArray(entries) ? entries.map(n => n.ts).filter(Boolean) : []
+                )
+            ) : null;
+
+            // if authoritative, remove partner's notes that are no longer in their list
+            if (authoritative) {
+                for (const [dayKey, arr] of Object.entries(state.calNotes)) {
+                    if (!Array.isArray(arr)) continue;
+                    const filtered = arr.filter(n => n.author === "you" || partnerTs.has(n.ts));
+                    if (filtered.length !== arr.length) {
+                        if (filtered.length) state.calNotes[dayKey] = filtered;
+                        else delete state.calNotes[dayKey];
+                        changed = true;
+                    }
+                }
+            }
+
+            // add partner notes that are missing locally
+            for (const [dayKey, entries] of Object.entries(notes)) {
+                if (!Array.isArray(entries)) continue;
+                let arr = state.calNotes[dayKey] || [];
+                if (typeof arr === "string") arr = arr ? [{ author: "you", text: arr, ts: 0 }] : [];
+                const existing = new Set(arr.map(n => n.ts));
+                for (const n of entries) {
+                    if (n.ts && !existing.has(n.ts)) {
+                        arr.push({ author, text: n.text, ts: n.ts });
+                        existing.add(n.ts);
+                        changed = true;
+                    }
+                }
+                if (arr.length) state.calNotes[dayKey] = arr.sort((a, b) => a.ts - b.ts);
+            }
+
+            if (changed) {
+                saveState(state);
+                renderDiaryFeed();
+            }
+            break;
+        }
         case "break_pact_propose":
             onBreakPactProposeReceived(msg);
             break;

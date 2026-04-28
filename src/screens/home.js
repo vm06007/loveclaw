@@ -11,6 +11,7 @@ export function initHomeScreen() {
             const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
             fullscreenPill.title = label;
             fullscreenPill.setAttribute("aria-label", label);
+            fullscreenPill.innerHTML = `<span class="LoveClaw-dot-sm" aria-hidden="true"></span>${isFullscreen ? "ACTIVE" : "FULL"}`;
         };
         fullscreenPill.addEventListener("click", async () => {
             try {

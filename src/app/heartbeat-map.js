@@ -513,8 +513,8 @@ function ensureMap() {
     });
     setBasemap(hbMap, readBasemapPref());
     hbMap.on("zoomend", syncHbMarkerZoomScale);
-    makeShareControl().addTo(hbMap);
     makeAcceptControl().addTo(hbMap);
+    makeShareControl().addTo(hbMap);
 }
 
 function refreshHbMapContent() {
@@ -528,7 +528,7 @@ function refreshHbMapContent() {
     const coords = parseLatLngFromSignalValue(locVal);
     const battery = latestSignalValue("battery") ?? "—";
     const myRealName = (state.myName || "").trim() || "you";
-    const name = hbShareState !== "idle" ? "You" : myRealName;
+    const name = "You";
     const status = coords ? "" : "no fix";
     const lastPingTs = latestSignalTs();
 

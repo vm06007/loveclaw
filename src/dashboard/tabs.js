@@ -1,7 +1,7 @@
 import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { initHeartbeatMap } from "../app/heartbeat-map.js";
 import { clearPingBadge } from "../app/ping.js";
-import { onDiaryGenerateClick } from "./render.js";
+import { onDiaryGenerateClick, refreshSignalSaveToastVisibility } from "./render.js";
 import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
 
 /**
@@ -24,6 +24,7 @@ export function initDashboardTabs() {
             }
             syncPactBadge();
             syncPactBreakOverlay();
+            refreshSignalSaveToastVisibility();
         });
     });
 
