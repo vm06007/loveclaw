@@ -6,7 +6,6 @@
 /evm
 /src-tauri/target
 /src-tauri/gen
-/src-tauri/icons
 .DS_Store
 
 # AXL — cloned and built by setup.sh, not committed
