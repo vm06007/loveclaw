@@ -56,7 +56,12 @@
     margin-bottom: 16px;
     line-height: 1.65;
 }
-.signal-settings-root { display: flex; flex-direction: column; gap: 0; }
+.signal-settings-root {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 39px;
+}
 .signal-settings-table {
     display: flex;
     flex-direction: column;
@@ -140,6 +145,38 @@
 }
 .diary-entry-date { font-size: 7px; color: var(--text-dim); margin-bottom: 8px; }
 .diary-entry-text { font-size: 8px; line-height: 1.9; color: var(--text); }
+.diary-entry--ai { border-color: var(--purple-l); }
+.diary-entry--ai .diary-entry-date { color: var(--purple-l); }
+.diary-entry--ai .diary-entry-text { color: var(--text-dim); font-style: italic; }
+
+/* Today / future pending panel */
+.diary-pending-panel {
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    animation: diary-panel-fadein 0.4s ease-in-out;
+}
+.diary-pending-date {
+    font-size: 8px;
+    color: var(--amber);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+.diary-pending-msg {
+    font-size: 7px;
+    color: var(--text);
+    line-height: 2;
+    margin: 0 0 10px;
+}
+.diary-pending-sub {
+    font-size: 6px;
+    color: var(--text-dim);
+    line-height: 2;
+    margin: 0;
+}
+.diary-pending-sub em { color: var(--teal); font-style: normal; }
 .fab {
     position: fixed;
     bottom: 24px;
