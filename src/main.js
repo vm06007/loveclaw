@@ -14,6 +14,7 @@ import { initJoinScreen } from "./screens/join.js";
 import { initDashboardTabs } from "./dashboard/tabs.js";
 import { initDashboardShell } from "./app/dashboard-pwa.js";
 import { initRelayNotify } from "./app/relay-notify.js";
+import { initCoopProfileUi } from "./app/coop-profile.js";
 
 await initTauri();
 registerAxlPairing(completePairing);
@@ -28,6 +29,7 @@ initInviteCodeScreen();
 initJoinScreen();
 initDashboardTabs();
 initDashboardShell();
+initCoopProfileUi();
 
 await boot();
 initRelayNotify();

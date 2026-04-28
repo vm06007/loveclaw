@@ -1,8 +1,26 @@
 // Namespaced per role so two Tauri instances don't share storage.
 // Updated in boot() when role is known from get_instance_config or ?role=.
 import { migrateTriggers } from "./pact-triggers.js";
+import { mergeSignalShares, applyPactAgentLocks } from "./signal-share-settings.js";
 
 const DEFAULT_KEY = "loveclaw-state";
+
+export const EMPTY_MY_PROFILE = {
+    walletAddress: "",
+    ensName: "",
+    note: "",
+    avatarDataUrl: "",
+};
+
+export const EMPTY_PARTNER_PROFILE = {
+    walletAddress: "",
+    ensName: "",
+    note: "",
+    avatarDataUrl: "",
+    agentPublicKey: "",
+    deviceLabel: "",
+    updatedAt: null,
+};
 
 const DEFAULT_STATE = {
     myName: "",
@@ -20,7 +38,10 @@ const DEFAULT_STATE = {
     breakPactOutgoingPending: false,
     signals: [],
     diary: [],
+    signalShares: {},
     stakeEth: 0,
+    myProfile: { ...EMPTY_MY_PROFILE },
+    partnerProfile: { ...EMPTY_PARTNER_PROFILE },
 };
 
 let storageKey = DEFAULT_KEY;
@@ -35,6 +56,15 @@ function loadState() {
         parsed.triggers = migrateTriggers(parsed.triggers);
         const se = Number(parsed.stakeEth);
         parsed.stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
+        parsed.myProfile = { ...EMPTY_MY_PROFILE, ...(parsed.myProfile && typeof parsed.myProfile === "object" ? parsed.myProfile : {}) };
+        parsed.partnerProfile = {
+            ...EMPTY_PARTNER_PROFILE,
+            ...(parsed.partnerProfile && typeof parsed.partnerProfile === "object" ? parsed.partnerProfile : {}),
+        };
+        parsed.signalShares = applyPactAgentLocks(
+            mergeSignalShares(parsed.signalShares),
+            parsed.triggers,
+        );
         return parsed;
     } catch {
         return { ...DEFAULT_STATE };

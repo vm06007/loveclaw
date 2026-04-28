@@ -2,13 +2,12 @@ import { state, saveState } from "../lib/state.js";
 import { initTauri, invoke, isTauri } from "../lib/tauri.js";
 import {
     appendTodayHeartbeatEntry,
-    renderSignalGrid,
-    renderSignalList,
     renderTodayTab,
 } from "../dashboard/render.js";
 import { checkBreaches } from "./breach.js";
 import { startAxlPoll } from "../axl/poll.js";
 import { handleAxlMessage } from "./messages.js";
+import { refreshHeartbeatMapIfOpen } from "./heartbeat-map.js";
 import { collectBrowserSignals, collectWebLocationOnly } from "../lib/web-signals.js";
 
 let _completePairing = null;
@@ -76,9 +75,8 @@ async function heartbeat() {
     }
     checkBreaches();
     saveState(state);
-    renderSignalGrid();
-    renderSignalList();
     renderTodayTab();
+    refreshHeartbeatMapIfOpen();
     const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     appendTodayHeartbeatEntry(`[${stamp}] ${formatHeartbeatLogSummary(tick)}`);
 }

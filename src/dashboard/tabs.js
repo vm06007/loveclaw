@@ -1,4 +1,5 @@
 import { runHeartbeatCheck } from "../app/heartbeat.js";
+import { initHeartbeatMap } from "../app/heartbeat-map.js";
 import { clearPingBadge } from "../app/ping.js";
 import { onDiaryGenerateClick } from "./render.js";
 import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
@@ -7,6 +8,8 @@ import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
  * Top-level dashboard tab strip (not to be confused with the screen router).
  */
 export function initDashboardTabs() {
+    initHeartbeatMap();
+
     document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
             document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));

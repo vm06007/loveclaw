@@ -54,6 +54,9 @@
                 />
               </svg>
             </button>
+            <button type="button" class="LoveClaw-pill" id="home-fullscreen-pill" title="Enter fullscreen">
+              <span class="LoveClaw-dot-sm" aria-hidden="true"></span>FULL
+            </button>
             <button type="button" class="LoveClaw-pill" id="home-info-pill" title="Info">
               <span class="LoveClaw-dot-sm" aria-hidden="true"></span>INFO
             </button>
@@ -264,7 +267,7 @@
                 vector-effect="non-scaling-stroke"
               />
             </svg>
-            <div class="today-avatar today-avatar--me" id="today-avatar-me">?</div>
+            <button type="button" class="today-avatar today-avatar--me" id="today-avatar-me" aria-label="Open your profile">?</button>
             <div class="today-couple-mid">
               <svg
                 class="today-heart today-heart-svg"
@@ -288,7 +291,7 @@
               </svg>
               <span class="today-day-pill" id="today-day-pill">day 1</span>
             </div>
-            <div class="today-avatar today-avatar--partner" id="today-avatar-partner">?</div>
+            <button type="button" class="today-avatar today-avatar--partner" id="today-avatar-partner" aria-label="Open partner profile" disabled>?</button>
           </div>
           <div class="today-couple-labels">
             <span id="today-label-me">You</span>
@@ -320,17 +323,53 @@
         </div>
 
         <div class="today-card today-hb-card">
-          <div class="today-card-title">Heartbeat log</div>
-          <p class="today-hb-sub" id="today-hb-sub">today · waiting for first check…</p>
-          <p class="today-hb-hint">Tap <strong>Run check</strong> to pull live signals from LoveClaw.</p>
-          <div class="today-hb-log" id="today-hb-log"></div>
+          <div class="today-hb-card-head">
+            <div class="today-card-title">Heartbeat log</div>
+            <select class="today-hb-style-select hidden" id="hb-style-select" aria-label="Map style">
+              <option value="osm" selected>OSM (default)</option>
+              <option value="streets-v2">streets-v2</option>
+              <option value="streets-v2-dark">streets-v2-dark</option>
+              <option value="streets-v2-light">streets-v2-light</option>
+              <option value="bright-v2">bright-v2</option>
+              <option value="voyager">voyager</option>
+              <option value="pastel">pastel</option>
+              <option value="outdoor-v2">outdoor-v2</option>
+              <option value="topo-v2">topo-v2</option>
+              <option value="winter-v2">winter-v2</option>
+              <option value="basic-v2">basic-v2</option>
+            </select>
+            <button type="button" class="today-hb-map-btn" id="btn-hb-clear" title="Clear heartbeat log" aria-label="Clear heartbeat log">
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9zm-1 12h12a2 2 0 0 0 2-2V8H4v11a2 2 0 0 0 2 2z"/>
+              </svg>
+            </button>
+            <button type="button" class="today-hb-map-btn" id="btn-hb-map" title="Map" aria-label="Show heartbeat map">
+              <svg class="today-hb-map-icon-pin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z"/>
+              </svg>
+              <svg class="today-hb-map-icon-list hidden" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/>
+              </svg>
+            </button>
+          </div>
+          <p class="today-hb-sub" id="today-hb-sub">today / waiting for first check…</p>
+          <p class="today-hb-hint">Tap "Run check now" to pull live signals from LoveClaw.</p>
+          <div class="today-hb-main" id="today-hb-main">
+            <div class="today-hb-log" id="today-hb-log"></div>
+            <div class="today-hb-map-pane hidden" id="today-hb-map-pane" aria-hidden="true">
+              <p id="heartbeat-map-empty" class="heartbeat-map-empty hidden">
+                run <strong>Run check</strong> once so we have coordinates from your last heartbeat.
+              </p>
+              <div id="heartbeat-leaflet-map" class="heartbeat-leaflet-map"></div>
+            </div>
+          </div>
           <button type="button" class="btn btn-primary today-run-btn" id="btn-run-check">Run check now</button>
         </div>
       </div>
 
       <div class="tab-content hidden" id="tab-signals">
-        <div class="signal-grid" id="signal-grid"></div>
-        <div class="signal-list" id="signal-list"></div>
+        <p class="hint signal-settings-lead">Pick what your on-device agent ingests vs what may be relayed to your partner. Pact rules can require agent access for specific signals.</p>
+        <div class="signal-settings-root" id="signal-settings-root" aria-label="Signal sharing settings"></div>
       </div>
 
       <div class="tab-content hidden" id="tab-diary">
@@ -401,6 +440,27 @@
         <div class="modal-qr-wrap" id="modal-qr-target"></div>
         <p class="modal-qr-url" id="modal-qr-url"></p>
         <button type="button" class="btn btn-ghost modal-sheet-close" id="modal-pwa-close">close</button>
+      </div>
+    </div>
+
+    <div
+      id="modal-partner-profile"
+      class="modal-sheet lc-profile-sheet hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-head-title"
+    >
+      <div class="lc-profile-shell">
+        <header class="lc-profile-head">
+          <h2 id="profile-head-title" class="lc-profile-head-title">Your Profile</h2>
+        </header>
+        <div class="lc-profile-card">
+          <div id="profile-modal-body" class="lc-profile-body"></div>
+          <div class="lc-profile-footer-actions">
+            <button type="button" class="btn btn-primary" id="profile-modal-save">save &amp; share</button>
+            <button type="button" class="btn btn-ghost" id="profile-modal-close">close</button>
+          </div>
+        </div>
       </div>
     </div>
 

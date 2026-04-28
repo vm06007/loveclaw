@@ -2,6 +2,14 @@ import { state, saveState } from "../lib/state.js";
 import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
 import { renderDiaryFeed, renderTodayTab } from "../dashboard/render.js";
+import { applyCoopProfileFromMessage, refreshCoopProfileModalIfOpen } from "./coop-profile.js";
+import {
+    refreshHeartbeatMapIfOpen,
+    onShareLocationRequestMessage,
+    onShareLocationAcceptMessage,
+    onShareLocationStopMessage,
+    onShareLocationCancelMessage,
+} from "./heartbeat-map.js";
 import {
     onBreakPactDenyReceived,
     onBreakPactGrantReceived,
@@ -46,6 +54,31 @@ export function handleAxlMessage(msg) {
             break;
         case "break_pact_grant":
             onBreakPactGrantReceived();
+            break;
+        case "coop_profile": {
+            if (!state.paired || !msg.profile || typeof msg.profile !== "object") {
+                break;
+            }
+            if (state.partnerAxlKey && msg._fromKey && msg._fromKey !== state.partnerAxlKey) {
+                break;
+            }
+            applyCoopProfileFromMessage(msg);
+            renderTodayTab();
+            refreshCoopProfileModalIfOpen();
+            refreshHeartbeatMapIfOpen();
+            break;
+        }
+        case "share_location_request":
+            onShareLocationRequestMessage(msg);
+            break;
+        case "share_location_accept":
+            onShareLocationAcceptMessage(msg);
+            break;
+        case "share_location_stop":
+            onShareLocationStopMessage();
+            break;
+        case "share_location_cancel":
+            onShareLocationCancelMessage();
             break;
         default:
             break;

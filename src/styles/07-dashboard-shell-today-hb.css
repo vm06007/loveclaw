@@ -210,7 +210,7 @@
 .dash-panel-host > .tab-content.today-tab {
     height: 100%;
     min-height: 0;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 .dash-panel-host > .tab-content.pact-tab-root {
     height: 100%;
@@ -226,6 +226,9 @@
 .today-tab > .today-couple-card,
 .today-tab > .today-trust-card {
     flex-shrink: 0;
+}
+.today-tab > .today-hb-card {
+    flex: 0 0 auto;
 }
 .today-card {
     background: var(--bg2);
@@ -295,6 +298,35 @@
     background: #1a0d2a;
     border-color: var(--purple);
     color: var(--purple-l);
+}
+button.today-avatar:not(:disabled) {
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease,
+        filter 0.15s ease;
+}
+button.today-avatar.today-avatar--me:not(:disabled):hover {
+    transform: scale(1.06);
+    border-color: var(--teal);
+    box-shadow:
+        0 0 0 2px rgba(93, 202, 165, 0.45),
+        0 8px 20px rgba(0, 0, 0, 0.45);
+    filter: brightness(1.12);
+}
+button.today-avatar.today-avatar--me:not(:disabled):active {
+    transform: scale(1.02);
+}
+button.today-avatar.today-avatar--partner:not(:disabled):hover {
+    transform: scale(1.06);
+    border-color: var(--purple-l);
+    box-shadow:
+        0 0 0 2px rgba(175, 169, 236, 0.5),
+        0 8px 20px rgba(0, 0, 0, 0.45);
+    filter: brightness(1.12);
+}
+button.today-avatar.today-avatar--partner:not(:disabled):active {
+    transform: scale(1.02);
 }
 .today-couple-mid {
     justify-self: center;
@@ -405,7 +437,7 @@
 }
 .today-hb-hint strong { color: var(--teal); font-weight: normal; }
 .today-hb-card {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -415,15 +447,35 @@
 .today-hb-card .today-hb-hint {
     flex-shrink: 0;
 }
+.today-hb-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
 .today-hb-log {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    margin-bottom: 12px;
     font-size: 8px;
     color: var(--text-dim);
     line-height: 1.7;
     -webkit-overflow-scrolling: touch;
+}
+.today-hb-map-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    /* Let marker + speech bubble paint slightly outside the tile box (Leaflet defaults clip). */
+    overflow: visible;
+    border: 1px solid rgba(30, 30, 58, 0.65);
+    background: #0d0d18;
+}
+.today-hb-map-pane.hidden {
+    display: none !important;
 }
 .today-hb-entry {
     padding: 6px 0;
@@ -433,4 +485,364 @@
     flex-shrink: 0;
     margin-top: auto;
     width: 100%;
+}
+
+/* ── Heartbeat map (Leaflet, prototype/diary style OSM tiles) ─────────────── */
+.today-hb-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.today-hb-card-head .today-card-title {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+}
+.today-hb-style-select {
+    flex-shrink: 0;
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(20, 20, 40, 0.85);
+    color: var(--teal);
+    font-family: var(--font);
+    font-size: 7px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:
+        calc(100% - 11px) center,
+        calc(100% - 7px) center;
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+    padding-right: 22px;
+}
+.today-hb-style-select:hover,
+.today-hb-style-select:focus-visible {
+    background-color: rgba(127, 217, 199, 0.12);
+    color: var(--teal-bright, #9ff5e4);
+    border-color: rgba(127, 217, 199, 0.35);
+    outline: none;
+}
+.today-hb-style-select.hidden {
+    display: none;
+}
+.today-hb-style-select option {
+    background: #0d0d18;
+    color: var(--teal);
+}
+.today-hb-style-select option:disabled {
+    color: var(--text-dim);
+}
+.today-hb-map-btn {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(20, 20, 40, 0.85);
+    color: var(--teal);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.today-hb-map-btn:hover,
+.today-hb-map-btn:focus-visible {
+    background: rgba(127, 217, 199, 0.12);
+    color: var(--teal-bright, #9ff5e4);
+    border-color: rgba(127, 217, 199, 0.35);
+    outline: none;
+}
+.today-hb-map-icon-pin,
+.today-hb-map-icon-list {
+    display: block;
+}
+.today-hb-map-btn--active {
+    border-color: rgba(127, 217, 199, 0.55);
+    background: rgba(127, 217, 199, 0.14);
+    color: var(--teal-bright, #9ff5e4);
+}
+.today-hb-map-btn--pending {
+    position: relative;
+}
+.today-hb-map-btn--pending::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #ff4d5d;
+    box-shadow: 0 0 0 1px rgba(13, 13, 24, 0.95);
+}
+
+.heartbeat-map-empty {
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 7px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(30, 30, 58, 0.5);
+}
+.heartbeat-map-empty strong {
+    color: var(--teal);
+    font-weight: normal;
+}
+.heartbeat-leaflet-map {
+    flex: 1 1 auto;
+    min-height: 200px;
+    width: 100%;
+    background: #0d0d18;
+    position: relative;
+    z-index: 0;
+}
+.heartbeat-leaflet-map .leaflet-container {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 8px;
+    background: #0d0d18;
+    overflow: visible !important;
+}
+.heartbeat-leaflet-map .leaflet-map-pane,
+.heartbeat-leaflet-map .leaflet-marker-pane,
+.heartbeat-leaflet-map .leaflet-shadow-pane {
+    overflow: visible !important;
+}
+/* Subtle pop on OSM Carto tiles — keep POI icons & labels readable. */
+.heartbeat-leaflet-map .leaflet-tile-pane {
+    filter:
+        saturate(1.18)
+        contrast(1.05)
+        hue-rotate(-4deg);
+}
+/* Very light scanline + edge vignette for an 8-bit feel; does not hide icons. */
+.heartbeat-leaflet-map::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(13, 13, 24, 0.04) 0px,
+            rgba(13, 13, 24, 0.04) 1px,
+            transparent 1px,
+            transparent 3px
+        ),
+        radial-gradient(
+            ellipse at center,
+            transparent 70%,
+            rgba(13, 13, 24, 0.22) 100%
+        );
+    mix-blend-mode: multiply;
+}
+/* Style Leaflet UI chrome to match dark pixel theme. */
+.heartbeat-leaflet-map .leaflet-control-zoom a,
+.heartbeat-leaflet-map .leaflet-bar a {
+    background-color: rgba(13, 13, 24, 0.85);
+    color: #9ff5e4;
+    border-color: rgba(127, 217, 199, 0.35);
+}
+.heartbeat-leaflet-map .leaflet-control-zoom a:hover,
+.heartbeat-leaflet-map .leaflet-bar a:hover {
+    background-color: rgba(127, 217, 199, 0.18);
+    color: #fff;
+}
+.heartbeat-leaflet-map .leaflet-control-attribution {
+    background: rgba(13, 13, 24, 0.7);
+    color: #c9b8ff;
+    border-radius: 4px 0 0 0;
+    padding: 2px 6px;
+}
+.heartbeat-leaflet-map .leaflet-control-attribution a {
+    color: #9ff5e4;
+}
+
+/* Top-right share + accept control buttons (Leaflet bar). */
+.hb-share-control,
+.hb-accept-control {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+.hb-share-control .hb-share-btn,
+.hb-accept-control .hb-accept-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: #9ff5e4;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.hb-share-control .hb-share-btn svg,
+.hb-accept-control .hb-accept-btn svg {
+    display: block;
+}
+
+/* Active sharing — pink accent. */
+.hb-share-control--active .hb-share-btn {
+    background-color: rgba(244, 114, 182, 0.16) !important;
+    color: #ffb6d2 !important;
+    border-color: rgba(244, 114, 182, 0.55) !important;
+    box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.25) inset;
+}
+
+/* Outgoing — green pulse while waiting for the partner. */
+.hb-share-control--outgoing .hb-share-btn {
+    background-color: rgba(47, 186, 120, 0.8) !important;
+    color: #ffffff !important;
+    border-color: rgba(31, 143, 90, 0.8) !important;
+    animation: hb-share-pulse 0.9s ease-in-out infinite;
+}
+
+/* Incoming — share button dims, accept button (below) takes over. */
+.hb-share-control--incoming .hb-share-btn {
+    opacity: 0.55;
+    cursor: default;
+}
+
+@keyframes hb-share-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(60, 200, 130, 0.55); }
+    70%  { box-shadow: 0 0 0 10px rgba(60, 200, 130, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(60, 200, 130, 0); }
+}
+
+/* Accept button — green check, pulses to draw the eye. */
+.hb-accept-control.hidden {
+    display: none !important;
+}
+.hb-accept-control .hb-accept-btn {
+    background-color: rgba(47, 186, 120, 0.8) !important;
+    color: #ffffff !important;
+    border-color: rgba(31, 143, 90, 0.8) !important;
+    animation: hb-accept-pulse 1.2s ease-in-out infinite;
+}
+.hb-accept-control .hb-accept-btn:hover {
+    background-color: rgba(40, 169, 108, 0.86) !important;
+    color: #ffffff !important;
+}
+@keyframes hb-accept-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(60, 200, 130, 0.55); }
+    70%  { box-shadow: 0 0 0 10px rgba(60, 200, 130, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(60, 200, 130, 0); }
+}
+
+/* Custom marker: pixel sprite + labels */
+.hb-map-divicon {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+}
+.hb-map-pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    width: 100px;
+    height: 136px;
+    overflow: visible;
+    text-align: center;
+    pointer-events: none;
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+}
+.hb-map-pin-meta {
+    position: relative;
+    z-index: 3;
+    margin-bottom: 0;
+    padding: 8px 11px 9px;
+    width: fit-content;
+    max-width: 100px;
+    box-sizing: border-box;
+    border-radius: 0;
+    background: #fffef6;
+    border: 2px solid #0d0b14;
+    box-shadow: 3px 3px 0 #1a1530, inset -1px -1px 0 rgba(26, 21, 48, 0.08);
+    line-height: 1.55;
+    pointer-events: auto;
+}
+.hb-map-pin-name {
+    font-size: 8px;
+    font-weight: normal;
+    color: #0a9b82;
+    letter-spacing: 0.04em;
+    word-break: break-word;
+    line-height: 1.5;
+}
+.hb-map-pin-bat {
+    font-size: 7px;
+    color: #1a1a2e;
+    margin-top: 6px;
+    font-weight: normal;
+    line-height: 1.55;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.hb-map-pin-bat-icon {
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+    image-rendering: pixelated;
+}
+.hb-map-pin-bat-icon svg {
+    display: block;
+}
+.hb-map-pin-bat-pct {
+    letter-spacing: 0.04em;
+}
+.hb-map-pin-time {
+    font-size: 6px;
+    color: #5a5a72;
+    margin-top: 5px;
+    letter-spacing: 0.06em;
+    line-height: 1.55;
+}
+.hb-map-pin-stat {
+    font-size: 6px;
+    color: #5a5a72;
+    margin-top: 5px;
+    letter-spacing: 0.06em;
+    word-break: break-word;
+    line-height: 1.55;
+}
+/* Pixel-style tail (chunky wedge) */
+.hb-map-pin-tail {
+    width: 0;
+    height: 0;
+    margin-top: -1px;
+    margin-bottom: 1px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 9px solid #0d0b14;
+    flex-shrink: 0;
+}
+.hb-map-pin-sprite {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    line-height: 0;
+    flex-shrink: 0;
+    pointer-events: auto;
 }

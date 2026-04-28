@@ -1,5 +1,9 @@
 /node_modules
 /dist
+.env
+.env.local
+.env.*.local
+/evm
 /src-tauri/target
 /src-tauri/gen
 /src-tauri/icons
@@ -16,3 +20,7 @@ __pycache__/
 *.pyc
 .editorconfig
 prototype/relay/__init__.py
+scripts/dev-vite-or-skip.sh
+src-tauri/Cargo.lock
+bun.lockb
+package-lock.json

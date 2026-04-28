@@ -11,18 +11,28 @@ export function startAxlPoll(completePairing, handleAxlMessage) {
     }
     axl._polling = true;
 
+    let recvBusy = false;
+
     const tick = async () => {
-        const msg = await axl.recv();
-        if (!msg) {
+        if (recvBusy) {
             return;
         }
-        if (msg.type === "axl_handshake" && !state.paired) {
-            state.partnerAxlKey = msg._fromKey || msg.key;
-            completePairing(msg.name);
-            return;
-        }
-        if (state.paired) {
-            handleAxlMessage(msg);
+        recvBusy = true;
+        try {
+            const msg = await axl.recv();
+            if (!msg) {
+                return;
+            }
+            if (msg.type === "axl_handshake" && !state.paired) {
+                state.partnerAxlKey = msg._fromKey || msg.key;
+                completePairing(msg.name);
+                return;
+            }
+            if (state.paired) {
+                handleAxlMessage(msg);
+            }
+        } finally {
+            recvBusy = false;
         }
     };
 

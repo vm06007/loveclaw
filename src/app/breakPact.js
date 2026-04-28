@@ -1,4 +1,4 @@
-import { state, saveState } from "../lib/state.js";
+import { state, saveState, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 import { showScreen } from "../lib/router.js";
@@ -23,6 +23,7 @@ export function applyBreakPactUnpair() {
     state.breakPactIncoming = null;
     state.breakPactOutgoingPending = false;
     state.partnerTrustScore = 100;
+    state.partnerProfile = { ...EMPTY_PARTNER_PROFILE };
     saveState(state);
     syncPactBadge();
     syncPactBreakOverlay();

@@ -8,21 +8,37 @@ import {
     syncProposeBreakPactButton,
 } from "../app/breakPact.js";
 import { pactRuleLabel, formatStakeSummary } from "../lib/invite.js";
+import {
+    SIGNAL_SHARE_ROWS,
+    mergeSignalShares,
+    applyPactAgentLocks,
+    pactAgentLockReason,
+} from "../lib/signal-share-settings.js";
 
-const SIGNAL_CARDS = [
-    { key: "battery", mark: "bat", label: "battery" },
-    { key: "location", mark: "loc", label: "location" },
-    { key: "apps", mark: "app", label: "apps" },
-];
+function effectiveSignalShares() {
+    return applyPactAgentLocks(mergeSignalShares(state.signalShares), state.triggers);
+}
 
-function signalTypeMark(type) {
-    const t = String(type);
-    return {
-        battery: "bat",
-        location: "loc",
-        apps: "app",
-        notification: "ntf",
-    }[t] ?? t.slice(0, 3);
+function setTodayAvatarButton(el, initials, avatarDataUrl) {
+    if (!el) {
+        return;
+    }
+    el.textContent = "";
+    el.style.backgroundSize = "";
+    el.style.backgroundPosition = "";
+    el.style.backgroundImage = "";
+    const url = typeof avatarDataUrl === "string" && avatarDataUrl.startsWith("data:image/")
+        ? avatarDataUrl
+        : "";
+    if (url) {
+        el.style.backgroundImage = `url(${JSON.stringify(url)})`;
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+        el.style.color = "transparent";
+    } else {
+        el.textContent = initials;
+        el.style.color = "";
+    }
 }
 
 function trustNameLabel(raw, fallback) {
@@ -35,57 +51,98 @@ function trustNameLabel(raw, fallback) {
     return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-function relTime(ts) {
-    const diff = Date.now() - ts;
-    if (diff < 60000) {
-        return "now";
-    }
-    if (diff < 3600000) {
-        return `${Math.floor(diff / 60000)}m`;
-    }
-    return `${Math.floor(diff / 3600000)}h`;
-}
-
-export function renderSignalGrid() {
-    const grid = document.getElementById("signal-grid");
-    if (!grid) {
+export function renderSignalShareSettings() {
+    const root = document.getElementById("signal-settings-root");
+    if (!root) {
         return;
     }
-    grid.innerHTML = "";
-    SIGNAL_CARDS.forEach(({ key, mark, label }) => {
-        const latest = state.signals.filter(s => s.type === key).at(-1);
-        const card = document.createElement("div");
-        card.className = "signal-card";
-        card.innerHTML = `
-      <div class="signal-card-icon">${mark}</div>
-      <div class="signal-card-label">${label}</div>
-      <div class="signal-card-value">${latest?.value ?? "—"}</div>
-    `;
-        grid.appendChild(card);
-    });
-}
+    root.replaceChildren();
+    const triggers = new Set(state.triggers || []);
+    const shares = effectiveSignalShares();
 
-export function renderSignalList() {
-    const list = document.getElementById("signal-list");
-    if (!list) {
-        return;
+    const table = document.createElement("div");
+    table.className = "signal-settings-table";
+
+    const head = document.createElement("div");
+    head.className = "signal-settings-row signal-settings-row--head";
+    const hType = document.createElement("div");
+    hType.className = "signal-settings-cell signal-settings-cell--type";
+    hType.textContent = "Signal";
+    const hAgent = document.createElement("div");
+    hAgent.className = "signal-settings-cell signal-settings-cell--check signal-settings-cell--head-check";
+    hAgent.textContent = "Agent";
+    const hPartner = document.createElement("div");
+    hPartner.className = "signal-settings-cell signal-settings-cell--check signal-settings-cell--head-check";
+    hPartner.textContent = (state.partnerName || "").trim() || "Partner";
+    head.append(hType, hAgent, hPartner);
+    table.appendChild(head);
+
+    for (const row of SIGNAL_SHARE_ROWS) {
+        const agentLocked = Boolean(row.pactAgentLockTrigger && triggers.has(row.pactAgentLockTrigger));
+        const rowEl = document.createElement("div");
+        rowEl.className = "signal-settings-row";
+
+        const typeCell = document.createElement("div");
+        typeCell.className = "signal-settings-cell signal-settings-cell--type";
+        const title = document.createElement("div");
+        title.className = "signal-settings-type-title";
+        title.textContent = row.label;
+        const blurb = document.createElement("div");
+        blurb.className = "signal-settings-type-blurb";
+        blurb.textContent = row.blurb;
+        typeCell.append(title, blurb);
+        if (agentLocked && row.pactAgentLockTrigger) {
+            const lock = document.createElement("div");
+            lock.className = "signal-settings-lock-note";
+            lock.textContent = pactAgentLockReason(row.pactAgentLockTrigger);
+            typeCell.appendChild(lock);
+        }
+
+        const agentCell = document.createElement("div");
+        agentCell.className = "signal-settings-cell signal-settings-cell--check";
+        const agentLabel = document.createElement("label");
+        agentLabel.className = "signal-settings-check-label";
+        const agentCb = document.createElement("input");
+        agentCb.type = "checkbox";
+        agentCb.className = "pact-toggle-input";
+        agentCb.checked = shares[row.id].agent;
+        agentCb.disabled = agentLocked;
+        if (agentLocked && row.pactAgentLockTrigger) {
+            agentCb.title = pactAgentLockReason(row.pactAgentLockTrigger);
+        }
+        agentCb.addEventListener("change", () => {
+            const next = mergeSignalShares(state.signalShares);
+            next[row.id].agent = agentCb.checked;
+            state.signalShares = applyPactAgentLocks(next, state.triggers);
+            saveState(state);
+            renderSignalShareSettings();
+        });
+        agentLabel.appendChild(agentCb);
+        agentCell.appendChild(agentLabel);
+
+        const partnerCell = document.createElement("div");
+        partnerCell.className = "signal-settings-cell signal-settings-cell--check";
+        const partnerLabel = document.createElement("label");
+        partnerLabel.className = "signal-settings-check-label";
+        const partnerCb = document.createElement("input");
+        partnerCb.type = "checkbox";
+        partnerCb.className = "pact-toggle-input";
+        partnerCb.checked = shares[row.id].partner;
+        partnerCb.addEventListener("change", () => {
+            const next = mergeSignalShares(state.signalShares);
+            next[row.id].partner = partnerCb.checked;
+            state.signalShares = applyPactAgentLocks(next, state.triggers);
+            saveState(state);
+            renderSignalShareSettings();
+        });
+        partnerLabel.appendChild(partnerCb);
+        partnerCell.appendChild(partnerLabel);
+
+        rowEl.append(typeCell, agentCell, partnerCell);
+        table.appendChild(rowEl);
     }
-    const recent = [...state.signals].reverse().slice(0, 40);
-    list.innerHTML = recent.length === 0
-        ? `<p class="hint">no signals yet</p>`
-        : recent
-            .map(
-                s => `
-      <div class="signal-row">
-        <div class="signal-row-icon">${signalTypeMark(s.type)}</div>
-        <div class="signal-row-body">
-          <div class="signal-row-name">${s.type}</div>
-          <div class="signal-row-val">${s.value}</div>
-        </div>
-        <div class="signal-row-time">${relTime(s.ts)}</div>
-      </div>`,
-            )
-            .join("");
+
+    root.appendChild(table);
 }
 
 export function renderDiaryFeed() {
@@ -137,8 +194,17 @@ export function renderTodayTab() {
     const rawPt = (state.partnerName || "?").trim();
     const nMe = rawMe.slice(0, 2).toUpperCase() || "?";
     const nPt = rawPt.slice(0, 2).toUpperCase() || "?";
-    if (meAv) meAv.textContent = nMe;
-    if (ptAv) ptAv.textContent = state.paired ? nPt : "?";
+    const myPh = state.myProfile?.avatarDataUrl;
+    const ptPh = state.partnerProfile?.avatarDataUrl;
+    setTodayAvatarButton(meAv, nMe, myPh);
+    if (state.paired) {
+        setTodayAvatarButton(ptAv, nPt, ptPh);
+    } else {
+        setTodayAvatarButton(ptAv, "?", "");
+    }
+    if (ptAv) {
+        ptAv.disabled = !state.paired;
+    }
     if (la) la.textContent = state.myName || "You";
     if (lb) lb.textContent = state.paired ? (state.partnerName || "Partner") : "Partner";
     const trustMe = document.getElementById("today-trust-me");
@@ -188,7 +254,7 @@ export function renderTodayTab() {
 export function appendTodayHeartbeatEntry(line) {
     const sub = document.getElementById("today-hb-sub");
     if (sub) {
-        sub.textContent = "today · last check just now";
+        sub.textContent = "today / last check just now";
     }
     const log = document.getElementById("today-hb-log");
     if (!log || !line) {
@@ -203,6 +269,17 @@ export function appendTodayHeartbeatEntry(line) {
     }
 }
 
+export function clearTodayHeartbeatLog() {
+    const log = document.getElementById("today-hb-log");
+    if (log) {
+        log.replaceChildren();
+    }
+    const sub = document.getElementById("today-hb-sub");
+    if (sub) {
+        sub.textContent = "today / log cleared";
+    }
+}
+
 export function renderDashboard() {
     if (!state.paired) {
         if (document.getElementById("screen-dashboard")?.classList.contains("active")) {
@@ -211,8 +288,7 @@ export function renderDashboard() {
         return;
     }
     renderTodayTab();
-    renderSignalGrid();
-    renderSignalList();
+    renderSignalShareSettings();
     renderDiaryFeed();
     renderPact();
     renderPingStatus();
