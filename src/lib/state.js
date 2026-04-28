@@ -10,6 +10,9 @@ export const EMPTY_MY_PROFILE = {
     ensName: "",
     note: "",
     avatarDataUrl: "",
+    agenticTokenId: "",
+    agentWalletAddress: "",
+    agentWalletKey: "",
 };
 
 export const EMPTY_PARTNER_PROFILE = {
@@ -20,6 +23,8 @@ export const EMPTY_PARTNER_PROFILE = {
     agentPublicKey: "",
     deviceLabel: "",
     updatedAt: null,
+    agenticTokenId: "",
+    agentWalletAddress: "",
 };
 
 const DEFAULT_STATE = {

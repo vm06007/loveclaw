@@ -44,7 +44,7 @@ export const SIGNAL_SHARE_ROWS = [
     },
     {
         id: "heartrate",
-        label: "Heartbear & fitness",
+        label: "Heartbeat & fitness",
         blurb: "Wearable BPM and a simple calm / stress band.",
         pactAgentLockTrigger: null,
     },
@@ -61,10 +61,12 @@ export const SIGNAL_SHARE_ROWS = [
         pactAgentLockTrigger: null,
     },
     {
-        id: "sleep_debt",
-        label: "Sleep debt",
-        blurb: "Estimated deficit vs your usual sleep window.",
+        id: "spending",
+        label: "Spending & payments",
+        blurb: "Merchant category and amount band — never full card or account details.",
         pactAgentLockTrigger: null,
+        defaultAgent: false,
+        defaultPartner: false,
     },
 ];
 

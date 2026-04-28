@@ -1,4 +1,5 @@
 import { state, saveState, EMPTY_MY_PROFILE, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
+import { registerAgenticId, setupAgentWallet, agenticExplorerUrl, agentWalletExplorerUrl, silentLookup, CONTRACT_ADDRESS, EXPLORER_BASE } from "../lib/agentic-id.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 import { renderTodayTab } from "../dashboard/render.js";
@@ -112,6 +113,8 @@ function buildOutboundProfile() {
         avatarDataUrl: avatar.startsWith("data:image/") ? avatar : "",
         deviceLabel: getDeviceSummary().slice(0, 400),
         agentPublicKey: String(state.myAxlKey || "").trim().slice(0, 512),
+        agenticTokenId: String(mp.agenticTokenId || "").trim().slice(0, 64),
+        agentWalletAddress: String(mp.agentWalletAddress || "").trim().slice(0, 42),
     };
 }
 
@@ -383,7 +386,30 @@ export function openCoopProfile(who) {
             return d;
         };
 
-        body.appendChild(profileFieldBlock("Agent address (AXL)", makeAgentAddressRow(agentP)));
+        const partnerTokenId = String(pp.agenticTokenId || "").trim();
+        const partnerAgentWallet = String(pp.agentWalletAddress || "").trim();
+        const partnerAgenticBlock = document.createElement("div");
+        partnerAgenticBlock.className = "lc-profile-field";
+        const partnerAgenticLabel = document.createElement("label");
+        partnerAgenticLabel.className = "lc-profile-label";
+        if (partnerTokenId) {
+            partnerAgenticLabel.append("OG Agent Address ");
+            const nftLink = document.createElement("a");
+            nftLink.className = "lc-agentic-nft-link";
+            nftLink.textContent = `NFT ID #${partnerTokenId}`;
+            nftLink.href = agenticExplorerUrl(partnerTokenId);
+            nftLink.target = "_blank";
+            nftLink.rel = "noopener noreferrer";
+            partnerAgenticLabel.appendChild(nftLink);
+        } else {
+            partnerAgenticLabel.textContent = "OG Agent Address";
+        }
+        partnerAgenticBlock.appendChild(partnerAgenticLabel);
+        partnerAgenticBlock.appendChild(makeAgenticIdSection(partnerTokenId, coopName, null, partnerAgentWallet));
+        body.appendChild(partnerAgenticBlock);
+
+        body.appendChild(profileFieldBlock("AXL Agent Address", makeAgentAddressRow(agentP)));
+
         body.appendChild(profileFieldBlock("Wallet address", profileInputRow(mkRead(wallet, false), profileIconFilled(PROFILE_ICON_PATHS.mail))));
         body.appendChild(profileFieldBlock("ENS name", profileInputRow(mkRead(ens, false), profileIconFilled(PROFILE_ICON_PATHS.globe))));
         body.appendChild(profileFieldBlock("Device", profileInputRow(mkRead(dev, false), profileIconFilled(PROFILE_ICON_PATHS.phone))));
@@ -437,6 +463,8 @@ export function applyCoopProfileFromMessage(msg) {
         avatarDataUrl: avatarOk,
         agentPublicKey: String(p.agentPublicKey || "").trim().slice(0, 512),
         deviceLabel: String(p.deviceLabel || "").trim().slice(0, 400),
+        agenticTokenId: String(p.agenticTokenId || "").trim().slice(0, 64),
+        agentWalletAddress: String(p.agentWalletAddress || "").trim().slice(0, 42),
         updatedAt: typeof msg.ts === "number" ? msg.ts : Date.now(),
     };
     saveState(state);

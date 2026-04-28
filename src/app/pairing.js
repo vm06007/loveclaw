@@ -24,5 +24,28 @@ export function completePairing(partnerName) {
         renderDashboard();
         showScreen("dashboard");
         startHeartbeat();
+        _promptAgentRegistration();
     }, 2000);
+}
+
+function _promptAgentRegistration() {
+    const mp = state.myProfile || {};
+    if (mp.agenticTokenId) return;
+
+    const toast = document.createElement("div");
+    toast.className = "lc-agent-reg-toast";
+    toast.innerHTML = `
+        <span class="lc-agent-reg-toast__text">tap your avatar to register your AI agent on 0G</span>
+        <button class="lc-agent-reg-toast__close" aria-label="dismiss">✕</button>
+    `;
+    document.body.appendChild(toast);
+
+    const dismiss = () => {
+        toast.classList.remove("lc-agent-reg-toast--show");
+        setTimeout(() => toast.remove(), 400);
+    };
+    toast.querySelector(".lc-agent-reg-toast__close")?.addEventListener("click", dismiss);
+
+    requestAnimationFrame(() => toast.classList.add("lc-agent-reg-toast--show"));
+    setTimeout(dismiss, 8000);
 }
