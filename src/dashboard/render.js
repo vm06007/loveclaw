@@ -614,8 +614,6 @@ export function renderPact() {
         ? state.triggers.map(t => `<div class="pact-item">${pactRuleLabel(t)}</div>`).join("")
         : `<p class="hint">no breach triggers set</p>`;
     view.innerHTML = `
-    <div class="pact-item">couple id: ${state.coupleId || "—"}</div>
-    <div class="pact-item">paired since: ${state.createdAt ? new Date(state.createdAt).toLocaleDateString() : "—"}</div>
     <div class="pact-item">mandatory ETH stake: ${stakeText}</div>
     <div class="pact-item">breach triggers:</div>
     ${pactTriggers}
@@ -647,6 +645,41 @@ export function renderTodayTab() {
     }
     if (la) la.textContent = state.myName || "You";
     if (lb) lb.textContent = state.paired ? (state.partnerName || "Partner") : "Partner";
+    const coupleId = document.getElementById("today-couple-id");
+    const pairedSince = document.getElementById("today-paired-since");
+    if (coupleId) {
+        coupleId.textContent = `couple id: ${state.coupleId || "—"}`;
+    }
+    if (pairedSince) {
+        pairedSince.textContent = `paired since: ${state.createdAt ? new Date(state.createdAt).toLocaleDateString() : "—"}`;
+    }
+    const heartBtn = document.getElementById("today-heart-btn");
+    const coupleInfo = document.getElementById("today-couple-info");
+    if (heartBtn && coupleInfo && !heartBtn.dataset.bound) {
+        heartBtn.addEventListener("click", () => {
+            const willOpen = coupleInfo.classList.contains("hidden");
+            coupleInfo.classList.toggle("hidden", !willOpen);
+            heartBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        });
+        heartBtn.dataset.bound = "1";
+    }
+    const budgetToggle = document.getElementById("today-budget-toggle");
+    const budgetBreakdown = document.getElementById("today-budget-breakdown");
+    const budgetRow = document.getElementById("today-budget-row");
+    if (budgetToggle && budgetBreakdown && !budgetToggle.dataset.bound) {
+        const toggleBudgetBreakdown = () => {
+            const willOpen = budgetBreakdown.classList.contains("hidden");
+            budgetBreakdown.classList.toggle("hidden", !willOpen);
+            budgetToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+            budgetToggle.classList.toggle("today-budget-toggle--open", willOpen);
+        };
+        budgetToggle.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            toggleBudgetBreakdown();
+        });
+        budgetRow?.addEventListener("click", toggleBudgetBreakdown);
+        budgetToggle.dataset.bound = "1";
+    }
     const trustMe = document.getElementById("today-trust-me");
     const trustPt = document.getElementById("today-trust-partner");
     const labMe = document.getElementById("today-trust-label-me");
@@ -873,6 +906,21 @@ export function refreshDiaryStoreBtn() {
     btn.classList.toggle("hidden", !hasImage);
 }
 
+function _showCopyToast(msg) {
+    const id = "lc-profile-toast";
+    let el = document.getElementById(id);
+    if (!el) {
+        el = document.createElement("div");
+        el.id = id;
+        el.className = "lc-profile-toast";
+        document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add("lc-profile-toast--show");
+    window.clearTimeout(_showCopyToast._t);
+    _showCopyToast._t = window.setTimeout(() => el?.classList.remove("lc-profile-toast--show"), 1800);
+}
+
 function _showZgStoreModal(data, dateLabel) {
     const modal = document.getElementById("modal-zg-store");
     const body  = document.getElementById("zg-modal-body");
@@ -880,12 +928,15 @@ function _showZgStoreModal(data, dateLabel) {
     if (!modal || !body) return;
 
     const clean = v => String(v || "").trim();
-    const errMsg     = clean(data.error);
-    const rootHash   = clean(data.rootHash);
-    const txHash     = clean(data.txHash);
-    const l1Url      = clean(data.l1TxUrl);
-    const agentAddr  = clean(data.agentAddress);
-    const storeUrl   = agentAddr ? `${ZG_STORAGE}/address/${agentAddr}` : clean(data.storageRootSearchUrl || data.storageSubmissionUrl || data.storageUrl || data.submissionUrl);
+    const errMsg        = clean(data.error);
+    const rootHash      = clean(data.rootHash);
+    const txHash        = clean(data.txHash);
+    const l1Url         = clean(data.l1TxUrl);
+    const agentAddr     = clean(data.agentAddress);
+    const retrieveUrl   = clean(data.retrieveUrl);
+    const imageRootHash = clean(data.imageRootHash);
+    const imageRetrUrl  = clean(data.imageRetrieveUrl);
+    const storeUrl      = agentAddr ? `${ZG_STORAGE}/address/${agentAddr}` : "";
 
     if (errMsg) {
         if (head) head.textContent = "⚠ agent error";
@@ -897,35 +948,49 @@ function _showZgStoreModal(data, dateLabel) {
                 </div>
             </div>`;
     } else {
-        if (head) head.textContent = "✓ stored on 0G";
+        if (head) head.innerHTML = `<svg class="zg-head-heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> stored on 0G`;
         body.innerHTML = `
             <div class="zg-modal-label">episode stored on 0G</div>
             ${dateLabel ? `<div class="zg-modal-date">${dateLabel}</div>` : ""}
             <div class="zg-modal-section">
-                <span class="zg-modal-key">root hash</span>
+                <span class="zg-modal-key">journal root hash</span>
                 <div class="zg-modal-hash-row">
                     <span class="zg-modal-hash">${rootHash || "—"}</span>
                     ${rootHash ? `<button class="lc-profile-icon-btn zg-copy-btn" data-copy="${rootHash}" title="copy"><svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>` : ""}
                 </div>
             </div>
+            ${imageRootHash ? `<div class="zg-modal-section">
+                <span class="zg-modal-key">image root hash</span>
+                <div class="zg-modal-hash-row">
+                    <span class="zg-modal-hash">${imageRootHash}</span>
+                    <button class="lc-profile-icon-btn zg-copy-btn" data-copy="${imageRootHash}" title="copy"><svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                    ${imageRetrUrl ? `<a class="lc-profile-icon-btn" href="${imageRetrUrl}" target="_blank" rel="noopener noreferrer" title="retrieve image"><svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ""}
+                </div>
+            </div>` : ""}
             ${txHash ? `<div class="zg-modal-section">
-                <span class="zg-modal-key">tx hash</span>
+                <span class="zg-modal-key">transaction hash</span>
                 <div class="zg-modal-hash-row">
                     <span class="zg-modal-hash">${txHash}</span>
                     <button class="lc-profile-icon-btn zg-copy-btn" data-copy="${txHash}" title="copy"><svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                     ${l1Url ? `<a class="lc-profile-icon-btn" href="${l1Url}" target="_blank" rel="noopener noreferrer" title="view on 0G Explorer"><svg class="lc-profile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ""}
                 </div>
             </div>` : ""}
-            ${storeUrl ? `<a class="zg-modal-scan-link" href="${storeUrl}" target="_blank" rel="noopener noreferrer">view on StorageScan →</a>` : ""}
+            <div class="zg-modal-links">
+                ${retrieveUrl ? `<a class="zg-modal-scan-link" href="${retrieveUrl}" target="_blank" rel="noopener noreferrer">retrieve journal →</a>` : ""}
+                ${storeUrl ? `<a class="zg-modal-scan-link" href="${storeUrl}" target="_blank" rel="noopener noreferrer">view on StorageScan →</a>` : ""}
+            </div>
         `;
     }
 
     body.querySelectorAll(".zg-copy-btn[data-copy]").forEach(btn => {
         btn.addEventListener("click", () => {
             const val = btn.dataset.copy;
-            if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(val).catch(() => {});
-            }
+            const doCopy = navigator.clipboard?.writeText
+                ? navigator.clipboard.writeText(val)
+                : Promise.reject();
+            doCopy
+                .then(() => _showCopyToast("Copied!"))
+                .catch(() => _showCopyToast("Copy failed"));
         });
     });
 
@@ -978,7 +1043,10 @@ export async function onDiaryStoreClick(btn) {
     const [sy, sm, sd] = selectedKey.split("-").map(Number);
     const dateStr = new Date(sy, sm, sd).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
-    // Build entries for this day
+    const myName      = state.myName      || "me";
+    const partnerName = state.partnerName || "partner";
+
+    // Build diary entries for this day with real author names
     const dayEntries = (state.diary || []).filter(e => {
         const d = new Date(e.ts);
         return d.getFullYear() === sy && d.getMonth() === sm && d.getDate() === sd;
@@ -987,27 +1055,50 @@ export async function onDiaryStoreClick(btn) {
     let noteEntries = state.calNotes?.[selectedKey] || [];
     if (typeof noteEntries === "string") noteEntries = noteEntries ? [{ text: noteEntries }] : [];
 
-    const snapshot = {
-        schemaVersion: 1,
-        coupleId: state.coupleId || "loveclaw",
-        date: selectedKey,
-        dateLabel: dateStr,
-        myName: state.myName || "me",
-        partnerName: state.partnerName || "partner",
-        agentWalletAddress: mp.agentWalletAddress || "",
-        entries: dayEntries.map(e => ({ ts: e.ts, author: e.author || state.myName || "me", text: e.text })),
-        notes: noteEntries,
-        storedAt: Date.now(),
-    };
+    // Resolve image path for this day
+    const imgIdx  = sd % DIARY_IMG_POOL.length;
+    const imgFile = DIARY_IMG_POOL[imgIdx];
+    const imgPath = `prototype/diary/images/${imgFile}`;
 
     const prevHTML = btn.innerHTML;
-    btn.innerHTML = `<span class="lc-agentic-spinner"></span>storing...`;
     btn.disabled = true;
 
     try {
-        const data = await _zgUpload(JSON.stringify(snapshot, null, 2), decryptedKey);
+        // Step 1: upload image
+        btn.innerHTML = `<span class="lc-agentic-spinner"></span>uploading image...`;
+        const imgResp  = await fetch(imgPath);
+        if (!imgResp.ok) throw new Error(`image fetch failed: ${imgResp.status}`);
+        const imgBytes = new Uint8Array(await imgResp.arrayBuffer());
+        const imgData  = await _zgUpload(imgBytes, decryptedKey);
+        const imageRootHash = imgData.rootHash;
+
+        // Step 2: upload JSON snapshot (references the image by hash)
+        btn.innerHTML = `<span class="lc-agentic-spinner"></span>uploading journal...`;
+        const snapshot = {
+            schemaVersion: 2,
+            coupleId: state.coupleId || "loveclaw",
+            date: selectedKey,
+            dateLabel: dateStr,
+            myName,
+            partnerName,
+            agentWalletAddress: mp.agentWalletAddress || "",
+            image: { file: imgFile, rootHash: imageRootHash, retrieveUrl: imgData.retrieveUrl },
+            entries: dayEntries.map(e => ({
+                ts: e.ts,
+                author: e.author || myName,
+                text: e.text,
+            })),
+            notes: noteEntries.map(n => ({
+                ...n,
+                author: (!n.author || n.author === "you") ? myName : n.author,
+            })),
+            storedAt: Date.now(),
+        };
+        const data = await _zgUpload(JSON.stringify(snapshot, null, 2), decryptedKey, imgData._deps);
         decryptedKey = null;
-        data.agentAddress = mp.agentWalletAddress || "";
+        data.agentAddress    = mp.agentWalletAddress || "";
+        data.imageRootHash   = imageRootHash;
+        data.imageRetrieveUrl= imgData.retrieveUrl;
         btn.innerHTML = "✓ stored on 0G!";
         setTimeout(() => { btn.innerHTML = prevHTML; btn.disabled = false; }, 4000);
         _showZgStoreModal(data, dateStr);
@@ -1025,16 +1116,17 @@ const ZG_INDEXER = "https://indexer-storage-testnet-turbo.0g.ai";
 const ZG_CHAIN   = "https://chainscan-galileo.0g.ai";
 const ZG_STORAGE = "https://storagescan-galileo.0g.ai";
 
-async function _zgUpload(text, privateKey) {
-    const [{ Indexer, MemData }, { ethers }] = await Promise.all([
+async function _zgUpload(data, privateKey, _cachedDeps) {
+    const deps = _cachedDeps ?? await Promise.all([
         import("https://esm.sh/@0gfoundation/0g-ts-sdk@1.2.6/browser"),
         import("https://esm.sh/ethers@6.13.0"),
     ]);
+    const [{ Indexer, MemData }, { ethers }] = deps;
 
     const provider = new ethers.JsonRpcProvider(ZG_RPC);
     const signer   = new ethers.Wallet(privateKey, provider);
     const indexer  = new Indexer(ZG_INDEXER);
-    const bytes    = new TextEncoder().encode(text);
+    const bytes    = typeof data === "string" ? new TextEncoder().encode(data) : data;
     const mem      = new MemData(bytes);
 
     const [, treeErr] = await mem.merkleTree();
@@ -1054,6 +1146,7 @@ async function _zgUpload(text, privateKey) {
         txHash:              clean(txHash),
         txSeq,
         l1TxUrl:             clean(txHash) ? `${ZG_CHAIN}/tx/${clean(txHash)}` : null,
-        storageRootSearchUrl:`${ZG_STORAGE}/files?q=${encodeURIComponent(rootHash)}`,
+        retrieveUrl:         rootHash ? `${ZG_INDEXER}/file?root=${encodeURIComponent(rootHash)}` : null,
+        _deps:               deps,
     };
 }

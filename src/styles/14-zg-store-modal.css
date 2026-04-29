@@ -118,7 +118,19 @@
     border-bottom: 2px solid rgba(0, 0, 0, 0.25);
 }
 
+.zg-head-heart {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+    margin-right: 4px;
+    color: #fff;
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.3));
+}
+
 .lc-zg-store-head-title {
+    display: flex;
+    align-items: center;
     font-size: 9px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -173,15 +185,21 @@
 .zg-modal-hash {
     flex: 1;
     min-width: 0;
-    font-family: ui-monospace, "Courier New", monospace;
-    font-size: 7px;
+    font-family: var(--font);
+    font-size: 6px;
     color: var(--teal);
     word-break: break-all;
-    line-height: 1.5;
+    line-height: 1.8;
 }
 
 .zg-copy-btn {
     flex-shrink: 0;
+}
+
+.zg-modal-links {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .zg-modal-scan-link {
@@ -192,9 +210,19 @@
     letter-spacing: 0.04em;
     cursor: pointer;
     transition: color 0.15s;
-    align-self: flex-start;
 }
 
 .zg-modal-scan-link:hover {
     color: #9ff5e4;
+}
+
+/* 30% smaller copy/link icon buttons inside the 0G modal */
+.lc-zg-store-modal .lc-profile-icon-btn {
+    width: 17px;
+    height: 17px;
+    border-radius: 4px;
+}
+.lc-zg-store-modal .lc-profile-icon-btn .lc-profile-ico {
+    width: 11px;
+    height: 11px;
 }
