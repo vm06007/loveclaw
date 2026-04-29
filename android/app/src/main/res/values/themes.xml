@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.LoveClaw" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#5DCAA5</item>
+        <item name="colorPrimaryVariant">#1D9E75</item>
+        <item name="colorOnPrimary">#07070f</item>
+        <item name="android:windowBackground">#07070f</item>
+        <item name="android:statusBarColor">#07070f</item>
+    </style>
+</resources>

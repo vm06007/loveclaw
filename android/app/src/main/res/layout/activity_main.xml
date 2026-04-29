@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#07070f"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LOVECLAW"
+            android:textColor="#5DCAA5"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SENSOR SERVICE"
+            android:textColor="#534AB7"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="28dp" />
+
+        <!-- Attestation card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#0d0d1e"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ATTESTATION KEY"
+                android:textColor="#AFA9EC"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/text_hw_backed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="checking…"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/text_key_fingerprint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="—"
+                android:textColor="#5DCAA5"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btn_regen_key"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="REGEN KEY"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:backgroundTint="#1D9E75"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <!-- Service status card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#0d0d1e"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SENSOR STATUS"
+                android:textColor="#AFA9EC"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/text_service_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="○ STOPPED"
+                android:textColor="#E24B4A"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/text_signal_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 signals sent"
+                android:textColor="#FAC775"
+                android:textSize="10sp"
+                android:fontFamily="monospace" />
+
+            <TextView
+                android:id="@+id/text_last_signal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No signals yet"
+                android:textColor="#666688"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_toggle_service"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="START SENSOR"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:backgroundTint="#534AB7"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <!-- Config card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#0d0d1e"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONFIGURATION"
+                android:textColor="#AFA9EC"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YOUR NAME"
+                android:textColor="#666688"
+                android:textSize="8sp"
+                android:fontFamily="monospace" />
+            <EditText
+                android:id="@+id/edit_my_name"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:hint="Alex"
+                android:textColor="#ffffff"
+                android:textColorHint="#444466"
+                android:background="#161628"
+                android:padding="10dp"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="10dp"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="COUPLE ID  (must match both phones)"
+                android:textColor="#666688"
+                android:textSize="8sp"
+                android:fontFamily="monospace" />
+            <EditText
+                android:id="@+id/edit_couple_id"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:hint="e.g. A3F9"
+                android:textColor="#ffffff"
+                android:textColorHint="#444466"
+                android:background="#161628"
+                android:padding="10dp"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="10dp"
+                android:inputType="textCapCharacters" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RELAY URL  (Mac IP:9090)"
+                android:textColor="#666688"
+                android:textSize="8sp"
+                android:fontFamily="monospace" />
+            <EditText
+                android:id="@+id/edit_relay_url"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:hint="http://192.168.1.x:9090"
+                android:textColor="#ffffff"
+                android:textColorHint="#444466"
+                android:background="#161628"
+                android:padding="10dp"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="14dp"
+                android:inputType="textUri" />
+
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="SAVE + GENERATE KEY"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:backgroundTint="#1D9E75"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signals are TEE-signed. Partner verifies every payload."
+            android:textColor="#333355"
+            android:textSize="8sp"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="32dp" />
+
+    </LinearLayout>
+</ScrollView>
