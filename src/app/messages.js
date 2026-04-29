@@ -145,7 +145,7 @@ export function handleAxlMessage(msg) {
             onPactChangesGrantReceived(msg);
             break;
         case "pact_changes_deny":
-            onPactChangesDenyReceived();
+            onPactChangesDenyReceived(msg);
             break;
         case "coop_profile": {
             if (!state.paired || !msg.profile || typeof msg.profile !== "object") {

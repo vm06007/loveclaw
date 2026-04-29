@@ -48,10 +48,10 @@ export function computePactProposalDiff(currentTriggers, currentStakeEth, propos
 export function formatPactProposalDiffPlain(diff) {
     const lines = [];
     for (const id of diff.added) {
-        lines.push(`+ ${triggerSection(id)}: ${pactRuleLabel(id)}`);
+        lines.push(`Added ${triggerSection(id)} rule: ${pactRuleLabel(id)}`);
     }
     for (const id of diff.removed) {
-        lines.push(`− ${triggerSection(id)}: ${pactRuleLabel(id)}`);
+        lines.push(`Removed ${triggerSection(id)} rule: ${pactRuleLabel(id)}`);
     }
     if (diff.stakeChanged) {
         lines.push(`Mandatory ETH stake: ${formatStakeEth(diff.stakeBefore)} → ${formatStakeEth(diff.stakeAfter)}`);

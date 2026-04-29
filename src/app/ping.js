@@ -78,6 +78,13 @@ function clearChatWindow() {
     `;
 }
 
+function setChatClearModal(open) {
+    const m = document.getElementById("modal-chat-clear");
+    if (m) {
+        m.classList.toggle("hidden", !open);
+    }
+}
+
 /**
  * Shown in dashboard chat tab header (AXL port vs. local IPC).
  */
@@ -172,6 +179,23 @@ export function addBreakPactDenySentLine() {
     addBubble("right", "deny: sent to partner", true);
 }
 
+/**
+ * Partner declined your pact-change request (mirrors break-pact deny ack).
+ * @param {string} fromName
+ */
+export function addPactChangesDenyReceivedLine(fromName) {
+    const who = (fromName && String(fromName).trim()) || "partner";
+    addBubble("left", `deny: ${who} declined your pact changes`, true);
+    bumpPingBadge();
+}
+
+/**
+ * You denied their pact-change request.
+ */
+export function addPactChangesDenySentLine() {
+    addBubble("right", "deny: pact changes sent to partner", true);
+}
+
 export function handleChat(msg) {
     const who = (msg.from || "partner").trim() || "partner";
     const body = typeof msg.text === "string" ? msg.text : "";
@@ -203,11 +227,22 @@ export function initPingActions() {
             if (!chatLog.length) {
                 return;
             }
-            const approved = window.confirm("Clear your chat window?");
-            if (!approved) {
-                return;
-            }
+            setChatClearModal(true);
+        });
+    }
+
+    const clearYes = document.getElementById("modal-chat-clear-yes");
+    if (clearYes) {
+        clearYes.addEventListener("click", () => {
+            setChatClearModal(false);
             clearChatWindow();
+        });
+    }
+
+    const clearNo = document.getElementById("modal-chat-clear-no");
+    if (clearNo) {
+        clearNo.addEventListener("click", () => {
+            setChatClearModal(false);
         });
     }
 

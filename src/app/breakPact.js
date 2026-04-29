@@ -2,7 +2,11 @@ import { state, saveState, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 import { showScreen } from "../lib/router.js";
-import { addBreakPactDenyReceivedLine, addBreakPactDenySentLine } from "./ping.js";
+import {
+    addBreakPactDenyReceivedLine,
+    addBreakPactDenySentLine,
+    addPactChangesDenySentLine,
+} from "./ping.js";
 import {
     computePactProposalDiff,
     formatPactProposalDiffPlain,
@@ -296,6 +300,7 @@ export function initBreakPactUi() {
             from: state.myName || "me",
             ts: Date.now(),
         });
+        addPactChangesDenySentLine();
         state.pactChangesIncoming = null;
         saveState(state);
         syncPactBadge();

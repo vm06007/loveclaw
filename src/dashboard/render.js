@@ -2,7 +2,7 @@ import { state, saveState } from "../lib/state.js";
 import { decryptStoredKey, hasEncryptedKey } from "../lib/agent-key-store.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
-import { renderPingStatus } from "../app/ping.js";
+import { addPactChangesDenyReceivedLine, renderPingStatus } from "../app/ping.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "../app/ipc-send.js";
 import {
@@ -835,7 +835,7 @@ export function onPactChangesGrantReceived(msg) {
     syncEditPactButton();
 }
 
-export function onPactChangesDenyReceived() {
+export function onPactChangesDenyReceived(msg) {
     state.pactChangesOutgoingPending = false;
     state.pactChangesOutgoingProposal = null;
     saveState(state);
@@ -843,7 +843,7 @@ export function onPactChangesDenyReceived() {
     syncPactChangesOverlay();
     syncProposeBreakPactButton();
     syncEditPactButton();
-    window.alert("Partner declined the proposed pact changes.");
+    addPactChangesDenyReceivedLine(msg?.from);
 }
 
 export function renderDiaryFeed() {
