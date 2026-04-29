@@ -99,6 +99,25 @@
     letter-spacing: 1px;
     margin-bottom: 6px;
 }
+.pact-rules-subheading {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin: 10px 0 6px;
+    text-transform: lowercase;
+}
+.pact-rules-subheading:first-child {
+    margin-top: 0;
+}
+.pact-rules-subheading--spaced {
+    margin-top: 14px;
+}
+.invite-pact-card .pact-rules-lead + .pact-rules-subheading {
+    margin-top: 6px;
+}
+.invite-pact-card .pact-rules-subheading + .invite-pact-readonly {
+    border-top: 1px solid var(--border);
+}
 .invite-pact-card .pact-rules-lead { margin-bottom: 10px; }
 .invite-pact-readonly .pact-toggle-val { font-size: 10px; }
 .invite-pact-card .invite-pact-readonly {

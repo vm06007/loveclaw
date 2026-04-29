@@ -1,7 +1,13 @@
 import { state, saveState } from "../lib/state.js";
 import { handlePing, handlePong, handleChat } from "./ping.js";
 import { triggerBreach } from "./breach.js";
-import { renderDiaryFeed, renderTodayTab, renderDiaryCalIfOpen } from "../dashboard/render.js";
+import {
+    renderDiaryFeed,
+    renderTodayTab,
+    renderDiaryCalIfOpen,
+    onPactChangesGrantReceived,
+    onPactChangesDenyReceived,
+} from "../dashboard/render.js";
 import { applyCoopProfileFromMessage, refreshCoopProfileModalIfOpen } from "./coop-profile.js";
 import {
     refreshHeartbeatMapIfOpen,
@@ -14,6 +20,7 @@ import {
     onBreakPactDenyReceived,
     onBreakPactGrantReceived,
     onBreakPactProposeReceived,
+    onPactChangesProposeReceived,
 } from "./breakPact.js";
 
 export function handleAxlMessage(msg) {
@@ -130,6 +137,15 @@ export function handleAxlMessage(msg) {
             break;
         case "break_pact_grant":
             onBreakPactGrantReceived();
+            break;
+        case "pact_changes_propose":
+            onPactChangesProposeReceived(msg);
+            break;
+        case "pact_changes_grant":
+            onPactChangesGrantReceived(msg);
+            break;
+        case "pact_changes_deny":
+            onPactChangesDenyReceived();
             break;
         case "coop_profile": {
             if (!state.paired || !msg.profile || typeof msg.profile !== "object") {

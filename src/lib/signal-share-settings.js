@@ -32,8 +32,8 @@ export const SIGNAL_SHARE_ROWS = [
     },
     {
         id: "contact_radar",
-        label: "Call & contact radar",
-        blurb: "Unknown numbers dialed often; contact labels, not recordings.",
+        label: "Presence / reachability",
+        blurb: "Online-offline stretches vs battery — flags unexplained dark periods when charge should allow connectivity.",
         pactAgentLockTrigger: "contact",
     },
     {

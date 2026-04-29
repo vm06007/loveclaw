@@ -1,6 +1,10 @@
 import QRCode from "qrcode";
 import { state } from "./state.js";
-import { PACT_TRIGGER_IDS } from "./pact-triggers.js";
+import {
+    PACT_TRIGGER_IDS,
+    PACT_BREACH_TRIGGER_IDS,
+    PACT_AUTOMATION_TRIGGER_IDS,
+} from "./pact-triggers.js";
 
 /** Default: no proposed stake; inviter can set a positive amount to encode in the invite. */
 export const STAKE_DEFAULT_ETH = 0;
@@ -31,23 +35,26 @@ export const DATING_APP_SUBSTRINGS = [
 export const PACT_RULES = [
     {
         id: "dating_app",
-        label: "Dating app installed",
-        hint: "Package names only (e.g. com.tinder). No messages read. Shared with partner.",
+        label: "Dating app installations",
+        hint:
+            "Your agent reviews installed apps—package IDs, display names, and AI-assisted signals from app metadata/context—to infer dating apps (not just a fixed keyword list).",
     },
     {
         id: "location",
-        label: "Location sharing",
-        hint: "Both partners see each other's location and anomaly flags. E2E via AXL — only you two.",
+        label: "Location anomaly detection",
+        hint:
+            "Flags when movement breaks from your usual routine—unexpected stops, odd routes or timing (e.g. hotels, late nights, after-work detours with no matching plans).",
     },
     {
         id: "contact",
-        label: "New contact called 3×",
-        hint: "Flags unknown contacts called 3+ times in a week. Contact name only — no call content.",
+        label: "Interrupted online presence",
+        hint:
+            "Flags when you stay offline too long while battery still looks healthy (e.g. over 20%) — consistent with powering down or disconnecting on purpose, not the phone dying.",
     },
     {
         id: "diary",
         label: "AI daily diary",
-        hint: "AI generates a warm daily summary from your activity signals. Sent to partner via AXL.",
+        hint: "AI generates a warm daily summary from your activity signals. Shared between couple via AXL.",
     },
 ];
 
@@ -93,13 +100,15 @@ export function buildPactSummaryCardHtml(p, head) {
     const leadInner = head.leadHtml ? head.lead : escapeHtml(head.lead);
     const titleInner = escapeHtml(head.heading);
     const active = new Set((p.triggers || []).filter(t => PACT_TRIGGER_IDS.includes(t)));
-    const rows = PACT_RULES.map(
-        r => `
+    const breachRules = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
+    const automationRules = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
+    const rowForRule = r => `
       <div class="pact-toggle-row invite-pact-readonly">
         <span class="pact-toggle-name">${escapeHtml(r.label)}</span>
         <span class="pact-toggle-val${active.has(r.id) ? "" : " off"}">${active.has(r.id) ? "on" : "off"}</span>
-      </div>`,
-    ).join("");
+      </div>`;
+    const breachRows = breachRules.map(rowForRule).join("");
+    const automationRows = automationRules.map(rowForRule).join("");
     const stakeLabel = "Mandatory ETH stake";
     const sv = Number(p.stakeEth);
     const hasStake = Number.isFinite(sv) && sv > 0;
@@ -114,7 +123,10 @@ export function buildPactSummaryCardHtml(p, head) {
     <div class="invite-pact-card">
       <div class="pact-rules-heading">${titleInner}</div>
       <p class="pact-rules-lead">${leadInner}</p>
-      ${rows}
+      <p class="pact-rules-subheading">automation tasks</p>
+      ${automationRows}
+      <p class="pact-rules-subheading pact-rules-subheading--spaced">breach triggers</p>
+      ${breachRows}
       ${stakeRow}
     </div>`;
 }

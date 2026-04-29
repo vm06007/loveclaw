@@ -3,6 +3,11 @@ import { axl } from "../axl/client.js";
 import { ipcSend } from "./ipc-send.js";
 import { showScreen } from "../lib/router.js";
 import { addBreakPactDenyReceivedLine, addBreakPactDenySentLine } from "./ping.js";
+import {
+    computePactProposalDiff,
+    formatPactProposalDiffPlain,
+    normalizePactProposal,
+} from "../lib/pact-proposal-diff.js";
 
 function transportPartnerMessage(payload) {
     const msg = { ...payload, ts: payload.ts ?? Date.now() };
@@ -22,11 +27,15 @@ export function applyBreakPactUnpair() {
     state.createdAt = null;
     state.breakPactIncoming = null;
     state.breakPactOutgoingPending = false;
+    state.pactChangesIncoming = null;
+    state.pactChangesOutgoingPending = false;
+    state.pactChangesOutgoingProposal = null;
     state.partnerTrustScore = 100;
     state.partnerProfile = { ...EMPTY_PARTNER_PROFILE };
     saveState(state);
     syncPactBadge();
     syncPactBreakOverlay();
+    syncPactChangesOverlay();
     showScreen("home");
 }
 
@@ -35,7 +44,10 @@ export function syncPactBadge() {
     if (!badge) {
         return;
     }
-    const has = Boolean(state.paired && state.breakPactIncoming);
+    const has = Boolean(
+        state.paired &&
+        (state.breakPactIncoming || state.pactChangesIncoming),
+    );
     const onPact = document.querySelector('.tab[data-tab="pact"]')?.classList.contains("active");
     if (has && !onPact) {
         badge.textContent = "1";
@@ -70,6 +82,35 @@ export function syncPactBreakOverlay() {
     el.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
+export function syncPactChangesOverlay() {
+    const el = document.getElementById("pact-changes-overlay");
+    if (!el) {
+        return;
+    }
+    const titleEl = document.getElementById("pact-changes-overlay-title");
+    const diffEl = document.getElementById("pact-changes-overlay-diff");
+    const incoming = state.pactChangesIncoming;
+    if (titleEl && incoming) {
+        const who = titleCaseShort(incoming.from);
+        titleEl.textContent = `${who} proposed pact changes`;
+    }
+    if (diffEl && incoming?.proposal) {
+        const d = computePactProposalDiff(state.triggers, state.stakeEth, incoming.proposal);
+        diffEl.textContent = formatPactProposalDiffPlain(d);
+    } else if (diffEl) {
+        diffEl.textContent = "";
+    }
+    const pactActive = document.querySelector('.tab[data-tab="pact"]')?.classList.contains("active");
+    const show = Boolean(
+        state.paired &&
+        incoming &&
+        pactActive &&
+        !state.breakPactIncoming,
+    );
+    el.classList.toggle("hidden", !show);
+    el.setAttribute("aria-hidden", show ? "false" : "true");
+}
+
 export function syncProposeBreakPactButton() {
     const btn = document.getElementById("btn-propose-break-pact");
     if (!btn) {
@@ -78,8 +119,45 @@ export function syncProposeBreakPactButton() {
     const disabled =
         !state.paired ||
         Boolean(state.breakPactIncoming) ||
-        Boolean(state.breakPactOutgoingPending);
+        Boolean(state.breakPactOutgoingPending) ||
+        Boolean(state.pactChangesIncoming) ||
+        Boolean(state.pactChangesOutgoingPending);
     btn.disabled = disabled;
+}
+
+/** Disable pact edit while break or pact-change flows are pending (call after `renderPact`). */
+export function syncEditPactButton() {
+    const editBtn = document.getElementById("btn-edit-pact");
+    if (!editBtn) {
+        return;
+    }
+    editBtn.disabled =
+        !state.paired ||
+        Boolean(state.breakPactIncoming) ||
+        Boolean(state.breakPactOutgoingPending) ||
+        Boolean(state.pactChangesIncoming) ||
+        Boolean(state.pactChangesOutgoingPending);
+}
+
+export function onPactChangesProposeReceived(msg) {
+    if (!state.paired || state.breakPactIncoming) {
+        return;
+    }
+    const proposal = normalizePactProposal(msg?.proposal || {});
+    const from = String(msg?.from || "partner").trim() || "partner";
+    state.pactChangesIncoming = {
+        from,
+        proposal,
+        ts: msg.ts ?? Date.now(),
+    };
+    saveState(state);
+    syncPactBadge();
+    syncPactChangesOverlay();
+    syncProposeBreakPactButton();
+    syncEditPactButton();
+    void import("../dashboard/render.js").then((m) => {
+        m.renderPact();
+    });
 }
 
 export function onBreakPactProposeReceived(msg) {
@@ -88,9 +166,18 @@ export function onBreakPactProposeReceived(msg) {
     }
     const from = (msg.from && String(msg.from).trim()) || "partner";
     state.breakPactIncoming = { from, ts: msg.ts || Date.now() };
+    state.pactChangesIncoming = null;
+    state.pactChangesOutgoingPending = false;
+    state.pactChangesOutgoingProposal = null;
     saveState(state);
     syncPactBadge();
     syncPactBreakOverlay();
+    syncPactChangesOverlay();
+    syncProposeBreakPactButton();
+    syncEditPactButton();
+    void import("../dashboard/render.js").then((m) => {
+        m.renderPact();
+    });
 }
 
 /**
@@ -176,10 +263,53 @@ export function initBreakPactUi() {
         saveState(state);
         syncPactBadge();
         syncPactBreakOverlay();
+        syncPactChangesOverlay();
         syncProposeBreakPactButton();
+    });
+
+    document.getElementById("btn-pact-changes-grant")?.addEventListener("click", () => {
+        const inc = state.pactChangesIncoming;
+        if (!inc?.proposal) {
+            return;
+        }
+        const proposal = normalizePactProposal(inc.proposal);
+        void import("../dashboard/render.js").then((m) => {
+            m.applyPactProposal(proposal);
+            transportPartnerMessage({
+                type: "pact_changes_grant",
+                from: state.myName || "me",
+                proposal,
+                ts: Date.now(),
+            });
+            state.pactChangesIncoming = null;
+            saveState(state);
+            syncPactBadge();
+            syncPactChangesOverlay();
+            syncProposeBreakPactButton();
+            syncEditPactButton();
+        });
+    });
+
+    document.getElementById("btn-pact-changes-deny")?.addEventListener("click", () => {
+        transportPartnerMessage({
+            type: "pact_changes_deny",
+            from: state.myName || "me",
+            ts: Date.now(),
+        });
+        state.pactChangesIncoming = null;
+        saveState(state);
+        syncPactBadge();
+        syncPactChangesOverlay();
+        syncProposeBreakPactButton();
+        syncEditPactButton();
+        void import("../dashboard/render.js").then((m) => {
+            m.renderPact();
+        });
     });
 
     syncPactBadge();
     syncPactBreakOverlay();
+    syncPactChangesOverlay();
     syncProposeBreakPactButton();
+    syncEditPactButton();
 }

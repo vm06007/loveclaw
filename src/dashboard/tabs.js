@@ -2,7 +2,7 @@ import { runHeartbeatCheck } from "../app/heartbeat.js";
 import { initHeartbeatMap } from "../app/heartbeat-map.js";
 import { clearPingBadge } from "../app/ping.js";
 import { onDiaryGenerateClick, onDiaryStoreClick, refreshDiaryStoreBtn, refreshSignalSaveToastVisibility } from "./render.js";
-import { syncPactBadge, syncPactBreakOverlay } from "../app/breakPact.js";
+import { syncPactBadge, syncPactBreakOverlay, syncPactChangesOverlay } from "../app/breakPact.js";
 
 /**
  * Top-level dashboard tab strip (not to be confused with the screen router).
@@ -24,6 +24,7 @@ export function initDashboardTabs() {
             }
             syncPactBadge();
             syncPactBreakOverlay();
+            syncPactChangesOverlay();
             refreshSignalSaveToastVisibility();
         });
     });

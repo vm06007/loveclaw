@@ -64,6 +64,20 @@ function flushChatLog() {
     chat.scrollTop = chat.scrollHeight;
 }
 
+function clearChatWindow() {
+    chatLog.length = 0;
+    const chat = document.getElementById("chat-log");
+    if (!chat) {
+        return;
+    }
+    chat.innerHTML = `
+        <div class="ping-empty" id="chat-empty">
+            <div class="ping-empty-icon" aria-hidden="true">~</div>
+            <div class="ping-empty-text">send a message or tap ping to test the link</div>
+        </div>
+    `;
+}
+
 /**
  * Shown in dashboard chat tab header (AXL port vs. local IPC).
  */
@@ -180,6 +194,20 @@ export function initPingActions() {
     if (sendBtn) {
         sendBtn.addEventListener("click", () => {
             sendChat();
+        });
+    }
+
+    const clearBtn = document.getElementById("btn-chat-clear");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+            if (!chatLog.length) {
+                return;
+            }
+            const approved = window.confirm("Clear your chat window?");
+            if (!approved) {
+                return;
+            }
+            clearChatWindow();
         });
     }
 

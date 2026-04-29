@@ -4,12 +4,21 @@ import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
 import { renderPingStatus } from "../app/ping.js";
 import { axl } from "../axl/client.js";
+import { ipcSend } from "../app/ipc-send.js";
 import {
     syncPactBadge,
     syncPactBreakOverlay,
+    syncPactChangesOverlay,
     syncProposeBreakPactButton,
+    syncEditPactButton,
 } from "../app/breakPact.js";
-import { pactRuleLabel, formatStakeSummary } from "../lib/invite.js";
+import { pactRuleLabel, formatStakeSummary, PACT_RULES } from "../lib/invite.js";
+import {
+    PACT_TRIGGER_IDS,
+    PACT_BREACH_TRIGGER_IDS,
+    PACT_AUTOMATION_TRIGGER_IDS,
+} from "../lib/pact-triggers.js";
+import { normalizePactProposal } from "../lib/pact-proposal-diff.js";
 import {
     SIGNAL_SHARE_ROWS,
     mergeSignalShares,
@@ -566,6 +575,276 @@ function renderDiaryCal(feed, year, month, selectedKey) {
 }
 
 let _lastNotesSyncAt = 0;
+let pactEditMode = false;
+
+/** Expanded/collapsed state for pact category panels (persisted between pact tab re-renders). */
+let pactCategoryExpanded = { breach: true, automation: true };
+
+const PACT_CATEGORY_CHEVRON_SVG = `
+                            <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
+                                <rect x="2" y="1" width="2" height="2" />
+                                <rect x="4" y="3" width="2" height="2" />
+                                <rect x="6" y="5" width="2" height="2" />
+                                <rect x="4" y="7" width="2" height="2" />
+                                <rect x="2" y="9" width="2" height="2" />
+                            </svg>`;
+
+function buildPactCategoryHeading(title, panelId, catKey, expanded) {
+    const open = expanded !== false;
+    const disclosureCls = open ? " today-budget-toggle--open" : "";
+    const headingCls = open ? " pact-category-heading--open" : "";
+    return `
+    <button type="button"
+      class="pact-item pact-item--parent pact-category-heading${headingCls}"
+      aria-expanded="${open ? "true" : "false"}"
+      aria-controls="${panelId}"
+      data-category="${catKey}"
+      title="tap to show or hide items under this section"
+      id="${panelId}-heading">
+      <span class="pact-category-heading-label">${escapePactText(title)}</span>
+      <span class="today-budget-toggle pact-category-heading-disclosure${disclosureCls}" aria-hidden="true">
+        <span class="today-budget-toggle-glyph" aria-hidden="true">${PACT_CATEGORY_CHEVRON_SVG}
+        </span>
+      </span>
+    </button>`;
+}
+
+function escapePactText(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function togglePactCategorySection(heading) {
+    const panelId = heading.getAttribute("aria-controls");
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if (!panel) {
+        return;
+    }
+    const cat = heading.dataset.category;
+    const willOpen = panel.classList.contains("hidden");
+    panel.classList.toggle("hidden", !willOpen);
+    heading.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    heading.classList.toggle("pact-category-heading--open", willOpen);
+    const disclosure = heading.querySelector(".pact-category-heading-disclosure");
+    disclosure?.classList.toggle("today-budget-toggle--open", willOpen);
+    if (cat === "breach" || cat === "automation") {
+        pactCategoryExpanded[cat] = willOpen;
+    }
+}
+
+/** One delegated listener so collapse works reliably whenever `renderPact` replaces markup. */
+function ensurePactCategoryPanelDelegation() {
+    const root = document.getElementById("pact-view");
+    if (!root || root.dataset.pactCategoryDelegated === "1") {
+        return;
+    }
+    root.dataset.pactCategoryDelegated = "1";
+    root.addEventListener("click", (e) => {
+        const heading = e.target.closest(".pact-category-heading");
+        if (!heading || !root.contains(heading)) {
+            return;
+        }
+        e.preventDefault();
+        togglePactCategorySection(heading);
+    });
+}
+
+function transportPartnerMessage(payload) {
+    const msg = { ...payload, ts: payload.ts ?? Date.now() };
+    if (axl.available && state.partnerAxlKey) {
+        axl.send(state.partnerAxlKey, msg);
+    } else {
+        ipcSend(msg);
+    }
+}
+
+export function applyPactProposal(proposal) {
+    const clean = normalizePactProposal(proposal);
+    state.triggers = clean.triggers;
+    state.stakeEth = clean.stakeEth;
+    saveState(state);
+    renderSignalShareSettings();
+    renderPact();
+}
+
+function bindPactTriggerTree(view) {
+    view.querySelectorAll(".pact-trigger-toggle").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const triggerId = btn.getAttribute("data-trigger-id");
+            if (!triggerId) {
+                return;
+            }
+            const details = view.querySelector(`.pact-trigger-details[data-trigger-id="${triggerId}"]`);
+            if (!details) {
+                return;
+            }
+            const open = details.classList.contains("hidden");
+            details.classList.toggle("hidden", !open);
+            btn.setAttribute("aria-expanded", open ? "true" : "false");
+            btn.classList.toggle("is-open", open);
+            const disclosure = btn.querySelector(".pact-trigger-disclosure");
+            if (disclosure) {
+                disclosure.classList.toggle("today-budget-toggle--open", open);
+            }
+        });
+    });
+}
+
+function buildPactTriggerRowHtml(t) {
+    const rule = PACT_RULES.find(r => r.id === t);
+    const label = pactRuleLabel(t);
+    const hint = rule?.hint || "No extra details available for this trigger yet.";
+    return `
+            <div class="pact-item pact-item--child">
+                <button
+                    type="button"
+                    class="pact-trigger-toggle"
+                    data-trigger-id="${escapePactText(t)}"
+                    aria-expanded="false"
+                >
+                    <span class="pact-trigger-label">${escapePactText(label)}</span>
+                    <span class="today-budget-toggle pact-trigger-disclosure" aria-hidden="true">
+                        <span class="today-budget-toggle-glyph" aria-hidden="true">
+                            <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
+                                <rect x="2" y="1" width="2" height="2" />
+                                <rect x="4" y="3" width="2" height="2" />
+                                <rect x="6" y="5" width="2" height="2" />
+                                <rect x="4" y="7" width="2" height="2" />
+                                <rect x="2" y="9" width="2" height="2" />
+                            </svg>
+                        </span>
+                    </span>
+                </button>
+                <p class="pact-trigger-details hidden" data-trigger-id="${escapePactText(t)}">${escapePactText(hint)}</p>
+            </div>`;
+}
+
+function bindPactEditUi(view) {
+    const editBtn = document.getElementById("btn-edit-pact");
+    if (editBtn && !editBtn.dataset.bound) {
+        editBtn.addEventListener("click", () => {
+            pactEditMode = true;
+            renderPact();
+        });
+        editBtn.dataset.bound = "1";
+    }
+    if (!pactEditMode) {
+        return;
+    }
+    const cancelBtn = view.querySelector("#btn-cancel-pact-edit");
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            pactEditMode = false;
+            renderPact();
+        });
+    }
+    const saveBtn = view.querySelector("#btn-save-pact-edit");
+    if (saveBtn) {
+        const triggerInputs = Array.from(view.querySelectorAll('input[name="pact-edit-trigger"]'));
+        const stakeInp = view.querySelector("#pact-edit-stake");
+        const initialTriggerSet = new Set(state.triggers.filter(id => PACT_TRIGGER_IDS.includes(id)));
+        const initialStake = Number.isFinite(Number(state.stakeEth)) && Number(state.stakeEth) >= 0
+            ? Number(state.stakeEth)
+            : 0;
+        const readCurrentStake = () => {
+            if (!(stakeInp instanceof HTMLInputElement)) {
+                return 0;
+            }
+            const raw = String(stakeInp.value).trim();
+            if (raw === "" || raw === ".") {
+                return 0;
+            }
+            const n = parseFloat(raw, 10);
+            return Number.isFinite(n) && n >= 0 ? n : 0;
+        };
+        const syncProposalButtonState = () => {
+            const currentChecked = new Set(
+                triggerInputs
+                    .filter(el => el instanceof HTMLInputElement && el.checked)
+                    .map(el => String(el.value)),
+            );
+            const sameCount = currentChecked.size === initialTriggerSet.size;
+            const sameTriggers = sameCount && PACT_TRIGGER_IDS.every(
+                id => currentChecked.has(id) === initialTriggerSet.has(id),
+            );
+            const sameStake = readCurrentStake() === initialStake;
+            saveBtn.disabled = sameTriggers && sameStake;
+        };
+        triggerInputs.forEach((inp) => {
+            inp.addEventListener("change", syncProposalButtonState);
+        });
+        if (stakeInp instanceof HTMLInputElement) {
+            stakeInp.addEventListener("input", syncProposalButtonState);
+            stakeInp.addEventListener("change", syncProposalButtonState);
+        }
+        syncProposalButtonState();
+
+        saveBtn.addEventListener("click", () => {
+            if (saveBtn.disabled) {
+                return;
+            }
+            const checked = new Set(
+                Array.from(view.querySelectorAll('input[name="pact-edit-trigger"]:checked'))
+                    .map(el => String(el.value)),
+            );
+            const proposedTriggers = PACT_TRIGGER_IDS.filter(id => checked.has(id));
+            let proposedStakeEth = 0;
+            if (stakeInp instanceof HTMLInputElement) {
+                const raw = String(stakeInp.value).trim();
+                if (raw === "" || raw === ".") {
+                    proposedStakeEth = 0;
+                } else {
+                    const n = parseFloat(raw, 10);
+                    proposedStakeEth = Number.isFinite(n) && n >= 0 ? n : 0;
+                }
+            }
+            const proposal = { triggers: proposedTriggers, stakeEth: proposedStakeEth };
+            if (!state.paired || !state.partnerAxlKey) {
+                applyPactProposal(proposal);
+                pactEditMode = false;
+                return;
+            }
+            state.pactChangesOutgoingPending = true;
+            state.pactChangesOutgoingProposal = proposal;
+            saveState(state);
+            pactEditMode = false;
+            renderPact();
+            transportPartnerMessage({
+                type: "pact_changes_propose",
+                from: state.myName || "me",
+                proposal,
+            });
+        });
+    }
+}
+
+export function onPactChangesGrantReceived(msg) {
+    const granted = normalizePactProposal(msg?.proposal || state.pactChangesOutgoingProposal || {});
+    if (state.pactChangesOutgoingPending) {
+        applyPactProposal(granted);
+    }
+    state.pactChangesOutgoingPending = false;
+    state.pactChangesOutgoingProposal = null;
+    saveState(state);
+    syncPactBadge();
+    syncPactChangesOverlay();
+    syncProposeBreakPactButton();
+    syncEditPactButton();
+}
+
+export function onPactChangesDenyReceived() {
+    state.pactChangesOutgoingPending = false;
+    state.pactChangesOutgoingProposal = null;
+    saveState(state);
+    syncPactBadge();
+    syncPactChangesOverlay();
+    syncProposeBreakPactButton();
+    syncEditPactButton();
+    window.alert("Partner declined the proposed pact changes.");
+}
 
 export function renderDiaryFeed() {
     const feed = document.getElementById("diary-feed");
@@ -608,19 +887,98 @@ export function renderPact() {
     if (!view) {
         return;
     }
+    view.classList.toggle("pact-view--edit", pactEditMode);
     const s = formatStakeSummary(state.stakeEth);
-    const stakeText = s === "—" ? "not proposed (optional)" : s;
-    const pactTriggers = state.triggers.length
-        ? state.triggers.map(t => `<div class="pact-item">${pactRuleLabel(t)}</div>`).join("")
-        : `<p class="hint">no breach triggers set</p>`;
-    view.innerHTML = `
+    const stakeText = s === "—" ? "0.00 ETH" : s;
+    const ordered = state.triggers.filter(t => PACT_TRIGGER_IDS.includes(t));
+    const breachIds = ordered.filter(t => PACT_BREACH_TRIGGER_IDS.includes(t));
+    const automationIds = ordered.filter(t => PACT_AUTOMATION_TRIGGER_IDS.includes(t));
+    const breachRowsHtml = breachIds.length
+        ? breachIds.map(buildPactTriggerRowHtml).join("")
+        : `<div class="pact-item pact-item--child"><p class="hint">no breach triggers set</p></div>`;
+    const automationRowsHtml = automationIds.length
+        ? automationIds.map(buildPactTriggerRowHtml).join("")
+        : `<div class="pact-item pact-item--child"><p class="hint">no automation tasks enabled</p></div>`;
+    const breachRulesEdit = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
+    const automationRulesEdit = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
+    const editForm = pactEditMode
+        ? `
+    <div class="pact-edit-card">
+      <p class="pact-edit-title">edit pact</p>
+      <p class="pact-edit-section-title">automation tasks</p>
+      <div class="pact-edit-list">
+        ${automationRulesEdit.map((rule) => `
+        <label class="pact-edit-row">
+          <input type="checkbox" class="pact-toggle-input pact-edit-checkbox" name="pact-edit-trigger" value="${escapePactText(rule.id)}" ${state.triggers.includes(rule.id) ? "checked" : ""}>
+          <span>${escapePactText(rule.label)}</span>
+        </label>
+        `).join("")}
+      </div>
+      <p class="pact-edit-section-title pact-edit-section-title--gap">breach triggers</p>
+      <div class="pact-edit-list">
+        ${breachRulesEdit.map((rule) => `
+        <label class="pact-edit-row">
+          <input type="checkbox" class="pact-toggle-input pact-edit-checkbox" name="pact-edit-trigger" value="${escapePactText(rule.id)}" ${state.triggers.includes(rule.id) ? "checked" : ""}>
+          <span>${escapePactText(rule.label)}</span>
+        </label>
+        `).join("")}
+      </div>
+      <label class="pact-edit-stake-row" for="pact-edit-stake">
+        mandatory ETH stake
+      </label>
+      <input
+        id="pact-edit-stake"
+        class="field-input pact-edit-stake-input"
+        type="number"
+        min="0"
+        step="0.001"
+        inputmode="decimal"
+        value="${Number.isFinite(Number(state.stakeEth)) && Number(state.stakeEth) >= 0 ? escapePactText(String(state.stakeEth)) : "0"}"
+      >
+      <div class="pact-edit-actions">
+        <button type="button" class="btn btn-ghost" id="btn-cancel-pact-edit">cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-pact-edit">propose pact changes</button>
+      </div>
+    </div>`
+        : "";
+    const breachPanelOpen = pactCategoryExpanded.breach !== false;
+    const automationPanelOpen = pactCategoryExpanded.automation !== false;
+    if (pactEditMode) {
+        view.innerHTML = editForm;
+    } else {
+        view.innerHTML = `
+    <div class="pact-category-group">
+      ${buildPactCategoryHeading("automation tasks:", "pact-panel-automation", "automation", automationPanelOpen)}
+      <div id="pact-panel-automation" class="pact-trigger-tree-wrap${automationPanelOpen ? "" : " hidden"}">
+        <div class="pact-trigger-tree">
+          ${automationRowsHtml}
+        </div>
+      </div>
+    </div>
+    <div class="pact-category-group">
+      ${buildPactCategoryHeading("breach triggers:", "pact-panel-breach", "breach", breachPanelOpen)}
+      <div id="pact-panel-breach" class="pact-trigger-tree-wrap${breachPanelOpen ? "" : " hidden"}">
+        <div class="pact-trigger-tree">
+          ${breachRowsHtml}
+        </div>
+      </div>
+    </div>
     <div class="pact-item">mandatory ETH stake: ${stakeText}</div>
-    <div class="pact-item">breach triggers:</div>
-    ${pactTriggers}
-  `;
+    `;
+        ensurePactCategoryPanelDelegation();
+        bindPactTriggerTree(view);
+    }
+    bindPactEditUi(view);
+    const pactActions = document.querySelector("#tab-pact .pact-actions");
+    if (pactActions) {
+        pactActions.classList.toggle("hidden", pactEditMode);
+        pactActions.setAttribute("aria-hidden", pactEditMode ? "true" : "false");
+    }
     syncProposeBreakPactButton();
     syncPactBadge();
     syncPactBreakOverlay();
+    syncPactChangesOverlay();
+    syncEditPactButton();
 }
 
 export function renderTodayTab() {
@@ -677,7 +1035,12 @@ export function renderTodayTab() {
             ev.stopPropagation();
             toggleBudgetBreakdown();
         });
-        budgetRow?.addEventListener("click", toggleBudgetBreakdown);
+        budgetRow?.addEventListener("click", (ev) => {
+            if (ev.target instanceof Element && ev.target.closest("#today-budget-swap-btn")) {
+                return;
+            }
+            toggleBudgetBreakdown();
+        });
         budgetToggle.dataset.bound = "1";
     }
     const trustMe = document.getElementById("today-trust-me");

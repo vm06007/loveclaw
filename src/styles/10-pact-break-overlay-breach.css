@@ -1,11 +1,20 @@
 /* ── Pact ───────────────────────────────────────────────── */
-.pact-view { display: flex; flex-direction: column; gap: 12px; }
+.pact-view {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.pact-view--edit {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+}
 .pact-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 8px;
-    color: var(--text-dim);
+    font-size: 9px;
+    color: var(--text);
     padding: 10px 12px;
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -24,11 +33,211 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     -webkit-overflow-scrolling: touch;
 }
 .pact-propose-btn {
     flex-shrink: 0;
     width: 100%;
+}
+.pact-propose-btn:hover:not(:disabled),
+.pact-propose-btn:focus-visible:not(:disabled) {
+    border-color: var(--red);
+    color: var(--red);
+}
+.pact-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pact-edit-btn {
+    width: 100%;
+}
+.pact-item--parent {
+    margin-bottom: 0;
+}
+.pact-category-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+button.pact-category-heading {
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    justify-content: space-between;
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+button.pact-category-heading::-moz-focus-inner {
+    border: 0;
+}
+.pact-category-heading-label {
+    flex: 1;
+    min-width: 0;
+}
+.pact-category-heading-disclosure {
+    flex-shrink: 0;
+    pointer-events: none;
+}
+.pact-category-heading:hover,
+.pact-category-heading:focus-visible {
+    border-color: rgba(93, 202, 165, 0.45);
+    background: rgba(93, 202, 165, 0.06);
+}
+.pact-category-heading:hover .pact-category-heading-disclosure,
+.pact-category-heading:focus-visible .pact-category-heading-disclosure {
+    color: var(--teal);
+    border-color: rgba(93, 202, 165, 0.5);
+    outline: none;
+}
+.pact-trigger-tree-wrap {
+    min-width: 0;
+}
+.pact-trigger-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 14px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(175, 169, 236, 0.3);
+}
+.pact-item--child {
+    position: relative;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 10px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.pact-item--child:hover,
+.pact-item--child:focus-within {
+    border-color: rgba(93, 202, 165, 0.45);
+    background: rgba(93, 202, 165, 0.06);
+}
+.pact-item--child::before {
+    content: "";
+    position: absolute;
+    left: -11px;
+    top: 16px;
+    width: 10px;
+    border-top: 1px solid rgba(175, 169, 236, 0.3);
+}
+.pact-trigger-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 9px;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+}
+.pact-trigger-label {
+    display: inline-block;
+}
+.pact-trigger-disclosure {
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+/* Whole row is one button — mirror Today .today-budget-toggle hover when cursor is on label side */
+.pact-trigger-toggle:hover .pact-trigger-disclosure,
+.pact-trigger-toggle:focus-visible .pact-trigger-disclosure {
+    color: var(--teal);
+    border-color: rgba(93, 202, 165, 0.5);
+    outline: none;
+}
+.pact-trigger-details {
+    margin: 0;
+    font-size: 7px;
+    line-height: 1.8;
+    color: var(--text-dim);
+}
+.pact-trigger-details.hidden {
+    display: none;
+}
+.pact-edit-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(13, 13, 30, 0.75);
+}
+.pact-view--edit .pact-edit-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+.pact-edit-title {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: lowercase;
+    color: var(--teal);
+}
+.pact-edit-section-title {
+    margin: 0;
+    font-size: 10px;
+    color: var(--text);
+    letter-spacing: 1px;
+    text-transform: lowercase;
+}
+.pact-edit-title + .pact-edit-section-title {
+    margin-top: 12px;
+}
+.pact-edit-section-title--gap {
+    margin-top: 12px;
+}
+.pact-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pact-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: var(--text-dim);
+}
+.pact-edit-checkbox.pact-toggle-input {
+    margin-top: 0;
+    border-radius: 2px;
+    image-rendering: pixelated;
+    transform: translateY(-1px);
+}
+.pact-edit-stake-row {
+    font-size: 10px;
+    color: var(--text);
+    margin-top: 12px;
+}
+.pact-edit-stake-input {
+    width: 100%;
+}
+.pact-edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 12px;
+    flex-shrink: 0;
+}
+.pact-edit-actions #btn-cancel-pact-edit:hover:not(:disabled),
+.pact-edit-actions #btn-cancel-pact-edit:focus-visible:not(:disabled) {
+    border-color: var(--red);
+    color: var(--red);
 }
 .pact-break-overlay {
     position: absolute;
@@ -58,6 +267,21 @@
     margin-bottom: 16px;
     letter-spacing: 1px;
     text-shadow: 0 0 16px rgba(226, 75, 74, 0.3);
+}
+.pact-changes-diff {
+    font-family: inherit;
+    font-size: 7px;
+    line-height: 1.55;
+    color: rgba(235, 238, 252, 0.88);
+    text-align: left;
+    margin: 0 0 14px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 140px;
+    overflow-y: auto;
 }
 .pact-break-overlay-actions {
     display: flex;

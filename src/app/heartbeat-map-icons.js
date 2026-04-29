@@ -187,13 +187,15 @@ function makeChibiMapIcon({ name, initialsName, battery, status, lastPingTs, var
 export function makeYouMapIcon(opts) {
     return makeChibiMapIcon({
         ...opts,
-        variant: pickVariantForName(opts?.name),
+        // Keep "you" marker color consistent with Today header (green/teal side).
+        variant: "boy",
     });
 }
 
 export function makePartnerMapIcon(opts) {
     return makeChibiMapIcon({
         ...opts,
-        variant: pickVariantForName(opts?.name),
+        // Keep partner marker color consistent with Today header (purple side).
+        variant: "girl",
     });
 }

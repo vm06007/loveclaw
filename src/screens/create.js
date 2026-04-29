@@ -1,7 +1,11 @@
 import { state, saveState } from "../lib/state.js";
 import { showScreen } from "../lib/router.js";
 import { buildPact, renderQR, generateKey, PACT_RULES, renderInvitePactSummary } from "../lib/invite.js";
-import { PACT_TRIGGER_IDS } from "../lib/pact-triggers.js";
+import {
+    PACT_TRIGGER_IDS,
+    PACT_BREACH_TRIGGER_IDS,
+    PACT_AUTOMATION_TRIGGER_IDS,
+} from "../lib/pact-triggers.js";
 import { axl } from "../axl/client.js";
 import { startAxlPoll } from "../axl/poll.js";
 import { completePairing } from "../app/pairing.js";
@@ -17,57 +21,73 @@ function setTriggerEnabled(id, on) {
     state.triggers = PACT_TRIGGER_IDS.filter(t => set.has(t));
 }
 
+function appendPactRuleBlock(mount, rule) {
+    const block = document.createElement("div");
+    block.className = "pact-rule-block";
+
+    const row = document.createElement("div");
+    row.className = "pact-toggle-row";
+
+    const name = document.createElement("span");
+    name.className = "pact-toggle-name";
+    name.textContent = rule.label;
+
+    const label = document.createElement("label");
+    label.className = "pact-toggle-label";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.className = "pact-toggle-input";
+    input.checked = state.triggers.includes(rule.id);
+    const val = document.createElement("span");
+    val.className = "pact-toggle-val";
+    const syncVal = () => {
+        const on = input.checked;
+        val.textContent = on ? "on" : "off";
+        val.classList.toggle("off", !on);
+    };
+    input.addEventListener("change", () => {
+        setTriggerEnabled(rule.id, input.checked);
+        syncVal();
+    });
+    syncVal();
+
+    label.appendChild(input);
+    label.appendChild(val);
+
+    row.appendChild(name);
+    row.appendChild(label);
+
+    const hint = document.createElement("p");
+    hint.className = "pact-rule-hint";
+    hint.textContent = rule.hint;
+
+    block.appendChild(row);
+    block.appendChild(hint);
+    mount.appendChild(block);
+}
+
 export function renderPactRuleToggles() {
     const mount = document.getElementById("pact-rules-mount");
     if (!mount) {
         return;
     }
     mount.replaceChildren();
-    PACT_RULES.forEach(rule => {
-        const block = document.createElement("div");
-        block.className = "pact-rule-block";
 
-        const row = document.createElement("div");
-        row.className = "pact-toggle-row";
+    const breachRules = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
+    const automationRules = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
 
-        const name = document.createElement("span");
-        name.className = "pact-toggle-name";
-        name.textContent = rule.label;
+    const autoHeading = document.createElement("p");
+    autoHeading.className = "pact-rules-subheading";
+    autoHeading.textContent = "automation tasks";
+    mount.appendChild(autoHeading);
+    automationRules.forEach(rule => appendPactRuleBlock(mount, rule));
 
-        const label = document.createElement("label");
-        label.className = "pact-toggle-label";
-
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.className = "pact-toggle-input";
-        input.checked = state.triggers.includes(rule.id);
-        const val = document.createElement("span");
-        val.className = "pact-toggle-val";
-        const syncVal = () => {
-            const on = input.checked;
-            val.textContent = on ? "on" : "off";
-            val.classList.toggle("off", !on);
-        };
-        input.addEventListener("change", () => {
-            setTriggerEnabled(rule.id, input.checked);
-            syncVal();
-        });
-        syncVal();
-
-        label.appendChild(input);
-        label.appendChild(val);
-
-        row.appendChild(name);
-        row.appendChild(label);
-
-        const hint = document.createElement("p");
-        hint.className = "pact-rule-hint";
-        hint.textContent = rule.hint;
-
-        block.appendChild(row);
-        block.appendChild(hint);
-        mount.appendChild(block);
-    });
+    const breachHeading = document.createElement("p");
+    breachHeading.className = "pact-rules-subheading pact-rules-subheading--spaced";
+    breachHeading.textContent = "breach triggers";
+    mount.appendChild(breachHeading);
+    breachRules.forEach(rule => appendPactRuleBlock(mount, rule));
 
     const stakeBlock = document.createElement("div");
     stakeBlock.className = "pact-rule-block pact-stake-block";

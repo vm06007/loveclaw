@@ -184,7 +184,7 @@
     box-shadow: 0 0 6px var(--teal);
 }
 .dash-info-hint {
-    font-size: 6px;
+    font-size: 9px;
     color: var(--text-dim);
     padding: 6px 18px 10px;
     line-height: 1.7;
@@ -405,10 +405,18 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
     flex: 0 0 auto;
 }
 .today-budget-breakdown {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     color: var(--text-dim);
-    padding-left: 0px;
-    margin-bottom: 10px;
-    height: 40px;
+    padding: 0 0 10px 0;
+}
+.today-budget-breakdown-values {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
 }
 .today-couple-info-item--budget {
     display: block;
@@ -499,7 +507,6 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-bottom: 10px;
 }
 .today-token-icon {
     display: inline-flex;
@@ -521,6 +528,21 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
     color: #79a8ff;
     border-color: rgba(121, 168, 255, 0.65);
     background: rgba(121, 168, 255, 0.18);
+}
+.today-budget-swap-btn {
+    flex: 0 0 auto;
+    color: #ff8fcb;
+    border-color: rgba(255, 143, 203, 0.5);
+    background: rgba(255, 143, 203, 0.08);
+}
+.today-budget-swap-glyph svg {
+    margin-left: 0;
+}
+.today-budget-swap-btn:hover,
+.today-budget-swap-btn:focus-visible {
+    color: #ffb6df;
+    border-color: rgba(255, 182, 223, 0.72);
+    background: rgba(255, 143, 203, 0.16);
 }
 .today-streak-head {
     font-size: 8px;

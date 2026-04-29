@@ -1,6 +1,12 @@
 /** Canonical pact rule ids (aligned with parent loveclaw Create.svelte). */
 export const PACT_TRIGGER_IDS = ["dating_app", "location", "contact", "diary"];
 
+/** Shown under "automation tasks" in pact UI — not breach monitors. */
+export const PACT_AUTOMATION_TRIGGER_IDS = ["diary"];
+
+/** Breach / monitoring triggers (subset of `PACT_TRIGGER_IDS`). */
+export const PACT_BREACH_TRIGGER_IDS = ["dating_app", "location", "contact"];
+
 /** Legacy per-app chip ids stored before pact rules migration. */
 export const LEGACY_APP_TRIGGER_IDS = new Set([
     "tinder",

@@ -165,6 +165,34 @@
     font-size: 7px !important;
     letter-spacing: 1px;
 }
+.btn-chat-clear {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(226, 75, 74, 0.65);
+    border-radius: 5px;
+    background: rgba(226, 75, 74, 0.1);
+    color: #e24b4a;
+    cursor: pointer;
+    transition: background .15s ease, transform .08s ease, border-color .15s ease;
+}
+.btn-chat-clear svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+}
+.btn-chat-clear:hover,
+.btn-chat-clear:focus-visible {
+    background: rgba(226, 75, 74, 0.22);
+    border-color: #ff8a88;
+    outline: none;
+}
+.btn-chat-clear:active {
+    transform: translateY(1px);
+}
 .btn-ping {
     position: relative;
     display: flex;
