@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveClaw — Commit · Protect · Remember</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink-1:  #0c0d12;      /* deepest */
+    --ink-2:  #131522;      /* card */
+    --ink-3:  #1a1d2e;      /* border */
+    --text:   #e8e9f3;
+    --text-2: #a0a4bd;
+    --text-3: #666a85;
+
+    --rose:   #ff5f8a;
+    --rose-l: #ff8fa8;
+    --coral:  #ff7a5a;
+    --peach:  #ffb098;
+    --sky:    #7dd3fc;
+    --sky-d:  #3b82f6;
+    --mint:   #6ee7b7;
+    --violet: #a78bfa;
+
+    --radius: 16px;
+    --easing-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--ink-1);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     AMBIENT BACKGROUND — layered soft gradients, no pixels
+  ═══════════════════════════════════════════════════════════ */
+  .stage {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 30% 20%, rgba(167, 139, 250, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 75% 80%, rgba(255, 95, 138, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 50%, rgba(125, 211, 252, 0.06) 0%, transparent 70%),
+      linear-gradient(180deg, #0c0d12 0%, #0f111c 60%, #0c0d12 100%);
+    overflow: hidden;
+  }
+  /* subtle noise/grain texture */
+  .stage::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  /* soft floating orbs */
+  .orb {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    filter: blur(60px);
+    animation: drift 22s ease-in-out infinite;
+  }
+  .orb.one { top: 15%; left: 12%; width: 340px; height: 340px;
+    background: radial-gradient(circle, rgba(167,139,250,0.35) 0%, transparent 70%); animation-delay: 0s; }
+  .orb.two { bottom: 15%; right: 10%; width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(255,95,138,0.3) 0%, transparent 70%); animation-delay: -8s; }
+  .orb.three { top: 55%; left: 60%; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(125,211,252,0.18) 0%, transparent 70%); animation-delay: -14s; }
+  @keyframes drift {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(40px, -30px) scale(1.08); }
+    66% { transform: translate(-30px, 20px) scale(0.95); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     TOP NAV
+  ═══════════════════════════════════════════════════════════ */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 40px;
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    background: rgba(12, 13, 18, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    opacity: 0;
+    animation: fadeDown 0.8s 0.2s ease forwards;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .brand-mark {
+    width: 24px; height: 24px;
+    background: linear-gradient(135deg, #ff5f8a 0%, #ff7a5a 100%);
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(255,95,138,0.4);
+  }
+  .brand-mark::after {
+    content: '♥'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 13px; line-height: 1;
+  }
+  .topnav {
+    display: flex; gap: 34px; align-items: center;
+  }
+  .topnav a {
+    color: var(--text-2); font-size: 13px; font-weight: 500;
+    text-decoration: none; letter-spacing: -0.005em;
+    transition: color 0.2s;
+  }
+  .topnav a:hover { color: var(--text); }
+  .topnav .cta {
+    padding: 8px 16px; border-radius: 100px;
+    background: white; color: var(--ink-1); font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .topnav .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(255,255,255,0.15);
+  }
+  @media (max-width: 680px) {
+    .topnav a:not(.cta) { display: none; }
+    .topbar { padding: 18px 24px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     HERO LAYOUT
+  ═══════════════════════════════════════════════════════════ */
+  .hero {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 100px 40px 40px;
+    gap: 48px;
+    text-align: center;
+  }
+
+  /* ── Phones + thread assembly ─────────────── */
+  .mark {
+    position: relative;
+    width: min(720px, 88vw);
+    height: 320px;
+  }
+  .phone {
+    position: absolute;
+    width: 180px; height: 300px;
+    border-radius: 34px;
+    background: linear-gradient(160deg, #1a1d2e 0%, #0f111c 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 1px 0 rgba(255,255,255,0.1) inset;
+    padding: 14px;
+    opacity: 0;
+    animation: phoneRise 0.9s var(--easing-pop) forwards;
+  }
+  .phone.left  { left: 0;  top: 10px; animation-delay: 0.4s; }
+  .phone.right { right: 0; top: 10px; animation-delay: 0.6s; }
+  @keyframes phoneRise {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .phone .screen {
+    width: 100%; height: 100%;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #0b0d17 0%, #11142a 100%);
+    padding: 14px;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .phone .notch {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 5px; background: #05060a; border-radius: 3px;
+  }
+  .phone .status {
+    margin-top: 22px;
+    font-size: 9px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .phone.left .status { color: #6ee7b7; }
+  .phone.right .status { color: #ff8fa8; }
+  .phone .score {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 42px; font-weight: 500; letter-spacing: -0.03em;
+    line-height: 1; margin-top: 2px;
+  }
+  .phone.left .score {
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .phone.right .score {
+    background: linear-gradient(135deg, #ff8fa8 0%, #ff5f8a 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .phone .score .slash { color: var(--text-3); font-size: 18px; margin: 0 4px; }
+  .phone .node {
+    margin-top: auto;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    color: var(--text-2); text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .phone .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .phone.left .dot { background: #6ee7b7; color: #6ee7b7; }
+  .phone.right .dot { background: #ff8fa8; color: #ff8fa8; }
+
+  /* app grid preview */
+  .apps {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    margin-top: 18px; margin-bottom: 16px;
+  }
+  .apps span {
+    aspect-ratio: 1; border-radius: 8px;
+    opacity: 0.7;
+  }
+  .phone.left .apps span:nth-child(3n+1) { background: #10b981; }
+  .phone.left .apps span:nth-child(3n+2) { background: #3b82f6; opacity: 0.5; }
+  .phone.left .apps span:nth-child(3n)   { background: #8b5cf6; opacity: 0.4; }
+  .phone.right .apps span:nth-child(3n+1) { background: #ff5f8a; }
+  .phone.right .apps span:nth-child(3n+2) { background: #8b5cf6; opacity: 0.5; }
+  .phone.right .apps span:nth-child(3n)   { background: #ff7a5a; opacity: 0.5; }
+
+  /* ── Thread SVG ─────────────────────────── */
+  .thread-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    overflow: visible; pointer-events: none;
+  }
+  .thread-path {
+    stroke-dasharray: 520;
+    stroke-dashoffset: 520;
+    animation: drawLine 1.8s 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  /* ═══════════════════════════════════════════════════════════
+     THE HEART — smooth, modern, gradient-filled
+     Appears at arc midpoint when the line finishes drawing.
+  ═══════════════════════════════════════════════════════════ */
+  .heart-wrap {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .heart-aura {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,95,138,0.5) 0%,
+      rgba(255,95,138,0.2) 40%,
+      transparent 70%);
+    opacity: 0;
+    transform: scale(0.3);
+    animation:
+      auraIn 0.9s 2.8s ease forwards,
+      auraPulse 2.2s 3.7s ease-in-out infinite;
+  }
+  @keyframes auraIn {
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes auraPulse {
+    0%, 100% { transform: scale(1);   opacity: 0.7; }
+    50%      { transform: scale(1.25); opacity: 1; }
+  }
+
+  .heart-svg {
+    position: relative; width: 72px; height: 72px;
+    opacity: 0;
+    transform: scale(0) rotate(-15deg);
+    animation:
+      heartAppear 0.8s 2.8s var(--easing-pop) forwards,
+      heartBeat 1.8s 3.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(255, 95, 138, 0.6))
+            drop-shadow(0 6px 16px rgba(255, 95, 138, 0.3));
+  }
+  @keyframes heartAppear {
+    0%   { opacity: 0; transform: scale(0) rotate(-15deg); }
+    70%  { opacity: 1; transform: scale(1.25) rotate(0deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes heartBeat {
+    0%, 45%, 100% { transform: scale(1); }
+    15%           { transform: scale(1.12); }
+    30%           { transform: scale(1); }
+    60%           { transform: scale(1.06); }
+  }
+
+  /* small sparkles that pop near the heart */
+  .spark {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: white; border-radius: 50%;
+    opacity: 0;
+    box-shadow: 0 0 8px white;
+    animation: sparkPop 1.4s var(--del, 3s) ease-out infinite;
+  }
+  .spark.s1 { top: 20%;  left: 30%; --del: 3.2s; }
+  .spark.s2 { top: 25%;  right: 25%; --del: 3.6s; }
+  .spark.s3 { bottom: 22%; left: 35%; --del: 4.0s; }
+  .spark.s4 { bottom: 28%; right: 20%; --del: 4.4s; }
+  @keyframes sparkPop {
+    0%   { opacity: 0; transform: scale(0); }
+    40%  { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.5) translate(10px, -10px); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     TYPOGRAPHY
+  ═══════════════════════════════════════════════════════════ */
+  .copy {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+    max-width: 760px;
+  }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 12px; font-weight: 500;
+    color: var(--text-2); letter-spacing: 0.02em;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s ease forwards;
+  }
+  .eyebrow .ball {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--mint); box-shadow: 0 0 10px var(--mint);
+    animation: pulseBall 2s infinite;
+  }
+  @keyframes pulseBall {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1.title {
+    font-size: clamp(44px, 7vw, 88px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+    background: linear-gradient(180deg, #ffffff 0%, #a0a4bd 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    opacity: 0;
+    animation: fadeUp 0.9s 1.1s ease forwards;
+  }
+  h1.title .grad {
+    background: linear-gradient(135deg, #ff5f8a 0%, #ff7a5a 50%, #a78bfa 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    font-style: italic;
+    font-weight: 800;
+  }
+
+  .tagline {
+    font-size: clamp(16px, 1.8vw, 20px);
+    font-weight: 400;
+    color: var(--text-2);
+    max-width: 56ch; line-height: 1.5;
+    letter-spacing: -0.01em;
+    opacity: 0;
+    animation: fadeUp 0.9s 1.4s ease forwards;
+  }
+  .tagline b { color: var(--text); font-weight: 500; }
+
+  /* key-words row — the three verbs */
+  .verbs {
+    display: flex; gap: 32px; align-items: center;
+    margin-top: 8px;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.06em;
+    color: var(--text-3); text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.9s 1.7s ease forwards;
+  }
+  .verbs span { position: relative; }
+  .verbs span:not(:last-child)::after {
+    content: ''; position: absolute; right: -18px; top: 50%;
+    width: 4px; height: 4px; background: var(--text-3); border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  .verbs span:nth-child(1) { color: #6ee7b7; }
+  .verbs span:nth-child(2) { color: #a78bfa; }
+  .verbs span:nth-child(3) { color: #ff8fa8; }
+
+  /* CTAs */
+  .actions {
+    display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.9s 2.0s ease forwards;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px;
+    border-radius: 100px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    cursor: pointer; border: none;
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, #ff5f8a 0%, #ff7a5a 100%);
+    color: white;
+    box-shadow: 0 10px 30px -10px rgba(255, 95, 138, 0.6);
+  }
+  .btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px -10px rgba(255, 95, 138, 0.8);
+  }
+  .btn.ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .btn.ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* trust row — tech tags at bottom */
+  .trust {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 28px;
+    margin-top: 28px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px; color: var(--text-3);
+    letter-spacing: 0;
+    opacity: 0;
+    animation: fadeUp 0.9s 2.3s ease forwards;
+  }
+  .trust span { display: inline-flex; align-items: center; gap: 8px; }
+  .trust span::before {
+    content: ''; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--text-3);
+  }
+  .trust span:nth-child(1)::before { background: #6ee7b7; }
+  .trust span:nth-child(2)::before { background: #a78bfa; }
+  .trust span:nth-child(3)::before { background: #7dd3fc; }
+  .trust span:nth-child(4)::before { background: #ff8fa8; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* responsive */
+  @media (max-width: 700px) {
+    .mark { width: 94vw; height: 280px; }
+    .phone { width: 130px; height: 220px; border-radius: 26px; padding: 10px; }
+    .phone .screen { border-radius: 18px; padding: 10px; }
+    .phone .score { font-size: 30px; }
+    .heart-wrap { width: 80px; height: 80px; }
+    .heart-svg { width: 52px; height: 52px; }
+    .verbs { gap: 24px; font-size: 12px; }
+    .trust { font-size: 10px; gap: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      LoveClaw
+    </div>
+    <nav class="topnav">
+      <a href="#how">How it works</a>
+      <a href="loveclaw-manifesto.html">Manifesto</a>
+      <a href="loveclaw-pitch-v2.html">Deck</a>
+      <a href="loveclaw-app.html" class="cta">Launch app →</a>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <!-- ═══════ Phones + Thread + Heart ═══════ -->
+    <div class="mark">
+      <!-- Thread svg: two curves converging on heart -->
+      <svg class="thread-svg" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#6ee7b7" stop-opacity="0"/>
+            <stop offset="20%"  stop-color="#6ee7b7" stop-opacity="0.9"/>
+            <stop offset="50%"  stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="80%"  stop-color="#ff5f8a" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#ff5f8a" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path class="thread-path"
+          d="M 200 160 Q 360 80 520 160"
+          fill="none"
+          stroke="url(#threadGrad)"
+          stroke-width="2"
+          stroke-linecap="round"/>
+      </svg>
+
+      <!-- Left phone (mint/green) -->
+      <div class="phone left">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="apps">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="status">Trusted</div>
+          <div class="score">98<span class="slash">/</span>100</div>
+          <div class="node"><span class="dot"></span>Node A · Her</div>
+        </div>
+      </div>
+
+      <!-- Right phone (rose/pink) -->
+      <div class="phone right">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="apps">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="status">Trusted</div>
+          <div class="score">97<span class="slash">/</span>100</div>
+          <div class="node"><span class="dot"></span>Node B · Him</div>
+        </div>
+      </div>
+
+      <!-- Heart at midpoint -->
+      <div class="heart-wrap">
+        <div class="heart-aura"></div>
+        <div class="spark s1"></div>
+        <div class="spark s2"></div>
+        <div class="spark s3"></div>
+        <div class="spark s4"></div>
+        <svg class="heart-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#ff8fa8"/>
+              <stop offset="50%"  stop-color="#ff5f8a"/>
+              <stop offset="100%" stop-color="#e03570"/>
+            </linearGradient>
+            <linearGradient id="heartShine" x1="0%" y1="0%" x2="50%" y2="50%">
+              <stop offset="0%"   stop-color="white" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- smooth, modern heart -->
+          <path
+            d="M32 56
+               C 8 42, 2 28, 2 18
+               C 2 9, 10 2, 18 2
+               C 24 2, 29 6, 32 11
+               C 35 6, 40 2, 46 2
+               C 54 2, 62 9, 62 18
+               C 62 28, 56 42, 32 56 Z"
+            fill="url(#heartGrad)"
+            stroke="rgba(255,255,255,0.3)"
+            stroke-width="0.5"/>
+          <!-- highlight/shine -->
+          <path
+            d="M 14 10
+               C 10 10, 8 14, 8 18
+               C 10 14, 14 12, 18 12 Z"
+            fill="url(#heartShine)"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ═══════ Copy ═══════ -->
+    <div class="copy">
+      <div class="eyebrow">
+        <span class="ball"></span>
+        Forked from OpenClaw · Built for two
+      </div>
+
+      <h1 class="title">
+        Trust, as a <span class="grad">protocol</span>.
+      </h1>
+
+      <p class="tagline">
+        LoveClaw runs on both partners' devices, talks peer-to-peer, and turns your shared signals into <b>a bond you can actually see</b>. No cloud, no middleman, no one watching but you two.
+      </p>
+
+      <div class="verbs">
+        <span>Commit</span>
+        <span>Protect</span>
+        <span>Remember</span>
+      </div>
+
+      <div class="actions">
+        <a href="loveclaw-app.html" class="btn primary">
+          Launch the app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M3 8h10M9 4l4 4-4 4"/>
+          </svg>
+        </a>
+        <a href="loveclaw-pitch-v2.html" class="btn ghost">
+          See the deck
+        </a>
+      </div>
+
+      <div class="trust">
+        <span>sessions_send</span>
+        <span>android node</span>
+        <span>eth contract</span>
+        <span>ai diary</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
