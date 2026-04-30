@@ -585,6 +585,77 @@
       </div>
     </div>
 
+    <div
+      id="modal-ai-settings"
+      class="modal-sheet hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-ai-settings-title"
+    >
+      <div class="modal-sheet-inner ai-settings-inner">
+        <h2 class="modal-sheet-title" id="modal-ai-settings-title">AI settings</h2>
+        <p class="modal-sheet-sub">Choose your LoveClaw model provider and credentials.</p>
+        <label class="ai-settings-optin">
+          <input id="ai-enabled" type="checkbox" class="pact-toggle-input" />
+          <span>Enable LoveClaw AI on this device</span>
+        </label>
+        <label class="ai-settings-optin">
+          <input id="ai-share-conversations" type="checkbox" class="pact-toggle-input" />
+          <span>Share LoveClaw AI conversations</span>
+        </label>
+        <label class="ai-settings-label" for="ai-provider">provider</label>
+        <select id="ai-provider" class="field-input ai-settings-select">
+          <option value="zgcompute">0G Compute</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="huggingface">Hugging Face</option>
+          <option value="local">Local (Ollama)</option>
+          <option value="custom">Custom endpoint</option>
+        </select>
+
+        <div class="ai-settings-group hidden" data-provider="zgcompute">
+          <label class="ai-settings-label" for="ai-zg-url">0G service url</label>
+          <input id="ai-zg-url" class="field-input" type="text" placeholder="https://.../v1/proxy" autocomplete="off" />
+          <label class="ai-settings-label" for="ai-zg-secret">0G API secret</label>
+          <input id="ai-zg-secret" class="field-input" type="password" placeholder="app-sk-..." autocomplete="off" />
+          <label class="ai-settings-label" for="ai-zg-model">model</label>
+          <input id="ai-zg-model" class="field-input" type="text" placeholder="qwen/qwen-2.5-7b-instruct" autocomplete="off" />
+        </div>
+
+        <div class="ai-settings-group" data-provider="openrouter">
+          <label class="ai-settings-label" for="ai-openrouter-key">OpenRouter API key</label>
+          <input id="ai-openrouter-key" class="field-input" type="password" placeholder="sk-or-v1-..." autocomplete="off" />
+          <label class="ai-settings-label" for="ai-openrouter-model">model</label>
+          <input id="ai-openrouter-model" class="field-input" type="text" placeholder="openai/gpt-4o-mini" autocomplete="off" />
+        </div>
+
+        <div class="ai-settings-group hidden" data-provider="huggingface">
+          <label class="ai-settings-label" for="ai-hf-key">Hugging Face API key</label>
+          <input id="ai-hf-key" class="field-input" type="password" placeholder="hf_..." autocomplete="off" />
+          <label class="ai-settings-label" for="ai-hf-model">model</label>
+          <input id="ai-hf-model" class="field-input" type="text" placeholder="google/gemma-2-9b-it" autocomplete="off" />
+        </div>
+
+        <div class="ai-settings-group hidden" data-provider="local">
+          <label class="ai-settings-label" for="ai-local-url">local url</label>
+          <input id="ai-local-url" class="field-input" type="text" placeholder="http://127.0.0.1:11434" autocomplete="off" />
+          <label class="ai-settings-label" for="ai-local-model">model</label>
+          <input id="ai-local-model" class="field-input" type="text" placeholder="gemma3:4b" autocomplete="off" />
+        </div>
+
+        <div class="ai-settings-group hidden" data-provider="custom">
+          <label class="ai-settings-label" for="ai-custom-url">endpoint url</label>
+          <input id="ai-custom-url" class="field-input" type="text" placeholder="http://127.0.0.1:8787/loveclaw-chat" autocomplete="off" />
+          <label class="ai-settings-label" for="ai-custom-token">bearer token (optional)</label>
+          <input id="ai-custom-token" class="field-input" type="password" placeholder="token..." autocomplete="off" />
+        </div>
+
+        <div class="modal-sheet-actions">
+          <button type="button" class="btn btn-primary" id="modal-ai-settings-save">save</button>
+          <button type="button" class="btn btn-ghost" id="modal-ai-settings-close">close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ── BREACH OVERLAY ────────────────────────────────── -->
     <div id="overlay-breach" class="overlay hidden">
       <div class="overlay-inner">
