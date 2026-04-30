@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LoveClaw — Trust as a Protocol · Manifesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#5DCAA5; --teal-d:#1D9E75;
+  --purple:#534AB7; --purple-l:#AFA9EC; --purple-2:#7B6FE8;
+  --pink:#D4537E; --pink-l:#ED93B1;
+  --amber:#FAC775; --gold:#FFD060;
+  --red:#E24B4A;
+  --bg:#07070f; --bg2:#0d0d1e; --bg3:#111128; --bg4:#161634;
+  --text:#d0d0ea; --dim:#6a6a95; --muted:#333355; --border:#1a1a3a;
+  --mono:'Press Start 2P',ui-monospace,monospace;
+  --prose:'VT323',ui-monospace,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);
+  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ═══ ATMOSPHERE ═══ */
+.scan{position:fixed;inset:0;pointer-events:none;z-index:60;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.07) 3px 4px)}
+.gridbg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+  background-image:
+    linear-gradient(var(--muted) 1px,transparent 1px),
+    linear-gradient(90deg,var(--muted) 1px,transparent 1px);
+  background-size:48px 48px}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:1}
+.star{position:absolute;background:#fff;border-radius:50%;
+  animation:tw var(--d,3s) infinite var(--dl,0s)}
+@keyframes tw{0%,100%{opacity:var(--lo,.12)}50%{opacity:var(--hi,.7)}}
+
+/* ═══ TOP BAR ═══ */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(7,7,15,.85);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--border)}
+.logo{font-size:9px;color:var(--teal);letter-spacing:3px;
+  text-shadow:0 0 14px rgba(93,202,165,.4)}
+.logo::before{content:'●';color:var(--teal);margin-right:8px;animation:blink 2s infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.3}}
+.topnav{display:flex;gap:22px}
+.topnav a{color:var(--dim);font-size:7px;letter-spacing:2px;text-decoration:none;transition:.25s}
+.topnav a:hover{color:var(--teal)}
+@media (max-width:680px){.topnav{display:none}}
+
+/* ═══ SECTION LAYOUT ═══ */
+section{position:relative;z-index:2;padding:120px 28px 100px;
+  display:flex;align-items:center;justify-content:center}
+.inner{width:min(1040px,100%)}
+.inner-narrow{width:min(780px,100%)}
+
+.eyebrow{font-size:7px;color:var(--dim);letter-spacing:4px;margin-bottom:18px}
+.eyebrow::before{content:'▶  '}
+.dash{display:inline-block;width:40px;height:1px;background:var(--teal);
+  vertical-align:middle;margin:0 12px 3px 0}
+
+h1.big{font-size:clamp(22px,4.2vw,44px);line-height:1.3;
+  color:var(--teal);letter-spacing:3px;
+  text-shadow:0 0 30px rgba(93,202,165,.22)}
+h1.big em{color:var(--pink);font-style:normal}
+h1.big .p{color:var(--purple-l)}
+h2.sec{font-size:clamp(13px,1.8vw,18px);color:var(--teal);letter-spacing:3px;
+  margin-bottom:14px;text-shadow:0 0 18px rgba(93,202,165,.2)}
+h2.sec .alt{color:var(--pink-l)}
+h3.sub{font-size:clamp(9px,1.1vw,11px);color:var(--purple-l);letter-spacing:2px;
+  margin-bottom:10px}
+
+p.prose{font-family:var(--prose);font-size:22px;line-height:1.55;
+  color:var(--text);letter-spacing:.5px;max-width:68ch;margin-bottom:18px}
+p.prose.lg{font-size:28px;line-height:1.5}
+p.prose b{color:var(--teal);font-weight:normal}
+p.prose i{color:var(--pink-l);font-style:normal}
+p.caption{font-size:7px;color:var(--dim);letter-spacing:2px;margin-top:22px}
+
+/* ═══════════════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════════════ */
+.hero{min-height:100vh;padding-top:110px;padding-bottom:40px;overflow:hidden}
+.hero .inner{display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px}
+.hero .mark{width:min(620px,92vw);height:240px;position:relative;margin-bottom:10px}
+.hero .mark .ph{position:absolute;top:20px;width:132px;height:210px;border-radius:12px;
+  background:var(--bg2);padding:9px 7px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.hero .mark .ph.l{left:60px;border:2px solid var(--teal);
+  box-shadow:0 0 22px rgba(93,202,165,.22),inset 0 0 18px rgba(93,202,165,.05)}
+.hero .mark .ph.r{right:60px;border:2px solid var(--pink);
+  box-shadow:0 0 22px rgba(212,83,126,.22),inset 0 0 18px rgba(212,83,126,.05)}
+.hero .mark .ph .g{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;width:100%}
+.hero .mark .ph .g div{aspect-ratio:1;border-radius:2px}
+.hero .mark .ph .lbl{font-size:5px;letter-spacing:1px;margin-top:2px}
+.hero .mark .ph.l .lbl{color:var(--teal)}
+.hero .mark .ph.r .lbl{color:var(--pink)}
+.hero .mark .ph .scr{font-size:6px;color:var(--text);margin-top:2px}
+.hero .mark .orb{position:absolute;left:50%;top:calc(50% + 18px);
+  transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle at 38% 35%,#fff,#dde 40%,#aab 70%,#556 100%);
+  box-shadow:0 0 22px #fff6,0 0 50px #aaf4,0 0 80px #88f2}
+.hero .mark svg{position:absolute;inset:0;overflow:visible;pointer-events:none}
+
+.hero h1{font-size:clamp(28px,5.8vw,62px);letter-spacing:7px;line-height:1.18;
+  color:var(--teal);text-shadow:0 0 34px rgba(93,202,165,.3),0 0 80px rgba(93,202,165,.12)}
+.hero .sub{font-size:clamp(8px,1vw,11px);color:var(--dim);letter-spacing:5px;margin-top:-8px}
+.hero .ask{font-family:var(--prose);font-size:28px;color:var(--text);
+  max-width:28ch;line-height:1.45;margin-top:8px}
+.hero .ask em{color:var(--pink);font-style:normal}
+.hero .ask b{color:var(--teal);font-weight:normal}
+
+.cta{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.cta a{font-size:8px;letter-spacing:3px;padding:14px 24px;text-decoration:none;
+  transition:.3s;position:relative;display:inline-flex;align-items:center;gap:10px}
+.cta .primary{background:var(--teal);color:var(--bg);border:2px solid var(--teal);
+  box-shadow:0 0 22px rgba(93,202,165,.35)}
+.cta .primary:hover{background:transparent;color:var(--teal);
+  box-shadow:0 0 30px rgba(93,202,165,.6)}
+.cta .ghost{background:transparent;color:var(--dim);border:1px solid var(--muted)}
+.cta .ghost:hover{color:var(--teal);border-color:var(--teal)}
+
+.down{margin-top:28px;color:var(--dim);font-size:7px;letter-spacing:3px;
+  animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION DIVIDERS
+═══════════════════════════════════════════════════════════ */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border) 20%,var(--teal) 50%,var(--border) 80%,transparent);
+  margin:0;position:relative;z-index:2}
+
+/* ═══════════════════════════════════════════════════════════
+   THESIS
+═══════════════════════════════════════════════════════════ */
+.thesis{background:linear-gradient(180deg,var(--bg) 0%,#09091b 100%)}
+.thesis .inner{display:grid;grid-template-columns:1fr 1.2fr;gap:56px;align-items:center}
+@media (max-width:860px){.thesis .inner{grid-template-columns:1fr}}
+
+.thesis .side h2.sec{margin-bottom:22px}
+.thesis .glyph{display:flex;gap:6px;margin-top:26px}
+.thesis .glyph span{width:22px;height:22px;display:inline-block}
+.thesis .glyph .s1{background:var(--teal)}
+.thesis .glyph .s2{background:var(--purple-l)}
+.thesis .glyph .s3{background:var(--pink);animation:flash 1.8s infinite}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}
+
+.strike{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--red);
+  text-decoration-thickness:2px}
+
+/* ═══════════════════════════════════════════════════════════
+   PRINCIPLES GRID
+═══════════════════════════════════════════════════════════ */
+.principles{background:var(--bg2)}
+.principles .inner{display:flex;flex-direction:column;align-items:center;gap:40px}
+.principles .head{text-align:center;max-width:680px}
+.prin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%}
+@media (max-width:960px){.prin-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.prin-grid{grid-template-columns:1fr}}
+
+.prin{background:var(--bg3);border:1px solid var(--border);padding:24px 20px 22px;
+  position:relative;overflow:hidden;transition:.3s}
+.prin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.prin:hover{border-color:var(--teal);transform:translateY(-3px);
+  box-shadow:0 8px 40px rgba(93,202,165,.08)}
+.prin .n{font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:16px}
+.prin .n b{color:var(--teal);font-weight:normal}
+.prin .ti{font-size:10px;color:var(--teal);letter-spacing:2px;margin-bottom:16px;line-height:1.5}
+.prin .prose{font-family:var(--prose);font-size:19px;line-height:1.55;color:var(--text);
+  margin:0}
+
+/* accent variants */
+.prin.pu::before{background:linear-gradient(90deg,transparent,var(--purple-l),transparent)}
+.prin.pu .ti{color:var(--purple-l)} .prin.pu:hover{border-color:var(--purple-l)}
+.prin.pk::before{background:linear-gradient(90deg,transparent,var(--pink),transparent)}
+.prin.pk .ti{color:var(--pink-l)} .prin.pk:hover{border-color:var(--pink)}
+.prin.am::before{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.prin.am .ti{color:var(--amber)} .prin.am:hover{border-color:var(--amber)}
+
+/* ═══════════════════════════════════════════════════════════
+   HOW IT WORKS (ARCH DIAGRAM)
+═══════════════════════════════════════════════════════════ */
+.how{background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)}
+.how .inner{display:flex;flex-direction:column;gap:40px;align-items:center}
+.how .head{text-align:center;max-width:680px}
+.chain{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;width:100%;align-items:stretch}
+@media (max-width:860px){.chain{grid-template-columns:1fr}}
+.ch-node{background:var(--bg2);border:1px solid var(--border);padding:22px 18px;
+  text-align:center;position:relative}
+.ch-node::before{content:'';position:absolute;inset:0 0 auto 0;height:2px}
+.ch-node.a::before{background:var(--teal)}
+.ch-node.b::before{background:var(--purple-l)}
+.ch-node.c::before{background:var(--pink)}
+.ch-ico{font-size:26px;margin-bottom:10px}
+.ch-title{font-size:9px;letter-spacing:2px;margin-bottom:12px}
+.ch-node.a .ch-title{color:var(--teal)}
+.ch-node.b .ch-title{color:var(--purple-l)}
+.ch-node.c .ch-title{color:var(--pink)}
+.ch-body{font-family:var(--prose);font-size:18px;color:var(--text);line-height:1.5}
+.ch-arrow{display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:20px;
+  animation:pulseArrow 2s infinite}
+@keyframes pulseArrow{0%,100%{opacity:.5}50%{opacity:1}}
+@media (max-width:860px){.ch-arrow{transform:rotate(90deg);padding:10px 0}}
+
+.how .note{background:var(--bg3);border:1px solid var(--purple);
+  border-left:4px solid var(--purple-l);padding:18px 24px;width:100%}
+.how .note .lb{font-size:8px;color:var(--purple-l);letter-spacing:2px;margin-bottom:10px}
+.how .note .tx{font-family:var(--prose);font-size:20px;line-height:1.5;color:var(--text)}
+
+/* ═══════════════════════════════════════════════════════════
+   DECLARATIONS
+═══════════════════════════════════════════════════════════ */
+.declare{background:var(--bg)}
+.declare .inner{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:720px){.declare .inner{grid-template-columns:1fr}}
+.decl{background:var(--bg2);border:1px solid var(--border);padding:28px 26px;position:relative}
+.decl.we{border-color:var(--teal-d)}
+.decl.we::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--teal)}
+.decl.not{border-color:#552c2c}
+.decl.not::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--red)}
+.decl h3{font-size:10px;letter-spacing:3px;margin-bottom:22px}
+.decl.we h3{color:var(--teal)}
+.decl.not h3{color:var(--red)}
+.decl ul{list-style:none}
+.decl ul li{font-family:var(--prose);font-size:22px;line-height:1.45;padding:10px 0;
+  border-bottom:1px dashed var(--border);display:flex;gap:10px;align-items:flex-start}
+.decl ul li:last-child{border-bottom:none}
+.decl ul li::before{flex-shrink:0;font-family:var(--mono);font-size:10px;margin-top:4px}
+.decl.we ul li::before{content:'✓';color:var(--teal)}
+.decl.not ul li::before{content:'✗';color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════════
+   QUOTE / CENTERPIECE
+═══════════════════════════════════════════════════════════ */
+.quote-sec{background:var(--bg2);padding:160px 28px}
+.quote-sec .inner{text-align:center;max-width:820px;margin:0 auto}
+.quote-sec .q{font-family:var(--prose);font-size:clamp(26px,3.2vw,42px);line-height:1.4;
+  color:var(--text)}
+.quote-sec .q em{color:var(--teal);font-style:normal;
+  text-shadow:0 0 22px rgba(93,202,165,.3)}
+.quote-sec .q .pk{color:var(--pink-l)}
+.quote-sec .attr{margin-top:36px;font-size:7px;color:var(--dim);letter-spacing:4px}
+
+/* ═══════════════════════════════════════════════════════════
+   OPEN SOURCE
+═══════════════════════════════════════════════════════════ */
+.os{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%)}
+.os .inner{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+@media (max-width:860px){.os .inner{grid-template-columns:1fr}}
+.os .code{background:#05050f;border:1px solid var(--border);padding:22px 20px;
+  font-family:var(--prose);font-size:18px;color:var(--text);line-height:1.65;
+  box-shadow:inset 0 0 40px rgba(93,202,165,.06);position:relative;overflow:hidden}
+.os .code::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--teal)}
+.os .code .c{color:var(--dim)}
+.os .code .k{color:var(--pink-l)}
+.os .code .s{color:var(--amber)}
+.os .code .v{color:var(--teal)}
+.os .code .t{color:var(--purple-l)}
+.os .code .hdr{font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:2px;
+  padding-bottom:10px;border-bottom:1px dashed var(--border);margin-bottom:10px}
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTER CTA
+═══════════════════════════════════════════════════════════ */
+.end{background:var(--bg);padding:140px 28px 50px}
+.end .inner{text-align:center;max-width:720px;margin:0 auto}
+.end h2{font-size:clamp(16px,2.4vw,22px);color:var(--teal);letter-spacing:3px;
+  margin-bottom:18px;text-shadow:0 0 22px rgba(93,202,165,.25)}
+.end p.prose{margin:0 auto 28px;max-width:52ch}
+
+.foot{margin-top:70px;padding-top:28px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  font-size:6.5px;color:var(--dim);letter-spacing:2px}
+.foot a{color:var(--dim);text-decoration:none;transition:.25s}
+.foot a:hover{color:var(--teal)}
+.foot .fl{display:flex;gap:18px;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════════════════════
+   DECORATION — corner brackets on sections
+═══════════════════════════════════════════════════════════ */
+.brackets{position:absolute;inset:40px 28px auto;pointer-events:none}
+.brackets span{position:absolute;width:16px;height:16px;border:2px solid var(--teal);opacity:.5}
+.brackets .tl{top:0;left:0;border-right:none;border-bottom:none}
+.brackets .tr{top:0;right:0;border-left:none;border-bottom:none}
+</style>
+</head>
+<body>
+
+<div class="gridbg"></div>
+<div class="stars" id="stars"></div>
+<div class="scan"></div>
+
+<header class="topbar">
+  <div class="logo">LOVECLAW</div>
+  <nav class="topnav">
+    <a href="#thesis">THESIS</a>
+    <a href="#principles">PRINCIPLES</a>
+    <a href="#how">HOW</a>
+    <a href="#declare">WE ARE / ARE NOT</a>
+    <a href="loveclaw-pitch-v2.html">DECK ▶</a>
+  </nav>
+</header>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero" id="hero">
+  <div class="inner">
+    <div class="mark">
+      <div class="ph l">
+        <div class="g" id="gL"></div>
+        <div class="lbl">TRUSTED</div>
+        <div class="scr">95 / 100</div>
+      </div>
+      <div class="ph r">
+        <div class="g" id="gR"></div>
+        <div class="lbl">TRUSTED</div>
+        <div class="scr">97 / 100</div>
+      </div>
+      <svg viewBox="0 0 620 240" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#5DCAA5" stop-opacity=".85"/>
+            <stop offset="50%" stop-color="#AFA9EC" stop-opacity=".4"/>
+            <stop offset="100%" stop-color="#D4537E" stop-opacity=".85"/>
+          </linearGradient>
+          <filter id="gl"><feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <path d="M 128 120 C 220 220 400 220 492 120"
+          stroke="url(#arc)" stroke-width="1.5" fill="none" filter="url(#gl)"/>
+      </svg>
+      <div class="orb"></div>
+    </div>
+
+    <h1>TRUST AS<br>A PROTOCOL</h1>
+    <div class="sub">A HACKATHON 2026 CONCEPT · BUILT BY TWO · NO SERVER IN BETWEEN</div>
+
+    <div class="ask">
+      What if your relationship had <b>an API</b> instead of a <em>suspicion</em>?
+    </div>
+
+    <div class="cta">
+      <a href="loveclaw-pitch-v2.html" class="primary">▶ READ THE DECK</a>
+      <a href="loveclaw-app.html" class="ghost">LAUNCH THE APP</a>
+    </div>
+
+    <div class="down">▼ SCROLL</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ THESIS ═══════ -->
+<section class="thesis" id="thesis">
+  <div class="inner">
+    <div class="side">
+      <div class="eyebrow">THE THESIS</div>
+      <h2 class="sec">LOVE DESERVES <span class="alt">REAL INFRASTRUCTURE</span></h2>
+      <p class="prose">
+        Dating platforms have APIs. <b>Relationships don't.</b>
+      </p>
+      <p class="prose">
+        The modern couple is surrounded by infrastructure — Tinder, WhatsApp, Instagram, Hinge, Discord — each <i>optimized to extend the single life</i>, not the shared one.
+      </p>
+      <p class="prose">
+        We think commitment deserves its <b>own layer</b> — not a dating app for couples, but a protocol underneath the ones that threaten it.
+      </p>
+      <div class="glyph">
+        <span class="s1"></span><span class="s2"></span><span class="s3"></span>
+      </div>
+    </div>
+
+    <div class="side">
+      <h2 class="sec" style="color:var(--pink-l)">WHAT <span class="strike">SURVEILLANCE</span> GETS WRONG</h2>
+      <p class="prose">
+        Most "couples monitoring" apps are spyware with a love heart on the icon. One person installs. The other doesn't know. Data goes to a <i>third party's server</i>. Trust gets <em style="color:var(--red)">laundered through a database</em>.
+      </p>
+      <p class="prose">
+        <b>LoveClaw refuses that model.</b> Both partners install. Both agree the rules. Signals stay on-device. The mesh is peer-to-peer — <b>there is no server to subpoena</b>, no vendor to breach, no dashboard for a stranger to read.
+      </p>
+      <p class="prose">
+        The cost of consent is higher. <i>That's the point.</i>
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ PRINCIPLES ═══════ -->
+<section class="principles" id="principles">
+  <div class="inner">
+    <div class="head">
+      <div class="eyebrow">THE SEVEN PRINCIPLES</div>
+      <h2 class="sec">WE WILL NOT <span class="alt">COMPROMISE</span> ON THESE</h2>
+      <p class="prose" style="margin:14px auto 0;text-align:left;max-width:58ch">
+        Anything we build — the app, the protocol, the diary, the contract — has to pass all seven. If a feature fails one, <b>we cut the feature, not the principle</b>.
+      </p>
+    </div>
+
+    <div class="prin-grid">
+      <article class="prin">
+        <div class="n"><b>01</b> / 07</div>
+        <div class="ti">BOTH PARTNERS OR NEITHER</div>
+        <p class="prose">LoveClaw only works when both devices install it. One-sided monitoring is spyware. We refuse to ship it.</p>
+      </article>
+      <article class="prin pu">
+        <div class="n"><b>02</b> / 07</div>
+        <div class="ti">ON-DEVICE FIRST</div>
+        <p class="prose">Signals — GPS, apps, notifications, motion — stay on the phone they came from. Only scores and verdicts cross the mesh.</p>
+      </article>
+      <article class="prin pk">
+        <div class="n"><b>03</b> / 07</div>
+        <div class="ti">NO SERVER IN BETWEEN</div>
+        <p class="prose">Devices talk directly over AXL with Ed25519 keys. No LoveClaw backend holds your data. There is nothing to breach.</p>
+      </article>
+      <article class="prin am">
+        <div class="n"><b>04</b> / 07</div>
+        <div class="ti">DETERMINISTIC OVER GENERATIVE</div>
+        <p class="prose">Breach detection is a rules engine — not an LLM. Claude writes the diary. Claude does not decide your relationship.</p>
+      </article>
+      <article class="prin">
+        <div class="n"><b>05</b> / 07</div>
+        <div class="ti">CONSENT IS THE KEY</div>
+        <p class="prose">Triggers are agreed together, before pairing. Nothing fires on a rule only one of you chose. The pact is symmetric.</p>
+      </article>
+      <article class="prin pu">
+        <div class="n"><b>06</b> / 07</div>
+        <div class="ti">OPEN SOURCE, AUDITABLE</div>
+        <p class="prose">Every rule, every weight, every message type — on GitHub. If we hide it, don't trust it. That's the rule for us too.</p>
+      </article>
+      <article class="prin pk">
+        <div class="n"><b>07</b> / 07</div>
+        <div class="ti">THE DISPUTE WINDOW</div>
+        <p class="prose">Every breach has 24 hours before execution. Humans review. The protocol serves the couple — not the other way around.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ HOW IT WORKS ═══════ -->
+<section class="how" id="how">
+  <div class="inner">
+    <div class="head">
+      <div class="eyebrow">HOW IT WORKS</div>
+      <h2 class="sec">THREE LAYERS · ZERO MIDDLEMEN</h2>
+      <p class="prose" style="margin:14px auto 0;max-width:58ch">
+        The whole stack fits on two phones. A local agent reads signals. A mesh delivers them privately. An arbiter decides.
+      </p>
+    </div>
+
+    <div class="chain">
+      <div class="ch-node a">
+        <div class="ch-ico">🐾</div>
+        <div class="ch-title">LoveClaw</div>
+        <div class="ch-body">Reads device signals on port <b style="color:var(--teal)">:18789</b>. Dating app installs, GPS drift, notification content, motion. Runs entirely local.</div>
+      </div>
+      <div class="ch-arrow">▶</div>
+      <div class="ch-node b">
+        <div class="ch-ico">🌐</div>
+        <div class="ch-title">AXL MESH</div>
+        <div class="ch-body">P2P over port <b style="color:var(--purple-l)">:9002</b>. Ed25519 keys exchanged at pairing. End-to-end encrypted message types: handshake, breach, score, diary.</div>
+      </div>
+      <div class="ch-arrow">▶</div>
+      <div class="ch-node c">
+        <div class="ch-ico">⚖️</div>
+        <div class="ch-title">ARBITER</div>
+        <div class="ch-body">Deterministic rules fire at <b style="color:var(--pink-l)">score ≥ 100</b>. Evidence log preserved. 24h dispute window. Optional on-chain settlement.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <div class="lb">📎 TECHNICAL FOOTNOTE</div>
+      <div class="tx">LoveClaw is a single HTML PWA. The entire app is ~1800 lines of vanilla JS. No build step, no framework, no backend. It runs on a Freedom Phone, an Android, or off a Pi in your kitchen. <b style="color:var(--teal)">The whole stack is inspectable in an afternoon.</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ WE ARE / WE ARE NOT ═══════ -->
+<section class="declare" id="declare">
+  <div class="inner">
+    <div class="decl we">
+      <h3>▸ WHAT LOVECLAW IS</h3>
+      <ul>
+        <li>A <b style="color:var(--teal)">mutual pact</b> between two consenting adults</li>
+        <li>A <b style="color:var(--teal)">protocol</b> that treats the relationship as the primitive</li>
+        <li>A <b style="color:var(--teal)">signal layer</b> that stays on the device where it started</li>
+        <li>A <b style="color:var(--teal)">reward loop</b> — the longer you're loyal, the richer your memory</li>
+        <li>A <b style="color:var(--teal)">settlement option</b> — on-chain stake, only if both parties want it</li>
+        <li>An <b style="color:var(--teal)">open source manifesto</b> with code attached</li>
+      </ul>
+    </div>
+
+    <div class="decl not">
+      <h3>▸ WHAT LOVECLAW IS NOT</h3>
+      <ul>
+        <li><b style="color:var(--red)">Spyware.</b> One-sided install is technically impossible</li>
+        <li><b style="color:var(--red)">A dating app.</b> It's the layer <i>beneath</i> the dating apps</li>
+        <li><b style="color:var(--red)">A cloud service.</b> No backend. No central database. No server to hack</li>
+        <li><b style="color:var(--red)">A marriage contract.</b> Couples unpair anytime — the protocol knows no jurisdiction</li>
+        <li><b style="color:var(--red)">An LLM judge.</b> Breaches are rule-based. Claude only writes the diary</li>
+        <li><b style="color:var(--red)">A surveillance tool.</b> If it can be used to stalk, we've built it wrong</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ CENTERPIECE QUOTE ═══════ -->
+<section class="quote-sec">
+  <div class="inner">
+    <div class="q">
+      <em>Trust is not a vibe.</em><br>
+      It's <em>an observable</em>. A stream of signals both parties agreed to observe, scored against rules both parties agreed to sign.<br>
+      <span class="pk">If the stream holds, the bond holds.</span><br>
+      <span class="pk">If the rules fire, the pact names the breach itself.</span>
+    </div>
+    <div class="attr">▸ THE LOVECLAW THESIS · v1</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ OPEN SOURCE ═══════ -->
+<section class="os" id="os">
+  <div class="inner">
+    <div>
+      <div class="eyebrow">THE CODE IS THE CONTRACT</div>
+      <h2 class="sec">READABLE <span class="alt">BY ANYONE</span><br>TRUSTED BY TWO</h2>
+      <p class="prose">
+        Every rule LoveClaw enforces lives in <b>one file</b>. Every message it sends is typed and documented in <b>AXL.md</b>. Every score weight is a constant you can read, argue with, and fork.
+      </p>
+      <p class="prose">
+        You don't have to trust us. You can <i>read</i> us.
+      </p>
+      <p class="caption">▸ SOURCE · GITHUB.COM/[YOUR-HANDLE]/LOVECLAW</p>
+    </div>
+
+    <div class="code">
+      <div class="hdr">loveclaw-app.html · line 642 · LoveClaw.checkBreachSignals()</div>
+      <span class="c">// Dating-app detection — HIGH severity, +80 pts</span><br>
+      <span class="k">const</span> <span class="v">DATING_APPS</span> = [<br>
+      &nbsp;&nbsp;<span class="s">'com.tinder'</span>, <span class="s">'com.bumble.app'</span>,<br>
+      &nbsp;&nbsp;<span class="s">'co.hinge.app'</span>, <span class="s">'com.grindrapp'</span>,<br>
+      &nbsp;&nbsp;<span class="s">'com.badoo.mobile'</span>, <span class="s">'com.okcupid'</span>,<br>
+      &nbsp;&nbsp;<span class="s">'com.match.android'</span><br>
+      ];<br><br>
+      <span class="k">if</span> (installed.<span class="t">some</span>(p =&gt; DATING_APPS.<span class="t">includes</span>(p))) {<br>
+      &nbsp;&nbsp;score += <span class="v">80</span>;<br>
+      &nbsp;&nbsp;evidence.<span class="t">push</span>(<span class="s">'dating_app_installed'</span>);<br>
+      }<br><br>
+      <span class="k">if</span> (score &gt;= <span class="v">100</span>) AXL.<span class="t">send</span>(partnerKey, {<br>
+      &nbsp;&nbsp;type: <span class="s">'breach'</span>, score, evidence<br>
+      });
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ END CTA + FOOTER ═══════ -->
+<section class="end">
+  <div class="inner">
+    <div class="eyebrow">CLOSE</div>
+    <h2>BUILD YOUR PACT.<br>OR DON'T.<br>EITHER WAY — <span style="color:var(--pink-l)">READ THE RULES FIRST.</span></h2>
+    <p class="prose" style="margin:22px auto 30px">
+      LoveClaw is a hackathon concept. It's also a statement: <b>the infrastructure we use shapes the relationships we can have.</b>
+    </p>
+
+    <div class="cta">
+      <a href="loveclaw-pitch-v2.html" class="primary">▶ THE 6-SLIDE DECK</a>
+      <a href="loveclaw-app.html" class="ghost">LAUNCH THE APP</a>
+    </div>
+
+    <div class="foot">
+      <div>© 2026 · LOVECLAW · HACKATHON CONCEPT · NOT FINANCIAL ADVICE · NOT THERAPY</div>
+      <div class="fl">
+        <a href="loveclaw-pitch-v2.html">DECK</a>
+        <a href="AXL.md">AXL PROTOCOL</a>
+        <a href="loveclaw-app.html">APP</a>
+        <a href="#hero">▲ TOP</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* star field */
+(function(){
+  const f=document.getElementById('stars');
+  for(let i=0;i<180;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.2+.4;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*400}%;left:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;--dl:${Math.random()*6}s;--lo:${.06+Math.random()*.18};--hi:${.5+Math.random()*.5}`;
+    f.appendChild(s);
+  }
+})();
+
+/* hero phone grids */
+(function(){
+  const A=['#2a8c6a','#3a6ebf','#5DCAA5','#4a5ab0','#1D9E75','#5a4eb0','#5DCAA5','#7B6FE8',
+          '#FAC775','#2a8c6a','#3a5c9e','#5DCAA5','#1D9E75','#5a4eb0','#3a6ebf','#7B6FE8'];
+  const B=['#b03a5a','#7B6FE8','#D4537E','#5a3ab0','#D4537E','#8a3ab0','#ED93B1','#6a4ab0',
+          '#FAC775','#b03a5a','#D4537E','#8a3ab0','#ED93B1','#7B6FE8','#b03a5a','#D4537E'];
+  const gL=document.getElementById('gL'),gR=document.getElementById('gR');
+  A.forEach(c=>{const d=document.createElement('div');d.style.background=c;gL.appendChild(d)});
+  B.forEach(c=>{const d=document.createElement('div');d.style.background=c;gR.appendChild(d)});
+})();
+
+/* reveal on scroll */
+(function(){
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';io.unobserve(e.target)}})
+  },{threshold:.12,rootMargin:'0px 0px -60px 0px'});
+  document.querySelectorAll('section, .prin, .ch-node, .decl').forEach(el=>{
+    if(el.tagName==='SECTION'&&el.classList.contains('hero')) return;
+    el.style.opacity='0';el.style.transform='translateY(18px)';
+    el.style.transition='opacity .7s ease, transform .7s ease';
+    io.observe(el);
+  });
+})();
+</script>
+
+</body>
+</html>

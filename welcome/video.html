@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveClaw — Manifesto (30s)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:    #5DCAA5;
+    --teal-d:  #1D9E75;
+    --purple:  #534AB7;
+    --purple-l:#AFA9EC;
+    --pink:    #D4537E;
+    --pink-l:  #ED93B1;
+    --amber:   #FAC775;
+    --red:     #E24B4A;
+    --bg:      #05050c;
+    --muted:   #55557a;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+    color: #fff;
+  }
+
+  /* 16:9 video frame — scales to viewport */
+  .frame {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    overflow: hidden;
+    animation: crtFlicker 6s infinite;
+  }
+  @keyframes crtFlicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.93; }
+    94% { opacity: 1; }
+  }
+
+  /* CRT scanlines overlay */
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none;
+    z-index: 20;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 3px,
+      rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  /* starfield — present throughout */
+  .starfield {
+    position: absolute; inset: 0; pointer-events: none;
+    animation: fadeIn 1.2s ease forwards; opacity: 0;
+  }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: white;
+    animation: twinkle var(--d, 3s) var(--del, 0s) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: var(--a1, 0.2); } to { opacity: var(--a2, 0.8); } }
+  @keyframes fadeIn  { to { opacity: 1; } }
+
+  /* ── SCENES ──────────────────────────────────────── */
+  .scene {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+  }
+  .scene-inner { text-align: center; }
+
+  /* Scene 1 — "TRUST" letter reveal (0.5s–3.0s) */
+  #s1 {
+    animation:
+      sceneIn 0.6s 0.4s ease forwards,
+      sceneOut 0.6s 7.6s ease forwards;
+  }
+  #s1 .line1 {
+    font-size: clamp(28px, 7vw, 88px);
+    letter-spacing: 10px;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(93,202,165,0.35), 0 0 60px rgba(93,202,165,0.15);
+  }
+  #s1 .line1 span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: letterIn 0.35s var(--delay) cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+  @keyframes letterIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #s1 .line2 {
+    margin-top: 28px;
+    font-size: clamp(9px, 1.4vw, 16px);
+    letter-spacing: 6px;
+    color: var(--teal);
+    opacity: 0;
+    animation: fadeUp 0.6s 3.1s ease forwards;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scene 2 — "IT'S A PROTOCOL." (8.5–12s) */
+  #s2 {
+    animation:
+      sceneIn 0.6s 8.5s ease forwards,
+      sceneOut 0.6s 12.4s ease forwards;
+  }
+  #s2 .line {
+    font-size: clamp(22px, 5vw, 60px);
+    letter-spacing: 6px;
+    color: #fff;
+    text-shadow: 0 0 26px rgba(212,83,126,0.3);
+  }
+  #s2 .grad {
+    color: var(--pink-l);
+    text-shadow: 0 0 30px rgba(212,83,126,0.7), 0 0 60px rgba(212,83,126,0.35);
+    animation: glitchIn 0.8s 9.2s cubic-bezier(0.22,1,0.36,1) forwards;
+    opacity: 0;
+    display: inline-block;
+  }
+  @keyframes glitchIn {
+    0%   { opacity: 0; transform: translateX(-8px) skewX(-6deg); }
+    40%  { opacity: 1; transform: translateX(3px) skewX(2deg); }
+    100% { opacity: 1; transform: translateX(0) skewX(0deg); }
+  }
+
+  /* Scene 3 — Two phones + arc + heart (13–22s) */
+  #s3 {
+    animation:
+      sceneIn 0.6s 13s ease forwards,
+      sceneOut 0.6s 22.2s ease forwards;
+  }
+  .s3-stage {
+    position: relative;
+    width: min(92vw, 1100px);
+    height: min(60vh, 500px);
+  }
+  .phone {
+    position: absolute;
+    top: 50%; transform: translateY(-50%) translateY(30px);
+    opacity: 0;
+  }
+  .phone.left  { left: 3%;  animation: phoneRise 0.7s 13.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  .phone.right { right: 3%; animation: phoneRise 0.7s 13.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes phoneRise {
+    from { opacity: 0; transform: translateY(-50%) translateY(30px); }
+    to   { opacity: 1; transform: translateY(-50%) translateY(0); }
+  }
+
+  .arc-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .arc-path {
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: drawLine 2.2s 14.4s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  .heart-g {
+    opacity: 0;
+    transform-origin: 500px 240px;
+    transform-box: view-box;
+    animation:
+      heartAppear 0.8s 16.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
+      heartBeat 1.6s 17.3s infinite;
+  }
+  @keyframes heartAppear {
+    0%   { opacity: 0; transform: scale(0) rotate(-12deg); }
+    60%  { opacity: 1; transform: scale(2.4) rotate(0deg); }
+    100% { opacity: 1; transform: scale(2) rotate(0deg); }
+  }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(2); }
+    14%      { transform: scale(2.28); }
+    28%      { transform: scale(2); }
+    42%      { transform: scale(2.16); }
+    70%      { transform: scale(2); }
+  }
+  .heart-aura {
+    opacity: 0;
+    transform-origin: 500px 240px;
+    transform-box: view-box;
+    animation:
+      auraIn 0.9s 16.4s ease forwards,
+      auraPulse 1.6s 17.3s ease-in-out infinite;
+  }
+  @keyframes auraIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(2); }
+  }
+  @keyframes auraPulse {
+    0%, 100% { opacity: 0.45; transform: scale(2); }
+    50%      { opacity: 0.85; transform: scale(2.5); }
+  }
+
+  /* three verbs beneath the phones */
+  .verbs {
+    position: absolute; left: 50%; bottom: -40px;
+    transform: translateX(-50%);
+    display: flex; gap: 28px;
+    font-size: clamp(8px, 1vw, 11px);
+    letter-spacing: 4px;
+    white-space: nowrap;
+  }
+  .verbs span { opacity: 0; color: var(--teal); }
+  .verbs span.mid { color: var(--pink-l); }
+  .verbs i { opacity: 0; color: var(--muted); font-style: normal; }
+  .verbs > :nth-child(1) { animation: fadeUp 0.5s 18.4s ease forwards; }
+  .verbs > :nth-child(2) { animation: fadeUp 0.5s 18.7s ease forwards; }
+  .verbs > :nth-child(3) { animation: fadeUp 0.5s 19.0s ease forwards; }
+  .verbs > :nth-child(4) { animation: fadeUp 0.5s 19.3s ease forwards; }
+  .verbs > :nth-child(5) { animation: fadeUp 0.5s 19.6s ease forwards; }
+
+  /* Scene 4 — LOVECLAW title card (22.5–29s) */
+  #s4 {
+    animation:
+      sceneIn 0.6s 22.6s ease forwards,
+      sceneOut 0.6s 29.2s ease forwards;
+  }
+  #s4 .title {
+    font-size: clamp(32px, 8vw, 110px);
+    letter-spacing: 10px;
+    color: #fff;
+    text-shadow:
+      0 0 30px rgba(93,202,165,0.35),
+      0 0 60px rgba(212,83,126,0.35),
+      0 0 100px rgba(175,169,236,0.25);
+    animation: titlePop 1s 22.9s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    opacity: 0; transform: scale(0.9);
+  }
+  @keyframes titlePop {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  #s4 .tag {
+    margin-top: 36px;
+    font-size: clamp(8px, 1.1vw, 13px);
+    letter-spacing: 6px;
+    color: var(--teal);
+    opacity: 0;
+    animation: fadeUp 0.7s 24.0s ease forwards;
+  }
+  #s4 .sub {
+    margin-top: 22px;
+    font-size: clamp(7px, 0.9vw, 10px);
+    letter-spacing: 4px;
+    color: var(--purple-l);
+    opacity: 0;
+    animation: fadeUp 0.7s 24.6s ease forwards;
+  }
+  #s4 .tags {
+    margin-top: 60px;
+    font-size: clamp(7px, 0.85vw, 10px);
+    letter-spacing: 3px;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp 0.7s 25.4s ease forwards;
+  }
+  #s4 .tags b { color: var(--purple-l); font-weight: normal; }
+  #s4 .tags i { color: var(--muted); font-style: normal; margin: 0 8px; }
+
+  /* Fade-to-black at end */
+  .fadeout {
+    position: absolute; inset: 0; background: #000; opacity: 0; z-index: 25;
+    animation: fadeIn 1s 29.3s ease forwards;
+  }
+
+  @keyframes sceneIn  { to { opacity: 1; } }
+  @keyframes sceneOut { to { opacity: 0; } }
+
+  /* Pixel heart rects use gradient */
+  .heart-rect { fill: url(#heartFill); }
+
+  /* Corner brackets + HUD chrome */
+  .corner {
+    position: absolute; width: 22px; height: 22px;
+    border-color: var(--teal); border-style: solid;
+    z-index: 22; pointer-events: none;
+    opacity: 0; animation: fadeIn 0.6s 1s ease forwards;
+  }
+  .corner.tl { top: 18px; left: 18px;  border-width: 2px 0 0 2px; }
+  .corner.tr { top: 18px; right: 18px; border-width: 2px 2px 0 0; }
+  .corner.bl { bottom: 18px; left: 18px;  border-width: 0 0 2px 2px; }
+  .corner.br { bottom: 18px; right: 18px; border-width: 0 2px 2px 0; }
+
+  .hud-l, .hud-r {
+    position: absolute; top: 24px; font-size: 7px; color: var(--muted);
+    letter-spacing: 2px; z-index: 22;
+    opacity: 0; animation: fadeIn 0.6s 1.2s ease forwards;
+  }
+  .hud-l { left: 46px; }
+  .hud-r { right: 46px; }
+  .hud-l b { color: var(--teal); font-weight: normal; }
+
+  .timecode {
+    position: absolute; bottom: 24px; left: 46px;
+    font-size: 7px; color: var(--teal); letter-spacing: 2px;
+    opacity: 0; animation: fadeIn 0.6s 1.2s ease forwards;
+    z-index: 22;
+  }
+
+  /* Replay button */
+  .replay {
+    position: absolute; bottom: 24px; right: 46px;
+    z-index: 30;
+    background: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px; letter-spacing: 2px;
+    padding: 10px 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, background 0.2s;
+  }
+  .replay:hover {
+    opacity: 1;
+    background: rgba(93,202,165,0.1);
+  }
+</style>
+</head>
+<body>
+
+<div class="frame" id="frame">
+  <div class="scanlines"></div>
+  <div class="starfield" id="starfield"></div>
+
+  <!-- ─── Scene 1: TRUST IS NOT A VIBE ───────────────── -->
+  <section class="scene" id="s1">
+    <div class="scene-inner">
+      <div class="line1">
+        <span style="--delay:0.6s">T</span><span style="--delay:0.85s">R</span><span style="--delay:1.1s">U</span><span style="--delay:1.35s">S</span><span style="--delay:1.6s">T</span>
+      </div>
+      <div class="line2">IS NOT A VIBE</div>
+    </div>
+  </section>
+
+  <!-- ─── Scene 2: IT'S A PROTOCOL ───────────────────── -->
+  <section class="scene" id="s2">
+    <div class="scene-inner">
+      <div class="line">IT'S A <span class="grad">PROTOCOL.</span></div>
+    </div>
+  </section>
+
+  <!-- ─── Scene 3: Phones + arc + heart ──────────────── -->
+  <section class="scene" id="s3">
+    <div class="s3-stage">
+
+      <!-- Left phone -->
+      <div class="phone left">
+        <svg width="140" height="238" viewBox="0 0 100 170">
+          <rect x="0" y="0" width="100" height="170" rx="12" fill="#1a2a3e" stroke="#5DCAA5" stroke-width="2"/>
+          <rect x="6" y="10" width="88" height="126" rx="4" fill="#061018"/>
+          <rect x="10" y="14" width="80" height="60" rx="3" fill="#0a1a28"/>
+          <rect x="14" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.85"/>
+          <rect x="34" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.5"/>
+          <rect x="54" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+          <rect x="74" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+          <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.4"/>
+          <rect x="34" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.7"/>
+          <rect x="54" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+          <rect x="74" y="38" width="16" height="16" rx="2" fill="#AFA9EC" opacity="0.4"/>
+          <rect x="14" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.6"/>
+          <rect x="34" y="58" width="16" height="12" rx="2" fill="#FAC775" opacity="0.4"/>
+          <rect x="54" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.5"/>
+          <rect x="74" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.3"/>
+          <rect x="10" y="80" width="80" height="48" rx="3" fill="#0a1828"/>
+          <text font-family="'Press Start 2P', monospace" font-size="7" fill="#5DCAA5" x="50" y="102" text-anchor="middle">TRUSTED</text>
+          <text font-family="'Press Start 2P', monospace" font-size="5" fill="#1D9E75" x="50" y="118" text-anchor="middle">98 / 100</text>
+          <circle cx="50" cy="148" r="6" fill="#5DCAA5" opacity="0.6"/>
+          <rect x="30" y="158" width="40" height="6" rx="3" fill="#1a3a2a"/>
+          <text font-family="'Press Start 2P', monospace" font-size="4" fill="#5DCAA5" x="50" y="164" text-anchor="middle">HER · NODE A</text>
+        </svg>
+      </div>
+
+      <!-- Right phone -->
+      <div class="phone right">
+        <svg width="140" height="238" viewBox="0 0 100 170">
+          <rect x="0" y="0" width="100" height="170" rx="12" fill="#2a1a3e" stroke="#D4537E" stroke-width="2"/>
+          <rect x="6" y="10" width="88" height="126" rx="4" fill="#100610"/>
+          <rect x="10" y="14" width="80" height="60" rx="3" fill="#200a28"/>
+          <rect x="14" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.7"/>
+          <rect x="34" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+          <rect x="54" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+          <rect x="74" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+          <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.6"/>
+          <rect x="34" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.5"/>
+          <rect x="54" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+          <rect x="74" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+          <rect x="14" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.5"/>
+          <rect x="34" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.6"/>
+          <rect x="54" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.3"/>
+          <rect x="74" y="58" width="16" height="12" rx="2" fill="#AFA9EC" opacity="0.4"/>
+          <rect x="10" y="80" width="80" height="48" rx="3" fill="#180828"/>
+          <text font-family="'Press Start 2P', monospace" font-size="7" fill="#ED93B1" x="50" y="102" text-anchor="middle">TRUSTED</text>
+          <text font-family="'Press Start 2P', monospace" font-size="5" fill="#D4537E" x="50" y="118" text-anchor="middle">97 / 100</text>
+          <circle cx="50" cy="148" r="6" fill="#D4537E" opacity="0.6"/>
+          <rect x="30" y="158" width="40" height="6" rx="3" fill="#3a1a2a"/>
+          <text font-family="'Press Start 2P', monospace" font-size="4" fill="#ED93B1" x="50" y="164" text-anchor="middle">HIM · NODE B</text>
+        </svg>
+      </div>
+
+      <!-- arc + heart svg overlay -->
+      <svg class="arc-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#5DCAA5" stop-opacity="0"/>
+            <stop offset="25%"  stop-color="#5DCAA5" stop-opacity="0.9"/>
+            <stop offset="50%"  stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="75%"  stop-color="#D4537E" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="heartFill" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#ED93B1"/>
+            <stop offset="45%"  stop-color="#D4537E"/>
+            <stop offset="100%" stop-color="#8A2B4E"/>
+          </linearGradient>
+          <radialGradient id="heartAura" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"  stop-color="#D4537E" stop-opacity="0.6"/>
+            <stop offset="40%" stop-color="#D4537E" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="heartGlow">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- arc from L to R, apex 240 -->
+        <path class="arc-path" d="M170 320 Q500 180 830 320"
+          fill="none" stroke="url(#threadGrad)" stroke-width="2.5"/>
+
+        <!-- aura -->
+        <circle class="heart-aura" cx="500" cy="240" r="50" fill="url(#heartAura)"/>
+
+        <!-- Pixel heart, 7x6 grid, 4u cells, center (500, 240) -->
+        <g class="heart-g" filter="url(#heartGlow)">
+          <rect class="heart-rect" x="490" y="228" width="4" height="4"/>
+          <rect class="heart-rect" x="494" y="228" width="4" height="4"/>
+          <rect class="heart-rect" x="502" y="228" width="4" height="4"/>
+          <rect class="heart-rect" x="506" y="228" width="4" height="4"/>
+          <rect class="heart-rect" x="486" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="490" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="494" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="498" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="502" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="506" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="510" y="232" width="4" height="4"/>
+          <rect class="heart-rect" x="486" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="490" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="494" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="498" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="502" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="506" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="510" y="236" width="4" height="4"/>
+          <rect class="heart-rect" x="490" y="240" width="4" height="4"/>
+          <rect class="heart-rect" x="494" y="240" width="4" height="4"/>
+          <rect class="heart-rect" x="498" y="240" width="4" height="4"/>
+          <rect class="heart-rect" x="502" y="240" width="4" height="4"/>
+          <rect class="heart-rect" x="506" y="240" width="4" height="4"/>
+          <rect class="heart-rect" x="494" y="244" width="4" height="4"/>
+          <rect class="heart-rect" x="498" y="244" width="4" height="4"/>
+          <rect class="heart-rect" x="502" y="244" width="4" height="4"/>
+          <rect class="heart-rect" x="498" y="248" width="4" height="4"/>
+        </g>
+      </svg>
+
+      <!-- Three verbs -->
+      <div class="verbs">
+        <span>COMMIT</span>
+        <i>·</i>
+        <span class="mid">PROTECT</span>
+        <i>·</i>
+        <span>REMEMBER</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Scene 4: Title card ────────────────────────── -->
+  <section class="scene" id="s4">
+    <div class="scene-inner">
+      <div class="title">LOVECLAW</div>
+      <div class="tag">TRUST, AS A PROTOCOL.</div>
+      <div class="sub">FORKED FROM OPENCLAW &nbsp;·&nbsp; BUILT FOR TWO</div>
+      <div class="tags">
+        <b>sessions_send</b><i>·</i><b>android node</b><i>·</i><b>eth contract</b><i>·</i><b>ai diary</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- fade to black -->
+  <div class="fadeout"></div>
+
+  <!-- HUD chrome -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+  <div class="hud-l"><b>●</b> LOVECLAW · MANIFESTO</div>
+  <div class="hud-r">00:30 · REC</div>
+  <div class="timecode" id="tc">T+00.0</div>
+
+  <button class="replay" id="replay">&#x27F2; REPLAY</button>
+</div>
+
+<script>
+  // ── Starfield ─────────────────────────────────────
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 160; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    const a1 = (Math.random() * 0.3 + 0.1).toFixed(2);
+    const a2 = (Math.random() * 0.6 + 0.3).toFixed(2);
+    s.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      width:${sz}px; height:${sz}px;
+      --d:${(Math.random()*3+2).toFixed(1)}s;
+      --del:${(Math.random()*4).toFixed(1)}s;
+      --a1:${a1}; --a2:${a2};
+    `;
+    sf.appendChild(s);
+  }
+
+  // ── Timecode counter ─────────────────────────────
+  const tc = document.getElementById('tc');
+  const startTime = performance.now();
+  function tick() {
+    const t = (performance.now() - startTime) / 1000;
+    tc.textContent = 'T+' + t.toFixed(1).padStart(4, '0');
+    if (t < 30) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ── Replay ───────────────────────────────────────
+  document.getElementById('replay').addEventListener('click', () => {
+    location.reload();
+  });
+</script>
+</body>
+</html>

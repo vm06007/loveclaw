@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenLove — Free vs Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#5DCAA5;--purple:#7B6FE8;--purple-l:#AFA9EC;
+  --amber:#FAC775;--pink:#D4537E;
+  --bg:#07070f;--bg2:#0d0d1e;--bg3:#111128;
+  --border:#1a1a3a;--muted:#333355;
+  --text:#c8c8e8;--dim:#555588;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Press Start 2P',monospace;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.gbg{position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--muted) 1px,transparent 1px),
+    linear-gradient(90deg,var(--muted) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.05}
+.scan{position:fixed;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px)}
+
+.wrap{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(860px,92vw)}
+
+.hdr{text-align:center;animation:up .5s ease both}
+.h1{font-size:clamp(10px,1.6vw,14px);color:var(--teal);letter-spacing:3px;text-shadow:0 0 20px #5DCAA530}
+.h2{font-size:clamp(4.5px,.7vw,6.5px);color:var(--dim);margin-top:8px;letter-spacing:2px}
+
+/* ── PLANS ── */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;animation:up .4s ease both .1s}
+
+.plan{
+  background:var(--bg2);border:1px solid var(--border);
+  padding:20px 18px;position:relative;overflow:hidden;
+}
+.plan::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.plan.pro{border-color:var(--amber);box-shadow:0 0 30px #FAC77510}
+.plan.pro::before{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+
+.ptag{display:inline-block;font-size:7px;padding:4px 14px;background:var(--teal);color:var(--bg);margin-bottom:12px}
+.plan.pro .ptag{background:var(--amber)}
+.pprice{font-size:clamp(14px,2.4vw,20px);color:var(--teal);margin-bottom:4px}
+.plan.pro .pprice{color:var(--amber)}
+.ppsub{font-size:5.5px;color:var(--dim);margin-bottom:14px}
+
+.feat{
+  font-size:5.5px;color:var(--text);
+  padding:6px 0;border-bottom:1px solid var(--muted);
+  display:flex;align-items:center;gap:7px;line-height:1.6;
+}
+.feat:last-of-type{border-bottom:none}
+.ck{color:var(--teal);flex-shrink:0}
+.lk{color:var(--muted);flex-shrink:0}
+.st{color:var(--amber);flex-shrink:0}
+
+.pfoot{margin-top:12px;font-size:5px;color:var(--dim);
+  padding-top:10px;border-top:1px solid var(--muted);text-align:center;letter-spacing:.5px}
+
+/* ── TECH STACK ── */
+.stack{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:7px;width:100%;animation:up .4s ease both .25s;
+}
+.pill{font-size:5px;padding:5px 11px;border:1px solid var(--muted);color:var(--dim);
+  transition:.3s;cursor:default;letter-spacing:.3px}
+.pill:hover{border-color:var(--teal);color:var(--teal)}
+
+.c{position:fixed;width:20px;height:20px;border-color:var(--teal);border-style:solid}
+.c-tl{top:14px;left:14px;border-width:2px 0 0 2px}
+.c-tr{top:14px;right:14px;border-width:2px 2px 0 0}
+.c-bl{bottom:38px;left:14px;border-width:0 0 2px 2px}
+.c-br{bottom:38px;right:14px;border-width:0 2px 2px 0}
+
+nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:center;z-index:99}
+.nd{width:7px;height:7px;background:var(--muted);cursor:pointer;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transition:.3s}
+.nd.on{background:var(--teal);transform:scale(1.7)}
+.nb{background:none;border:1px solid var(--muted);color:var(--dim);
+  font-family:inherit;font-size:8px;padding:5px 12px;cursor:pointer;transition:.3s;
+  text-decoration:none;display:flex;align-items:center;letter-spacing:1px}
+.nb:hover{border-color:var(--teal);color:var(--teal)}
+.nb.off{opacity:.3;pointer-events:none}
+.pg{position:fixed;top:14px;right:16px;font-size:7px;color:var(--dim);letter-spacing:2px}
+
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="gbg"></div>
+<div class="scan"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div class="h1">FREE VS PRO</div>
+    <div class="h2">START WITHOUT CRYPTO · GO ON-CHAIN WHEN TRUST IS WORTH STAKING</div>
+  </div>
+
+  <div class="plans">
+    <div class="plan">
+      <div class="ptag">FREE</div>
+      <div class="pprice">$0</div>
+      <div class="ppsub">ALWAYS FREE · NO WALLET NEEDED</div>
+      <div class="feat"><span class="ck">✓</span> OpenClaw pairing on 2 devices</div>
+      <div class="feat"><span class="ck">✓</span> Full signal monitoring (23+ channels)</div>
+      <div class="feat"><span class="ck">✓</span> Breach detection (rules engine)</div>
+      <div class="feat"><span class="ck">✓</span> In-app breach notifications</div>
+      <div class="feat"><span class="ck">✓</span> AI memory diary (last 7 days)</div>
+      <div class="feat"><span class="ck">✓</span> Daily AI day summaries</div>
+      <div class="feat"><span class="ck">✓</span> Loyalty streak counter</div>
+      <div class="feat"><span class="lk">○</span> Smart contract deployment</div>
+      <div class="feat"><span class="lk">○</span> ETH stake &amp; executeBreach()</div>
+      <div class="feat"><span class="lk">○</span> Multisig cooperative swaps</div>
+      <div class="pfoot">DB-BACKED · NO BLOCKCHAIN · INSTANT SETUP</div>
+    </div>
+
+    <div class="plan pro">
+      <div class="ptag">PRO</div>
+      <div class="pprice">GAS ONLY</div>
+      <div class="ppsub">+ YOUR STAKED ETH (YOURS IF LOYAL)</div>
+      <div class="feat"><span class="ck">✓</span> Everything in Free</div>
+      <div class="feat"><span class="st">★</span> Smart contract (multisig deploy)</div>
+      <div class="feat"><span class="st">★</span> ETH stake custody in contract</div>
+      <div class="feat"><span class="st">★</span> executeBreach() on-chain verdict</div>
+      <div class="feat"><span class="st">★</span> executeRelease() mutual consent</div>
+      <div class="feat"><span class="st">★</span> 24h dispute window on breach</div>
+      <div class="feat"><span class="st">★</span> Multisig ETH → stablecoin swaps</div>
+      <div class="feat"><span class="st">★</span> On-chain loyalty proof + NFT</div>
+      <div class="feat"><span class="st">★</span> Unlimited diary history</div>
+      <div class="feat"><span class="st">★</span> Unlimited device pairs</div>
+      <div class="pfoot">ETHEREUM · BASE · POLYGON · EVM COMPATIBLE</div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <span class="pill">OpenClaw Agent</span>
+    <span class="pill">ClawHub Skills API</span>
+    <span class="pill">Claude (Anthropic)</span>
+    <span class="pill">Node.js Backend</span>
+    <span class="pill">PostgreSQL + JSONB</span>
+    <span class="pill">React Native</span>
+    <span class="pill">Solidity (EVM)</span>
+    <span class="pill">Ethers.js</span>
+    <span class="pill">Android First</span>
+    <span class="pill">Freedom Phone</span>
+    <span class="pill">On-device Inference</span>
+    <span class="pill">Webhook Arbiter</span>
+  </div>
+</div>
+
+<div class="c c-tl"></div><div class="c c-tr"></div>
+<div class="c c-bl"></div><div class="c c-br"></div>
+
+<nav>
+  <a class="nb" href="slide5-diary.html">◀ PREV</a>
+  <div class="nd" onclick="location='slide1-hero.html'"></div>
+  <div class="nd" onclick="location='slide2-capabilities.html'"></div>
+  <div class="nd" onclick="location='slide3-architecture.html'"></div>
+  <div class="nd" onclick="location='slide4-bond.html'"></div>
+  <div class="nd" onclick="location='slide5-diary.html'"></div>
+  <div class="nd on"></div>
+  <span class="nb off">NEXT ▶</span>
+</nav>
+<div class="pg">06 / 06</div>
+</body>
+</html>

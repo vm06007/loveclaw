@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenLove — Bond Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#5DCAA5;--purple:#7B6FE8;--purple-l:#AFA9EC;
+  --amber:#FAC775;--pink:#D4537E;--red:#E24B4A;
+  --bg:#07070f;--bg2:#0d0d1e;--bg3:#111128;
+  --border:#1a1a3a;--muted:#333355;
+  --text:#c8c8e8;--dim:#555588;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Press Start 2P',monospace;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.gbg{position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--muted) 1px,transparent 1px),
+    linear-gradient(90deg,var(--muted) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.05}
+.scan{position:fixed;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px)}
+
+.wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(1000px,94vw)}
+
+.hdr{text-align:center;animation:up .5s ease both}
+.h1{font-size:clamp(10px,1.6vw,14px);color:var(--teal);letter-spacing:3px;text-shadow:0 0 20px #5DCAA530}
+.h2{font-size:clamp(4.5px,.7vw,6.5px);color:var(--dim);margin-top:8px;letter-spacing:2px}
+
+/* ── STEPS ── */
+.steps{display:flex;width:100%;border:1px solid var(--border);animation:up .4s ease both .1s}
+.step{
+  flex:1;padding:16px 10px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:7px;position:relative;
+}
+.step:last-child{border-right:none}
+.sn{position:absolute;top:0;left:0;background:var(--teal);color:var(--bg);font-size:6px;padding:3px 7px}
+.si{font-size:20px;margin-top:10px}
+.st{font-size:6.5px;color:var(--teal);letter-spacing:.5px}
+.sd{font-size:5px;color:var(--dim);line-height:2.2}
+
+/* ── STATUS BAR ── */
+.status{
+  display:flex;width:100%;
+  border:1px solid var(--purple);
+  animation:up .4s ease both .2s;
+}
+.sbar{
+  flex:1;padding:10px 16px;
+  border-right:1px solid var(--muted);
+  background:var(--bg3);
+}
+.sbar:last-child{border-right:none}
+.sl{font-size:5px;color:var(--dim);margin-bottom:5px;letter-spacing:.5px}
+.sv{font-size:8px}
+.sv.t{color:var(--teal);text-shadow:0 0 12px #5DCAA545}
+.sv.a{color:var(--amber);text-shadow:0 0 12px #FAC77545}
+.sv.pk{color:var(--pink)}
+.sv.pu{color:var(--purple-l);font-size:7px}
+
+/* ── TRIGGERS ── */
+.triggers{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;width:100%;
+  animation:up .4s ease both .3s;
+}
+.tr{background:var(--bg3);border:1px solid var(--border);padding:9px 11px;
+  display:flex;gap:9px;align-items:flex-start}
+.sev{font-size:5px;padding:2px 5px;flex-shrink:0;margin-top:1px;letter-spacing:.3px}
+.hi{background:var(--red);color:#fff}
+.md{background:var(--amber);color:var(--bg)}
+.lo{background:#1D9E75;color:#fff}
+.tn{font-size:5.5px;color:var(--text);margin-bottom:3px}
+.ts{font-size:5px;color:var(--dim)}
+
+.c{position:fixed;width:20px;height:20px;border-color:var(--teal);border-style:solid}
+.c-tl{top:14px;left:14px;border-width:2px 0 0 2px}
+.c-tr{top:14px;right:14px;border-width:2px 2px 0 0}
+.c-bl{bottom:38px;left:14px;border-width:0 0 2px 2px}
+.c-br{bottom:38px;right:14px;border-width:0 2px 2px 0}
+
+nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:center;z-index:99}
+.nd{width:7px;height:7px;background:var(--muted);cursor:pointer;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transition:.3s}
+.nd.on{background:var(--teal);transform:scale(1.7)}
+.nb{background:none;border:1px solid var(--muted);color:var(--dim);
+  font-family:inherit;font-size:8px;padding:5px 12px;cursor:pointer;transition:.3s;
+  text-decoration:none;display:flex;align-items:center;letter-spacing:1px}
+.nb:hover{border-color:var(--teal);color:var(--teal)}
+.pg{position:fixed;top:14px;right:16px;font-size:7px;color:var(--dim);letter-spacing:2px}
+
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="gbg"></div>
+<div class="scan"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div class="h1">THE BOND PROTOCOL</div>
+    <div class="h2">PAIRING FLOW · AGREED TRIGGERS · CONTRACT DEPLOYMENT · BREACH &amp; RELEASE</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">01</div>
+      <div class="si">🔗</div>
+      <div class="st">PAIR</div>
+      <div class="sd">A generates invite link. B installs OpenClaw and taps link. Both confirm on-screen.</div>
+    </div>
+    <div class="step">
+      <div class="sn">02</div>
+      <div class="si">📋</div>
+      <div class="st">AGREE</div>
+      <div class="sd">Both choose trigger rules together. DB (free) or smart contract (PRO). Both sign.</div>
+    </div>
+    <div class="step">
+      <div class="sn">03</div>
+      <div class="si">🐾</div>
+      <div class="st">MONITOR</div>
+      <div class="sd">OpenClaw runs silently on both devices. Only risk scores synced. Raw data stays local.</div>
+    </div>
+    <div class="step">
+      <div class="sn">04</div>
+      <div class="si">⚡</div>
+      <div class="st">BREACH</div>
+      <div class="sd">Rules engine fires. Both get evidence log. 24h dispute window before execution.</div>
+    </div>
+    <div class="step">
+      <div class="sn">05</div>
+      <div class="si">💚</div>
+      <div class="st">REWARD</div>
+      <div class="sd">Loyal couples earn streak bonuses, AI diary, shared milestones, and swaps.</div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="sbar">
+      <div class="sl">CONTRACT STATE</div>
+      <div class="sv t">● ACTIVE</div>
+    </div>
+    <div class="sbar">
+      <div class="sl">STAKED (EACH)</div>
+      <div class="sv a">0.5 ETH</div>
+    </div>
+    <div class="sbar">
+      <div class="sl">LOYALTY STREAK</div>
+      <div class="sv pk">47 DAYS 🔥</div>
+    </div>
+    <div class="sbar">
+      <div class="sl">NEXT AVAILABLE ACTION</div>
+      <div class="sv pu">executeBreach()</div>
+    </div>
+  </div>
+
+  <div class="triggers">
+    <div class="tr">
+      <div class="sev hi">HIGH</div>
+      <div><div class="tn">Dating app installed</div><div class="ts">+80 pts · threshold: 100</div></div>
+    </div>
+    <div class="tr">
+      <div class="sev hi">HIGH</div>
+      <div><div class="tn">Dating app opened / active</div><div class="ts">+60 pts · overrides install</div></div>
+    </div>
+    <div class="tr">
+      <div class="sev md">MED</div>
+      <div><div class="tn">Location anomaly after 11pm</div><div class="ts">+40 pts · unknown address</div></div>
+    </div>
+    <div class="tr">
+      <div class="sev md">MED</div>
+      <div><div class="tn">New contact + 3× calls/week</div><div class="ts">+30 pts · pattern-based</div></div>
+    </div>
+    <div class="tr">
+      <div class="sev lo">LOW</div>
+      <div><div class="tn">Partner location divergence</div><div class="ts">+20 pts · unusual hours</div></div>
+    </div>
+    <div class="tr">
+      <div class="sev lo">LOW</div>
+      <div><div class="tn">DM screen-time spike</div><div class="ts">+15 pts · sustained pattern</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="c c-tl"></div><div class="c c-tr"></div>
+<div class="c c-bl"></div><div class="c c-br"></div>
+
+<nav>
+  <a class="nb" href="slide3-architecture.html">◀ PREV</a>
+  <div class="nd" onclick="location='slide1-hero.html'"></div>
+  <div class="nd" onclick="location='slide2-capabilities.html'"></div>
+  <div class="nd" onclick="location='slide3-architecture.html'"></div>
+  <div class="nd on"></div>
+  <div class="nd" onclick="location='slide5-diary.html'"></div>
+  <div class="nd" onclick="location='slide6-plans.html'"></div>
+  <a class="nb" href="slide5-diary.html">NEXT ▶</a>
+</nav>
+<div class="pg">04 / 06</div>
+</body>
+</html>

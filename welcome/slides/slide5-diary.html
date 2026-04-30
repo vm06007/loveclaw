@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenLove — AI Memory Diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#5DCAA5;--purple:#7B6FE8;--purple-l:#AFA9EC;
+  --amber:#FAC775;--red:#E24B4A;
+  --bg:#07070f;--bg2:#0d0d1e;--bg3:#111128;
+  --border:#1a1a3a;--muted:#333355;
+  --text:#c8c8e8;--dim:#555588;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Press Start 2P',monospace;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.gbg{position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--muted) 1px,transparent 1px),
+    linear-gradient(90deg,var(--muted) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.05}
+.scan{position:fixed;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px)}
+
+.wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(1000px,94vw)}
+
+.hdr{text-align:center;animation:up .5s ease both}
+.h1{font-size:clamp(10px,1.6vw,14px);color:var(--teal);letter-spacing:3px;text-shadow:0 0 20px #5DCAA530}
+.h2{font-size:clamp(4.5px,.7vw,6.5px);color:var(--dim);margin-top:8px;letter-spacing:2px}
+
+/* ── PIPELINE ── */
+.pipe{display:flex;width:100%;border:1px solid var(--border);animation:up .4s ease both .1s}
+.pstep{
+  flex:1;padding:12px 11px;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:7px;
+}
+.pstep:last-child{border-right:none}
+.pi{font-size:19px}
+.pt{font-size:6px;color:var(--amber);letter-spacing:.5px}
+.prow{font-size:5px;color:var(--dim);display:flex;gap:5px;align-items:center;line-height:1.8}
+.prow::before{content:'·';color:var(--amber);font-size:10px;line-height:.8;flex-shrink:0}
+
+/* ── DIARY CARDS ── */
+.cards{display:flex;gap:11px;width:100%;animation:up .4s ease both .2s}
+.card{flex:1;background:var(--bg3);border:1px solid var(--border);overflow:hidden}
+.scene{
+  height:66px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;position:relative;overflow:hidden;
+}
+.scene::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 40%,var(--bg3))}
+.sc1{background:linear-gradient(180deg,#06091a 0%,#0c1230 100%)}
+.sc2{background:linear-gradient(180deg,#040c07 0%,#091a0e 100%)}
+.sc3{background:linear-gradient(180deg,#0e0514 0%,#160820 100%)}
+.cbody{padding:9px 11px}
+.cdate{font-size:4.5px;color:var(--dim);margin-bottom:5px}
+.cprose{font-size:5px;color:var(--text);line-height:2.4;font-family:monospace}
+.ctags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--muted)}
+.tag{font-size:4.5px;padding:2px 6px;background:var(--bg2);color:var(--dim);border:1px solid var(--muted)}
+
+/* ── PROMPT BOX ── */
+.prompt{
+  width:100%;background:var(--bg2);border:1px solid var(--purple);
+  padding:12px 16px;animation:up .4s ease both .3s;
+}
+.pl{font-size:5.5px;color:var(--purple-l);margin-bottom:7px;letter-spacing:.5px}
+.pt2{font-size:5px;color:var(--dim);line-height:2.2;font-family:monospace}
+.pg2{font-size:5px;color:var(--red);margin-top:7px;padding-top:7px;border-top:1px dashed var(--muted)}
+
+.c{position:fixed;width:20px;height:20px;border-color:var(--teal);border-style:solid}
+.c-tl{top:14px;left:14px;border-width:2px 0 0 2px}
+.c-tr{top:14px;right:14px;border-width:2px 2px 0 0}
+.c-bl{bottom:38px;left:14px;border-width:0 0 2px 2px}
+.c-br{bottom:38px;right:14px;border-width:0 2px 2px 0}
+
+nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:center;z-index:99}
+.nd{width:7px;height:7px;background:var(--muted);cursor:pointer;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transition:.3s}
+.nd.on{background:var(--teal);transform:scale(1.7)}
+.nb{background:none;border:1px solid var(--muted);color:var(--dim);
+  font-family:inherit;font-size:8px;padding:5px 12px;cursor:pointer;transition:.3s;
+  text-decoration:none;display:flex;align-items:center;letter-spacing:1px}
+.nb:hover{border-color:var(--teal);color:var(--teal)}
+.pg{position:fixed;top:14px;right:16px;font-size:7px;color:var(--dim);letter-spacing:2px}
+
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="gbg"></div>
+<div class="scan"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div class="h1">AI MEMORY DIARY</div>
+    <div class="h2">OPENCLAW SIGNALS → CLAUDE NARRATES → PIXEL SCENE · THE LOYALTY REWARD LOOP</div>
+  </div>
+
+  <div class="pipe">
+    <div class="pstep">
+      <div class="pi">🐾</div>
+      <div class="pt">OPENCLAW COLLECTS</div>
+      <div class="prow">GPS locations visited</div>
+      <div class="prow">Steps &amp; motion data</div>
+      <div class="prow">Call duration (partner)</div>
+      <div class="prow">Music session data</div>
+      <div class="prow">Photo metadata</div>
+    </div>
+    <div class="pstep">
+      <div class="pi">📊</div>
+      <div class="pt">ON-DEVICE SCORING</div>
+      <div class="prow">Activity tags extracted</div>
+      <div class="prow">Scene type classified</div>
+      <div class="prow">Partner proximity flag</div>
+      <div class="prow">Emotional tone hinted</div>
+      <div class="prow">JSON payload assembled</div>
+    </div>
+    <div class="pstep">
+      <div class="pi">🤖</div>
+      <div class="pt">CLAUDE NARRATES</div>
+      <div class="prow">Structured payload sent</div>
+      <div class="prow">Warm prose generated</div>
+      <div class="prow">Grounded in signals only</div>
+      <div class="prow">Max 3 sentences</div>
+      <div class="prow">Hallucination guard active</div>
+    </div>
+    <div class="pstep">
+      <div class="pi">🖼️</div>
+      <div class="pt">SCENE RENDERED</div>
+      <div class="prow">Pixel art scene selected</div>
+      <div class="prow">Location type → category</div>
+      <div class="prow">Time-of-day palette</div>
+      <div class="prow">Shared vs solo flag</div>
+      <div class="prow">Diary card assembled</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="scene sc1">🌃</div>
+      <div class="cbody">
+        <div class="cdate">TUE 8 APR · 19:42</div>
+        <div class="cprose">"They found themselves at Marina Bay as the sun dropped. 4.2km on foot, the same playlist threading between their headphones."</div>
+        <div class="ctags">
+          <span class="tag">marina_bay</span><span class="tag">4200 steps</span>
+          <span class="tag">shared music</span><span class="tag">2 calls</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="scene sc2">🌿</div>
+      <div class="cbody">
+        <div class="cdate">WED 9 APR · 10:15</div>
+        <div class="cprose">"A slow morning. He walked the park alone — 6,100 steps by noon. She worked from home, texted three times."</div>
+        <div class="ctags">
+          <span class="tag">park loop</span><span class="tag">6100 steps</span>
+          <span class="tag">3 texts</span><span class="tag">apart</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="scene sc3">🏠</div>
+      <div class="cbody">
+        <div class="cdate">THU 10 APR · 21:30</div>
+        <div class="cprose">"Same address, same couch. 94 minutes of a film they'll both swear they watched. Streak: 47 days."</div>
+        <div class="ctags">
+          <span class="tag">home together</span><span class="tag">94 min</span>
+          <span class="tag">Netflix</span><span class="tag">streak:47d</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt">
+    <div class="pl">SYSTEM PROMPT (CLAUDE · GPT-4O FALLBACK)</div>
+    <div class="pt2">You are the memory narrator for a couple's shared diary. Given structured signal data from both partners' devices, write a warm third-person entry of 2–3 sentences. Be poetic but grounded — describe only what the signals confirm. Do not invent emotions or events not in the payload.</div>
+    <div class="pg2">⚠ GUARDRAIL: Never invent facts not in the signal payload. Sparse day = short honest entry, not fabricated romance.</div>
+  </div>
+</div>
+
+<div class="c c-tl"></div><div class="c c-tr"></div>
+<div class="c c-bl"></div><div class="c c-br"></div>
+
+<nav>
+  <a class="nb" href="slide4-bond.html">◀ PREV</a>
+  <div class="nd" onclick="location='slide1-hero.html'"></div>
+  <div class="nd" onclick="location='slide2-capabilities.html'"></div>
+  <div class="nd" onclick="location='slide3-architecture.html'"></div>
+  <div class="nd" onclick="location='slide4-bond.html'"></div>
+  <div class="nd on"></div>
+  <div class="nd" onclick="location='slide6-plans.html'"></div>
+  <a class="nb" href="slide6-plans.html">NEXT ▶</a>
+</nav>
+<div class="pg">05 / 06</div>
+</body>
+</html>

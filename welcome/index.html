@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveClaw — Commit · Protect · Remember</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:    #5DCAA5;
+    --teal-d:  #1D9E75;
+    --purple:  #534AB7;
+    --purple-l:#AFA9EC;
+    --pink:    #D4537E;
+    --pink-l:  #ED93B1;
+    --amber:   #FAC775;
+    --red:     #E24B4A;
+    --bg:      #07070f;
+    --bg2:     #0d0d1e;
+    --bg3:     #111128;
+    --border:  #1a1a3a;
+    --muted:   #444466;
+    --gray:    #888780;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+  }
+
+  /* ── SLIDE CONTAINER ─────────────────────────────── */
+  .stage {
+    position: fixed; inset: 0;
+    background: #05050f;
+    overflow: hidden;
+    animation: crtFlicker 6s infinite;
+  }
+  @keyframes crtFlicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.92; }
+    94% { opacity: 1; }
+  }
+
+  /* starfield */
+  .star {
+    position: absolute; border-radius: 50%;
+    background: white;
+    animation: twinkle var(--d, 3s) var(--del, 0s) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: var(--a1, 0.2); } to { opacity: var(--a2, 0.8); } }
+
+  /* city skyline */
+  .skyline {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    width: 100%;
+    height: 200px;
+    image-rendering: pixelated;
+    display: block;
+  }
+
+  /* glow thread */
+  .thread-svg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .thread-path {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: drawLine 2s 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  /* ── PIXEL HEART ──────────────────────────────────
+     Positioned at arc midpoint (500, 255) in the
+     1000×600 thread-svg viewBox. Appears at t = 2.8s
+     (exactly when the arc finishes drawing), then
+     pulses forever.
+  ──────────────────────────────────────────────────── */
+  .heart {
+    opacity: 0;
+    transform-origin: 500px 255px;
+    transform-box: view-box;
+    animation:
+      heartAppear 0.7s 2.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      heartBeat 1.6s 3.6s infinite;
+  }
+  @keyframes heartAppear {
+    0%   { opacity: 0; transform: scale(0) rotate(-12deg); }
+    60%  { opacity: 1; transform: scale(2.6) rotate(0deg); }
+    100% { opacity: 1; transform: scale(2) rotate(0deg); }
+  }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(2); }
+    14%      { transform: scale(2.28); }
+    28%      { transform: scale(2); }
+    42%      { transform: scale(2.16); }
+    70%      { transform: scale(2); }
+  }
+  /* soft aura behind the heart — also appears at 2.8s */
+  .heart-aura {
+    opacity: 0;
+    transform-origin: 500px 255px;
+    transform-box: view-box;
+    animation:
+      auraIn 0.9s 2.8s ease forwards,
+      auraPulse 1.6s 3.6s ease-in-out infinite;
+  }
+  @keyframes auraIn {
+    0%   { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(2); }
+  }
+  @keyframes auraPulse {
+    0%, 100% { opacity: 0.45; transform: scale(2); }
+    50%      { opacity: 0.8;  transform: scale(2.5); }
+  }
+
+  /* phones */
+  .phone-left, .phone-right {
+    position: absolute;
+    animation: phoneRise 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    opacity: 0;
+  }
+  .phone-left  { left: calc(50% - 270px); top: calc(50% - 110px); animation-delay: 0.1s; }
+  .phone-right { right: calc(50% - 270px); top: calc(50% - 110px); animation-delay: 0.3s; }
+  @keyframes phoneRise {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* hero text */
+  .hero-title {
+    position: absolute; bottom: 190px; left: 50%; transform: translateX(-50%);
+    text-align: center; white-space: nowrap;
+    animation: fadeUp 0.8s 0.5s ease forwards; opacity: 0;
+  }
+  .hero-title h1 {
+    font-size: clamp(24px, 4vw, 40px);
+    color: white; letter-spacing: 4px;
+    text-shadow: 0 0 24px rgba(212,83,126,.18), 0 0 40px rgba(93,202,165,.1);
+  }
+  .hero-title p  {
+    font-size: clamp(7px, 1vw, 10px);
+    color: var(--teal);
+    letter-spacing: 3px; margin-top: 10px;
+  }
+  .hero-sub {
+    position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%);
+    font-size: 7px; color: var(--purple-l); letter-spacing: 2px; white-space: nowrap;
+    animation: fadeUp 0.8s 0.8s ease forwards; opacity: 0;
+  }
+  .hero-tags {
+    position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
+    font-size: 7px; color: var(--muted); letter-spacing: 2px; white-space: nowrap;
+    animation: fadeUp 0.8s 1.1s ease forwards; opacity: 0;
+  }
+  .hero-tags span { color: var(--purple-l); }
+  .hero-tags i { color: var(--muted); font-style: normal; margin: 0 6px; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* scan line effect */
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 3px,
+      rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  /* window light flicker in buildings */
+  .win { animation: winFlicker var(--d,4s) var(--del,0s) ease-in-out infinite alternate; }
+  @keyframes winFlicker { 0%,100%{opacity:var(--a,0.7)} 50%{opacity:calc(var(--a,0.7)*0.4)} }
+
+  /* corner brackets */
+  .corner {
+    position: fixed; width: 22px; height: 22px;
+    border-color: var(--teal); border-style: solid;
+    z-index: 40; pointer-events: none;
+    animation: fadeIn 0.6s 1.3s ease forwards; opacity: 0;
+  }
+  .corner.tl { top: 18px; left: 18px;  border-width: 2px 0 0 2px; }
+  .corner.tr { top: 18px; right: 18px; border-width: 2px 2px 0 0; }
+  .corner.bl { bottom: 18px; left: 18px;  border-width: 0 0 2px 2px; }
+  .corner.br { bottom: 18px; right: 18px; border-width: 0 2px 2px 0; }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* top-left status tag + top-right slide label */
+  .tag-l { position: fixed; top: 22px; left: 46px; font-size: 7px; color: var(--muted); letter-spacing: 2px; z-index: 40; animation: fadeIn 0.6s 1.5s ease forwards; opacity: 0; }
+  .tag-l b { color: var(--teal); font-weight: normal; }
+  .tag-r { position: fixed; top: 22px; right: 46px; font-size: 7px; color: var(--muted); letter-spacing: 2px; z-index: 40; animation: fadeIn 0.6s 1.5s ease forwards; opacity: 0; }
+
+  /* helper */
+  .pixel-canvas { image-rendering: pixelated; display: block; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="scanlines"></div>
+  <div id="starfield"></div>
+
+  <!-- ═══════ City skyline SVG (verbatim from openclaw-posters) ═══════ -->
+  <svg class="skyline" viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated">
+    <rect width="1200" height="200" fill="#07070f"/>
+    <rect x="0" y="160" width="1200" height="40" fill="#080814"/>
+    <rect x="0" y="158" width="1200" height="4" fill="#1a1a3a" opacity="0.4"/>
+
+    <!-- left cluster -->
+    <rect x="0"   y="80"  width="40"  height="82" fill="#0d1428"/>
+    <rect class="win" style="--d:3.2s;--del:0s;--a:0.7"  x="6"   y="88"  width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.1s;--del:0.5s;--a:0.4" x="18"  y="88"  width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.8s;--del:1s;--a:0.6"  x="6"   y="102" width="8" height="8"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.5s;--del:0.2s;--a:0.5" x="18"  y="102" width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:5s;--del:0.8s;--a:0.3"   x="6"   y="116" width="8" height="8"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.5s;--del:1.5s;--a:0.7" x="18"  y="116" width="8" height="8"  fill="#FAC775"/>
+
+    <rect x="48"  y="50"  width="28"  height="112" fill="#101830"/>
+    <rect class="win" style="--d:3.8s;--del:0.3s;--a:0.8" x="52"  y="56"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.9s;--del:0.7s;--a:0.5" x="62"  y="56"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.3s;--del:1.2s;--a:0.6" x="52"  y="68"  width="6" height="6"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.1s;--del:0s;--a:0.4"   x="62"  y="68"  width="6" height="6"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.7s;--del:0.9s;--a:0.7" x="52"  y="80"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:5.2s;--del:0.4s;--a:0.5" x="62"  y="80"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.6s;--del:1.8s;--a:0.3" x="52"  y="92"  width="6" height="6"  fill="#534AB7"/>
+    <rect class="win" style="--d:4.5s;--del:0.6s;--a:0.6" x="62"  y="92"  width="6" height="6"  fill="#FAC775"/>
+    <rect x="76"  y="90"  width="38"  height="72"  fill="#0e1628"/>
+    <rect class="win" style="--d:3s;--del:0.2s;--a:0.6"   x="80"  y="96"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.8s;--del:1s;--a:0.4"   x="91"  y="96"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.4s;--del:0.5s;--a:0.7" x="102" y="96"  width="7" height="7"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.9s;--del:0s;--a:0.5"   x="80"  y="108" width="7" height="7"  fill="#D4537E"/>
+    <rect class="win" style="--d:2.6s;--del:1.3s;--a:0.6" x="91"  y="108" width="7" height="7"  fill="#FAC775"/>
+    <rect x="122" y="110" width="22"  height="52"  fill="#0c1224"/>
+    <rect class="win" style="--d:4.1s;--del:0.7s;--a:0.5" x="126" y="116" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.3s;--del:1.1s;--a:0.7" x="134" y="116" width="5" height="5"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.8s;--del:0.3s;--a:0.4" x="126" y="126" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:5.1s;--del:0.9s;--a:0.6" x="134" y="126" width="5" height="5"  fill="#5DCAA5"/>
+
+    <!-- right cluster -->
+    <rect x="1080" y="60"  width="35"  height="102" fill="#111830"/>
+    <rect class="win" style="--d:3.7s;--del:0.4s;--a:0.7" x="1084" y="66"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.5s;--del:0.8s;--a:0.5" x="1095" y="66"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.4s;--del:1.4s;--a:0.6" x="1106" y="66"  width="7" height="7"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.2s;--del:0.1s;--a:0.4" x="1084" y="78"  width="7" height="7"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:5.3s;--del:1s;--a:0.7"   x="1095" y="78"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.9s;--del:0.6s;--a:0.5" x="1084" y="90"  width="7" height="7"  fill="#D4537E"/>
+    <rect class="win" style="--d:4s;--del:0.2s;--a:0.6"   x="1095" y="90"  width="7" height="7"  fill="#FAC775"/>
+
+    <rect x="1118" y="90"  width="26"  height="72"  fill="#0e1628"/>
+    <rect class="win" style="--d:3.5s;--del:0.5s;--a:0.6" x="1122" y="96"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.7s;--del:1.2s;--a:0.4" x="1132" y="96"  width="6" height="6"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:2.6s;--del:0.8s;--a:0.7" x="1122" y="107" width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.8s;--del:0s;--a:0.5"   x="1132" y="107" width="6" height="6"  fill="#534AB7"/>
+
+    <rect x="1148" y="100" width="20"  height="62"  fill="#0d1226"/>
+    <rect class="win" style="--d:4.2s;--del:0.6s;--a:0.6" x="1152" y="106" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.7s;--del:1.3s;--a:0.4" x="1160" y="106" width="5" height="5"  fill="#FAC775"/>
+    <rect x="1170" y="120" width="30"  height="42"  fill="#111428"/>
+    <rect class="win" style="--d:3.4s;--del:0.4s;--a:0.5" x="1174" y="126" width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:5s;--del:0.9s;--a:0.7"   x="1184" y="126" width="6" height="6"  fill="#AFA9EC"/>
+
+    <!-- mid buildings faint -->
+    <rect x="200" y="130" width="18"  height="32"  fill="#0a1020" opacity="0.7"/>
+    <rect x="980" y="125" width="20"  height="37"  fill="#0a1020" opacity="0.7"/>
+    <rect x="580" y="140" width="15"  height="22"  fill="#0a1020" opacity="0.5"/>
+
+    <!-- ground reflection -->
+    <rect x="0" y="162" width="1200" height="2" fill="#1a1a4a" opacity="0.5"/>
+  </svg>
+
+  <!-- ═══════ Phones ═══════ -->
+  <div class="phone-left">
+    <svg class="pixel-canvas" width="100" height="170" viewBox="0 0 100 170">
+      <rect x="0" y="0" width="100" height="170" rx="12" fill="#1a2a3e" stroke="#5DCAA5" stroke-width="2"/>
+      <rect x="6" y="10" width="88" height="126" rx="4" fill="#061018"/>
+      <rect x="10" y="14" width="80" height="60" rx="3" fill="#0a1a28"/>
+      <rect x="14" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.85"/>
+      <rect x="34" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.5"/>
+      <rect x="54" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+      <rect x="74" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+      <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.4"/>
+      <rect x="34" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.7"/>
+      <rect x="54" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+      <rect x="74" y="38" width="16" height="16" rx="2" fill="#AFA9EC" opacity="0.4"/>
+      <rect x="14" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.6"/>
+      <rect x="34" y="58" width="16" height="12" rx="2" fill="#FAC775" opacity="0.4"/>
+      <rect x="54" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.5"/>
+      <rect x="74" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="10" y="80" width="80" height="48" rx="3" fill="#0a1828"/>
+      <text font-family="'Press Start 2P', monospace" font-size="7" fill="#5DCAA5" x="50" y="102" text-anchor="middle">TRUSTED</text>
+      <text font-family="'Press Start 2P', monospace" font-size="5" fill="#1D9E75" x="50" y="118" text-anchor="middle">98 / 100</text>
+      <circle cx="50" cy="148" r="6" fill="#5DCAA5" opacity="0.6"/>
+      <rect x="30" y="158" width="40" height="6" rx="3" fill="#1a3a2a"/>
+      <text font-family="'Press Start 2P', monospace" font-size="4" fill="#5DCAA5" x="50" y="164" text-anchor="middle">HER · NODE A</text>
+    </svg>
+  </div>
+
+  <div class="phone-right">
+    <svg class="pixel-canvas" width="100" height="170" viewBox="0 0 100 170">
+      <rect x="0" y="0" width="100" height="170" rx="12" fill="#2a1a3e" stroke="#D4537E" stroke-width="2"/>
+      <rect x="6" y="10" width="88" height="126" rx="4" fill="#100610"/>
+      <rect x="10" y="14" width="80" height="60" rx="3" fill="#200a28"/>
+      <rect x="14" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.7"/>
+      <rect x="34" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+      <rect x="54" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+      <rect x="74" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.6"/>
+      <rect x="34" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.5"/>
+      <rect x="54" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="74" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+      <rect x="14" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.5"/>
+      <rect x="34" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.6"/>
+      <rect x="54" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.3"/>
+      <rect x="74" y="58" width="16" height="12" rx="2" fill="#AFA9EC" opacity="0.4"/>
+      <rect x="10" y="80" width="80" height="48" rx="3" fill="#180828"/>
+      <text font-family="'Press Start 2P', monospace" font-size="7" fill="#ED93B1" x="50" y="102" text-anchor="middle">TRUSTED</text>
+      <text font-family="'Press Start 2P', monospace" font-size="5" fill="#D4537E" x="50" y="118" text-anchor="middle">97 / 100</text>
+      <circle cx="50" cy="148" r="6" fill="#D4537E" opacity="0.6"/>
+      <rect x="30" y="158" width="40" height="6" rx="3" fill="#3a1a2a"/>
+      <text font-family="'Press Start 2P', monospace" font-size="4" fill="#ED93B1" x="50" y="164" text-anchor="middle">HIM · NODE B</text>
+    </svg>
+  </div>
+
+  <!-- ═══════ Thread + Pixel Heart ═══════ -->
+  <svg class="thread-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#5DCAA5" stop-opacity="0"/>
+        <stop offset="25%"  stop-color="#5DCAA5" stop-opacity="0.9"/>
+        <stop offset="50%"  stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset="75%"  stop-color="#D4537E" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+      </linearGradient>
+
+      <!-- radial gradient for the heart itself (teal→white→pink, read left-to-right) -->
+      <linearGradient id="heartFill" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#ED93B1"/>
+        <stop offset="45%"  stop-color="#D4537E"/>
+        <stop offset="100%" stop-color="#8A2B4E"/>
+      </linearGradient>
+      <radialGradient id="heartAura" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"  stop-color="#D4537E" stop-opacity="0.6"/>
+        <stop offset="40%" stop-color="#D4537E" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+      </radialGradient>
+
+      <filter id="heartGlow">
+        <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- arc that draws first -->
+    <path class="thread-path" d="M230 310 Q500 200 770 310"
+      fill="none" stroke="url(#threadGrad)" stroke-width="2.5"/>
+
+    <!-- Soft pink aura behind the heart — appears at 2.8s -->
+    <circle class="heart-aura" cx="500" cy="255" r="50" fill="url(#heartAura)"/>
+
+    <!-- ═════ PIXEL HEART (7×6 grid, 4u cells, centered at 500,255) ═════
+         bounding box: x 486..514, y 243..267
+         heart shape, classic 8-bit pattern:
+           .##.##.
+           #######
+           #######
+           .#####.
+           ..###..
+           ...#...
+    ═══════════════════════════════════════════════════════════════════ -->
+    <g class="heart" filter="url(#heartGlow)" fill="url(#heartFill)">
+      <!-- row 0 (y=243) — two bumps -->
+      <rect x="490" y="243" width="4" height="4"/>
+      <rect x="494" y="243" width="4" height="4"/>
+      <rect x="502" y="243" width="4" height="4"/>
+      <rect x="506" y="243" width="4" height="4"/>
+      <!-- row 1 (y=247) — full width -->
+      <rect x="486" y="247" width="4" height="4"/>
+      <rect x="490" y="247" width="4" height="4"/>
+      <rect x="494" y="247" width="4" height="4"/>
+      <rect x="498" y="247" width="4" height="4"/>
+      <rect x="502" y="247" width="4" height="4"/>
+      <rect x="506" y="247" width="4" height="4"/>
+      <rect x="510" y="247" width="4" height="4"/>
+      <!-- row 2 (y=251) — full width -->
+      <rect x="486" y="251" width="4" height="4"/>
+      <rect x="490" y="251" width="4" height="4"/>
+      <rect x="494" y="251" width="4" height="4"/>
+      <rect x="498" y="251" width="4" height="4"/>
+      <rect x="502" y="251" width="4" height="4"/>
+      <rect x="506" y="251" width="4" height="4"/>
+      <rect x="510" y="251" width="4" height="4"/>
+      <!-- row 3 (y=255) — 5 wide, centered -->
+      <rect x="490" y="255" width="4" height="4"/>
+      <rect x="494" y="255" width="4" height="4"/>
+      <rect x="498" y="255" width="4" height="4"/>
+      <rect x="502" y="255" width="4" height="4"/>
+      <rect x="506" y="255" width="4" height="4"/>
+      <!-- row 4 (y=259) — 3 wide, centered -->
+      <rect x="494" y="259" width="4" height="4"/>
+      <rect x="498" y="259" width="4" height="4"/>
+      <rect x="502" y="259" width="4" height="4"/>
+      <!-- row 5 (y=263) — tip -->
+      <rect x="498" y="263" width="4" height="4"/>
+    </g>
+  </svg>
+
+  <!-- ═══════ Hero text ═══════ -->
+  <div class="hero-title">
+    <h1>LOVECLAW</h1>
+    <p>COMMIT &nbsp;·&nbsp; PROTECT &nbsp;·&nbsp; REMEMBER</p>
+  </div>
+  <div class="hero-sub">FORKED FROM OPENCLAW &nbsp;·&nbsp; BUILT FOR TWO</div>
+  <div class="hero-tags">
+    <span>sessions_send</span> <i>·</i>
+    <span>android node</span> <i>·</i>
+    <span>eth contract</span> <i>·</i>
+    <span>ai diary</span>
+  </div>
+
+  <!-- chrome -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+  <div class="tag-l"><b>●</b> LOVECLAW · HERO · v2</div>
+  <div class="tag-r">HACKATHON 2026</div>
+</div>
+
+<script>
+  // ── Starfield ─────────────────────────────────────
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    const a1 = (Math.random() * 0.3 + 0.1).toFixed(2);
+    const a2 = (Math.random() * 0.6 + 0.3).toFixed(2);
+    s.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${Math.random()*65}%;
+      width:${sz}px; height:${sz}px;
+      --d:${(Math.random()*3+2).toFixed(1)}s;
+      --del:${(Math.random()*4).toFixed(1)}s;
+      --a1:${a1}; --a2:${a2};
+    `;
+    sf.appendChild(s);
+  }
+</script>
+</body>
+</html>
