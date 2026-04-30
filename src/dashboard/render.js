@@ -1,8 +1,8 @@
 import { state, saveState } from "../lib/state.js";
-import { decryptStoredKey, hasEncryptedKey } from "../lib/agent-key-store.js";
+import { decryptStoredKey, hasEncryptedKey, encryptAndStoreVaultKey, decryptStoredVaultKey, hasEncryptedVaultKey } from "../lib/agent-key-store.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
-import { addPactChangesDenyReceivedLine, renderPingStatus } from "../app/ping.js";
+import { addPactChangesDenyReceivedLine, renderPingStatus, refreshVaultDisplay, getVaultAddress } from "../app/ping.js";
 import { axl } from "../axl/client.js";
 import { ipcSend } from "../app/ipc-send.js";
 import {
@@ -12,13 +12,18 @@ import {
     syncProposeBreakPactButton,
     syncEditPactButton,
 } from "../app/breakPact.js";
-import { pactRuleLabel, formatStakeSummary, PACT_RULES } from "../lib/invite.js";
 import {
-    PACT_TRIGGER_IDS,
-    PACT_BREACH_TRIGGER_IDS,
-    PACT_AUTOMATION_TRIGGER_IDS,
-} from "../lib/pact-triggers.js";
+    pactRuleLabel,
+    formatStakeSummary,
+    getAllPactRules,
+    getPactRuleById,
+    getAllTriggerIds,
+    getBreachTriggerIds,
+    getAutomationTriggerIds,
+    sanitizeCustomPactRules,
+} from "../lib/invite.js";
 import { normalizePactProposal } from "../lib/pact-proposal-diff.js";
+import { PACT_BREACH_TRIGGER_IDS } from "../lib/pact-triggers.js";
 import {
     SIGNAL_SHARE_ROWS,
     mergeSignalShares,
@@ -576,9 +581,15 @@ function renderDiaryCal(feed, year, month, selectedKey) {
 
 let _lastNotesSyncAt = 0;
 let pactEditMode = false;
+/** Snapshot when entering edit pact (JSON sig) so save enables after deletes / toggles. */
+let pactEditBaselineJson = null;
+/** Deep copy of pact fields when edit opens — cancel restores this. */
+let pactEditUndoSnapshot = null;
 
 /** Expanded/collapsed state for pact category panels (persisted between pact tab re-renders). */
 let pactCategoryExpanded = { breach: true, automation: true };
+
+const PACT_EDIT_DELETE_ICON = `<svg class="pact-edit-trigger-delete-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`;
 
 const PACT_CATEGORY_CHEVRON_SVG = `
                             <svg viewBox="0 0 12 12" focusable="false" aria-hidden="true">
@@ -665,6 +676,10 @@ export function applyPactProposal(proposal) {
     const clean = normalizePactProposal(proposal);
     state.triggers = clean.triggers;
     state.stakeEth = clean.stakeEth;
+    state.customPactRules = sanitizeCustomPactRules(clean.customRules || []);
+    if (clean.omittedBaseBreachTriggerIds !== undefined) {
+        state.omittedBaseBreachTriggerIds = [...clean.omittedBaseBreachTriggerIds];
+    }
     saveState(state);
     renderSignalShareSettings();
     renderPact();
@@ -694,7 +709,7 @@ function bindPactTriggerTree(view) {
 }
 
 function buildPactTriggerRowHtml(t) {
-    const rule = PACT_RULES.find(r => r.id === t);
+    const rule = getPactRuleById(t, state.customPactRules);
     const label = pactRuleLabel(t);
     const hint = rule?.hint || "No extra details available for this trigger yet.";
     return `
@@ -722,11 +737,87 @@ function buildPactTriggerRowHtml(t) {
             </div>`;
 }
 
+function stablePactEditProposalJson(norm) {
+    const p = norm && typeof norm === "object" ? norm : {};
+    const customs = sanitizeCustomPactRules(p.customRules || [])
+        .map((r) => ({
+            id: r.id,
+            label: r.label,
+            hint: r.hint,
+            category: r.category,
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id));
+    return JSON.stringify({
+        triggers: [...(p.triggers || [])].sort(),
+        stakeEth: Number.isFinite(Number(p.stakeEth)) && Number(p.stakeEth) >= 0 ? Number(p.stakeEth) : 0,
+        omittedBaseBreachTriggerIds: [...(p.omittedBaseBreachTriggerIds || [])].sort(),
+        customRules: customs,
+    });
+}
+
+function readPactEditProposalFromView(view) {
+    const checked = new Set(
+        Array.from(view.querySelectorAll('input[name="pact-edit-trigger"]:checked'))
+            .map((el) => String(el.value)),
+    );
+    const allTriggerIds = getAllTriggerIds(state.customPactRules);
+    const proposedTriggers = allTriggerIds.filter((id) => checked.has(id));
+    const stakeInp = view.querySelector("#pact-edit-stake");
+    let proposedStakeEth = 0;
+    if (stakeInp instanceof HTMLInputElement) {
+        const raw = String(stakeInp.value).trim();
+        if (raw !== "" && raw !== ".") {
+            const n = parseFloat(raw, 10);
+            proposedStakeEth = Number.isFinite(n) && n >= 0 ? n : 0;
+        }
+    }
+    return normalizePactProposal({
+        triggers: proposedTriggers,
+        stakeEth: proposedStakeEth,
+        customRules: state.customPactRules,
+        omittedBaseBreachTriggerIds: [...(state.omittedBaseBreachTriggerIds || [])],
+    });
+}
+
+function removeBreachTriggerFromPactInEdit(triggerId) {
+    const id = String(triggerId || "").trim();
+    if (!id) {
+        return;
+    }
+    state.triggers = (state.triggers || []).filter((t) => t !== id);
+    if (PACT_BREACH_TRIGGER_IDS.includes(id)) {
+        const next = new Set(state.omittedBaseBreachTriggerIds || []);
+        next.add(id);
+        state.omittedBaseBreachTriggerIds = [...next];
+    } else {
+        state.customPactRules = (state.customPactRules || []).filter((r) => r.id !== id);
+    }
+    saveState(state);
+}
+
 function bindPactEditUi(view) {
     const editBtn = document.getElementById("btn-edit-pact");
     if (editBtn && !editBtn.dataset.bound) {
         editBtn.addEventListener("click", () => {
             pactEditMode = true;
+            pactEditUndoSnapshot = {
+                triggers: [...(state.triggers || [])],
+                customPactRules: sanitizeCustomPactRules(state.customPactRules).map((r) => ({ ...r })),
+                omittedBaseBreachTriggerIds: [...(state.omittedBaseBreachTriggerIds || [])],
+                stakeEth: Number.isFinite(Number(state.stakeEth)) && Number(state.stakeEth) >= 0
+                    ? Number(state.stakeEth)
+                    : 0,
+            };
+            const se = Number(state.stakeEth);
+            const stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
+            pactEditBaselineJson = stablePactEditProposalJson(
+                normalizePactProposal({
+                    triggers: [...(state.triggers || [])],
+                    stakeEth,
+                    customRules: state.customPactRules,
+                    omittedBaseBreachTriggerIds: [...(state.omittedBaseBreachTriggerIds || [])],
+                }),
+            );
             renderPact();
         });
         editBtn.dataset.bound = "1";
@@ -737,7 +828,16 @@ function bindPactEditUi(view) {
     const cancelBtn = view.querySelector("#btn-cancel-pact-edit");
     if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
+            if (pactEditUndoSnapshot) {
+                state.triggers = [...pactEditUndoSnapshot.triggers];
+                state.customPactRules = [...pactEditUndoSnapshot.customPactRules];
+                state.omittedBaseBreachTriggerIds = [...pactEditUndoSnapshot.omittedBaseBreachTriggerIds];
+                state.stakeEth = pactEditUndoSnapshot.stakeEth;
+                saveState(state);
+            }
+            pactEditUndoSnapshot = null;
             pactEditMode = false;
+            pactEditBaselineJson = null;
             renderPact();
         });
     }
@@ -745,10 +845,6 @@ function bindPactEditUi(view) {
     if (saveBtn) {
         const triggerInputs = Array.from(view.querySelectorAll('input[name="pact-edit-trigger"]'));
         const stakeInp = view.querySelector("#pact-edit-stake");
-        const initialTriggerSet = new Set(state.triggers.filter(id => PACT_TRIGGER_IDS.includes(id)));
-        const initialStake = Number.isFinite(Number(state.stakeEth)) && Number(state.stakeEth) >= 0
-            ? Number(state.stakeEth)
-            : 0;
         const readCurrentStake = () => {
             if (!(stakeInp instanceof HTMLInputElement)) {
                 return 0;
@@ -761,17 +857,12 @@ function bindPactEditUi(view) {
             return Number.isFinite(n) && n >= 0 ? n : 0;
         };
         const syncProposalButtonState = () => {
-            const currentChecked = new Set(
-                triggerInputs
-                    .filter(el => el instanceof HTMLInputElement && el.checked)
-                    .map(el => String(el.value)),
-            );
-            const sameCount = currentChecked.size === initialTriggerSet.size;
-            const sameTriggers = sameCount && PACT_TRIGGER_IDS.every(
-                id => currentChecked.has(id) === initialTriggerSet.has(id),
-            );
-            const sameStake = readCurrentStake() === initialStake;
-            saveBtn.disabled = sameTriggers && sameStake;
+            if (!pactEditBaselineJson) {
+                saveBtn.disabled = true;
+                return;
+            }
+            const now = readPactEditProposalFromView(view);
+            saveBtn.disabled = stablePactEditProposalJson(now) === pactEditBaselineJson;
         };
         triggerInputs.forEach((inp) => {
             inp.addEventListener("change", syncProposalButtonState);
@@ -780,37 +871,43 @@ function bindPactEditUi(view) {
             stakeInp.addEventListener("input", syncProposalButtonState);
             stakeInp.addEventListener("change", syncProposalButtonState);
         }
+        view.querySelectorAll("[data-pact-delete-breach]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const id = btn.getAttribute("data-pact-delete-breach");
+                if (!id) {
+                    return;
+                }
+                removeBreachTriggerFromPactInEdit(id);
+                renderPact();
+            });
+        });
         syncProposalButtonState();
 
         saveBtn.addEventListener("click", () => {
             if (saveBtn.disabled) {
                 return;
             }
-            const checked = new Set(
-                Array.from(view.querySelectorAll('input[name="pact-edit-trigger"]:checked'))
-                    .map(el => String(el.value)),
-            );
-            const proposedTriggers = PACT_TRIGGER_IDS.filter(id => checked.has(id));
-            let proposedStakeEth = 0;
-            if (stakeInp instanceof HTMLInputElement) {
-                const raw = String(stakeInp.value).trim();
-                if (raw === "" || raw === ".") {
-                    proposedStakeEth = 0;
-                } else {
-                    const n = parseFloat(raw, 10);
-                    proposedStakeEth = Number.isFinite(n) && n >= 0 ? n : 0;
-                }
-            }
-            const proposal = { triggers: proposedTriggers, stakeEth: proposedStakeEth };
+            const normalized = readPactEditProposalFromView(view);
+            const proposal = {
+                triggers: normalized.triggers,
+                stakeEth: normalized.stakeEth,
+                customRules: normalized.customRules,
+                omittedBaseBreachTriggerIds: [...(normalized.omittedBaseBreachTriggerIds || [])],
+            };
             if (!state.paired || !state.partnerAxlKey) {
                 applyPactProposal(proposal);
                 pactEditMode = false;
+                pactEditBaselineJson = null;
+                pactEditUndoSnapshot = null;
                 return;
             }
             state.pactChangesOutgoingPending = true;
             state.pactChangesOutgoingProposal = proposal;
             saveState(state);
             pactEditMode = false;
+            pactEditBaselineJson = null;
+            pactEditUndoSnapshot = null;
             renderPact();
             transportPartnerMessage({
                 type: "pact_changes_propose",
@@ -890,17 +987,25 @@ export function renderPact() {
     view.classList.toggle("pact-view--edit", pactEditMode);
     const s = formatStakeSummary(state.stakeEth);
     const stakeText = s === "—" ? "0.00 ETH" : s;
-    const ordered = state.triggers.filter(t => PACT_TRIGGER_IDS.includes(t));
-    const breachIds = ordered.filter(t => PACT_BREACH_TRIGGER_IDS.includes(t));
-    const automationIds = ordered.filter(t => PACT_AUTOMATION_TRIGGER_IDS.includes(t));
+    const allRules = getAllPactRules(state.customPactRules);
+    const allTriggerIds = getAllTriggerIds(state.customPactRules);
+    const breachTriggerIds = getBreachTriggerIds(state.customPactRules);
+    const automationTriggerIds = getAutomationTriggerIds(state.customPactRules);
+    const ordered = state.triggers.filter(t => allTriggerIds.includes(t));
+    const breachIds = ordered.filter(t => breachTriggerIds.includes(t));
+    const automationIds = ordered.filter(t => automationTriggerIds.includes(t));
     const breachRowsHtml = breachIds.length
         ? breachIds.map(buildPactTriggerRowHtml).join("")
         : `<div class="pact-item pact-item--child"><p class="hint">no breach triggers set</p></div>`;
     const automationRowsHtml = automationIds.length
         ? automationIds.map(buildPactTriggerRowHtml).join("")
         : `<div class="pact-item pact-item--child"><p class="hint">no automation tasks enabled</p></div>`;
-    const breachRulesEdit = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
-    const automationRulesEdit = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
+    const omittedBreach = new Set(state.omittedBaseBreachTriggerIds || []);
+    const breachRulesEdit = allRules.filter(
+        (r) => breachTriggerIds.includes(r.id) &&
+            !(PACT_BREACH_TRIGGER_IDS.includes(r.id) && omittedBreach.has(r.id)),
+    );
+    const automationRulesEdit = allRules.filter(r => automationTriggerIds.includes(r.id));
     const editForm = pactEditMode
         ? `
     <div class="pact-edit-card">
@@ -917,10 +1022,13 @@ export function renderPact() {
       <p class="pact-edit-section-title pact-edit-section-title--gap">breach triggers</p>
       <div class="pact-edit-list">
         ${breachRulesEdit.map((rule) => `
-        <label class="pact-edit-row">
-          <input type="checkbox" class="pact-toggle-input pact-edit-checkbox" name="pact-edit-trigger" value="${escapePactText(rule.id)}" ${state.triggers.includes(rule.id) ? "checked" : ""}>
-          <span>${escapePactText(rule.label)}</span>
-        </label>
+        <div class="pact-edit-row pact-edit-row--breach">
+          <label class="pact-edit-row-label">
+            <input type="checkbox" class="pact-toggle-input pact-edit-checkbox" name="pact-edit-trigger" value="${escapePactText(rule.id)}" ${state.triggers.includes(rule.id) ? "checked" : ""}>
+            <span>${escapePactText(rule.label)}</span>
+          </label>
+          <button type="button" class="pact-edit-trigger-delete" data-pact-delete-breach="${escapePactText(rule.id)}" aria-label="Remove ${escapePactText(rule.label)} from pact" title="remove from pact">${PACT_EDIT_DELETE_ICON}</button>
+        </div>
         `).join("")}
       </div>
       <label class="pact-edit-stake-row" for="pact-edit-stake">
@@ -1039,9 +1147,60 @@ export function renderTodayTab() {
             if (ev.target instanceof Element && ev.target.closest("#today-budget-swap-btn")) {
                 return;
             }
+            if (ev.target instanceof Element && ev.target.closest("#today-budget-qr-btn")) {
+                return;
+            }
+            if (ev.target instanceof Element && ev.target.closest("#today-budget-send-btn")) {
+                return;
+            }
             toggleBudgetBreakdown();
         });
         budgetToggle.dataset.bound = "1";
+    }
+    const qrBtn = document.getElementById("today-budget-qr-btn");
+    const vaultModal = document.getElementById("modal-vault-deposit");
+    const vaultClose = document.getElementById("vault-deposit-close");
+    const vaultCopy = document.getElementById("vault-deposit-copy");
+    const vaultCopied = document.getElementById("vault-deposit-copied");
+    const vaultAddr = document.getElementById("vault-deposit-addr");
+    if (qrBtn && vaultModal && !qrBtn.dataset.bound) {
+        qrBtn.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
+            const vaultAddrStr = getVaultAddress();
+            vaultModal.classList.remove("hidden");
+            if (vaultAddr) vaultAddr.textContent = vaultAddrStr;
+            const qrWrap = document.getElementById("vault-deposit-qr-wrap");
+            if (qrWrap) {
+                // Re-render QR each open so address changes are reflected
+                qrWrap.innerHTML = "";
+                delete qrWrap.dataset.rendered;
+            }
+            if (qrWrap && !qrWrap.dataset.rendered) {
+                qrWrap.dataset.rendered = "1";
+                try {
+                    const { default: QRCode } = await import("qrcode");
+                    const canvas = await QRCode.toCanvas(vaultAddrStr, {
+                        width: 132,
+                        margin: 1,
+                        color: { dark: "#000000ff", light: "#ffffffff" },
+                    });
+                    qrWrap.appendChild(canvas);
+                } catch {
+                    qrWrap.textContent = vaultAddrStr;
+                }
+            }
+        });
+        vaultClose?.addEventListener("click", () => vaultModal.classList.add("hidden"));
+        vaultModal.addEventListener("click", (ev) => {
+            if (ev.target === vaultModal) vaultModal.classList.add("hidden");
+        });
+        vaultCopy?.addEventListener("click", () => {
+            navigator.clipboard.writeText(vaultAddr?.textContent?.trim() || getVaultAddress()).then(() => {
+                vaultCopied?.classList.remove("hidden");
+                setTimeout(() => vaultCopied?.classList.add("hidden"), 1800);
+            });
+        });
+        qrBtn.dataset.bound = "1";
     }
     const trustMe = document.getElementById("today-trust-me");
     const trustPt = document.getElementById("today-trust-partner");
@@ -1085,6 +1244,42 @@ export function renderTodayTab() {
     document.querySelectorAll("#today-streak-cells .today-streak-cell").forEach((el, i) => {
         el.classList.toggle("filled", i < Math.min(7, days));
     });
+
+    const sendBtn = document.getElementById("today-budget-send-btn");
+    if (sendBtn && !sendBtn.dataset.bound) {
+        sendBtn.dataset.bound = "1";
+        sendBtn.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
+            if (!window.ethereum) {
+                alert("MetaMask not found. Please install MetaMask to send ETH.");
+                return;
+            }
+            try {
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: "0x1" }],
+                });
+                const from = accounts[0];
+                const to = getVaultAddress();
+                // 0.001 ETH = 1_000_000_000_000_000 wei = 0x38D7EA4C68000
+                const txHash = await window.ethereum.request({
+                    method: "eth_sendTransaction",
+                    params: [{ from, to, value: "0x38D7EA4C68000" }],
+                });
+                sendBtn.title = `Sent! tx: ${txHash}`;
+                setTimeout(() => void refreshVaultDisplay(), 4000);
+            } catch (err) {
+                if (err?.code !== 4001) {
+                    // eslint-disable-next-line no-console
+                    console.error("MetaMask send failed:", err);
+                    alert(`Send failed: ${err?.message || err}`);
+                }
+            }
+        });
+    }
+
+    void refreshVaultDisplay();
 }
 
 export function appendTodayHeartbeatEntry(line) {
