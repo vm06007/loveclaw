@@ -1261,6 +1261,127 @@ function _promptPin() {
     });
 }
 
+/**
+ * If vault key is not yet stored, shows a setup modal to enter the private key + pick a PIN.
+ * If already stored, shows a PIN prompt.
+ * Returns the PIN string (not the key) so swap.js can decrypt on its own.
+ */
+function _promptVaultPin() {
+    return new Promise((resolve, reject) => {
+        const overlay = document.createElement("div");
+        overlay.className = "lc-pin-overlay";
+
+        if (!hasEncryptedVaultKey()) {
+            overlay.innerHTML = `
+                <div class="lc-pin-modal">
+                    <div class="lc-pin-head">Vault key setup</div>
+                    <p class="lc-pin-desc">Paste the mutual vault private key, then set a PIN to encrypt it locally.</p>
+                    <input class="lc-pin-input" id="lc-vk-key" type="password" maxlength="128"
+                        placeholder="0x… vault private key" autocomplete="off" />
+                    <input class="lc-pin-input" id="lc-vk-pin-a" type="password" inputmode="numeric"
+                        maxlength="12" placeholder="choose a vault PIN" autocomplete="new-password" />
+                    <input class="lc-pin-input" id="lc-vk-pin-b" type="password" inputmode="numeric"
+                        maxlength="12" placeholder="confirm vault PIN" autocomplete="new-password" />
+                    <div class="lc-pin-error" id="lc-vk-err"></div>
+                    <div class="lc-pin-actions">
+                        <button class="btn btn-ghost btn-sm" id="lc-vk-cancel">cancel</button>
+                        <button class="lc-agentic-register-btn" id="lc-vk-ok" style="flex:1">Save &amp; Execute</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add("lc-pin-overlay--show"));
+
+            const errEl = overlay.querySelector("#lc-vk-err");
+            const keyInp = overlay.querySelector("#lc-vk-key");
+            const pinA   = overlay.querySelector("#lc-vk-pin-a");
+            const pinB   = overlay.querySelector("#lc-vk-pin-b");
+            const okBtn  = overlay.querySelector("#lc-vk-ok");
+            const cancel = overlay.querySelector("#lc-vk-cancel");
+
+            const dismiss = () => {
+                overlay.classList.remove("lc-pin-overlay--show");
+                setTimeout(() => overlay.remove(), 300);
+                reject(new Error("cancelled"));
+            };
+            cancel.addEventListener("click", dismiss);
+            overlay.addEventListener("click", ev => { if (ev.target === overlay) dismiss(); });
+
+            okBtn.addEventListener("click", async () => {
+                const pk   = keyInp.value.trim();
+                const pinV = pinA.value;
+                if (!pk)        { errEl.textContent = "Private key required."; return; }
+                if (!pinV)      { errEl.textContent = "PIN required."; return; }
+                if (pinV !== pinB.value) { errEl.textContent = "PINs don't match."; return; }
+                okBtn.disabled = true;
+                okBtn.innerHTML = `<span class="lc-agentic-spinner"></span>encrypting…`;
+                try {
+                    await encryptAndStoreVaultKey(pk, pinV);
+                    overlay.classList.remove("lc-pin-overlay--show");
+                    setTimeout(() => overlay.remove(), 300);
+                    resolve(pinV);
+                } catch (e) {
+                    errEl.textContent = `Error: ${e.message}`;
+                    okBtn.disabled = false;
+                    okBtn.textContent = "Save & Execute";
+                }
+            });
+            setTimeout(() => keyInp.focus(), 100);
+        } else {
+            overlay.innerHTML = `
+                <div class="lc-pin-modal">
+                    <div class="lc-pin-head">Vault PIN</div>
+                    <p class="lc-pin-desc">Enter your vault PIN to authorise this swap.</p>
+                    <input class="lc-pin-input" id="lc-vp-unlock" type="password" inputmode="numeric"
+                        maxlength="12" placeholder="vault PIN" autocomplete="current-password" />
+                    <div class="lc-pin-error" id="lc-vp-err"></div>
+                    <div class="lc-pin-actions">
+                        <button class="btn btn-ghost btn-sm" id="lc-vp-cancel">cancel</button>
+                        <button class="lc-agentic-register-btn" id="lc-vp-ok" style="flex:1">Execute swap</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add("lc-pin-overlay--show"));
+
+            const errEl  = overlay.querySelector("#lc-vp-err");
+            const inp    = overlay.querySelector("#lc-vp-unlock");
+            const okBtn  = overlay.querySelector("#lc-vp-ok");
+            const cancel = overlay.querySelector("#lc-vp-cancel");
+
+            const dismiss = () => {
+                overlay.classList.remove("lc-pin-overlay--show");
+                setTimeout(() => overlay.remove(), 300);
+                reject(new Error("cancelled"));
+            };
+            cancel.addEventListener("click", dismiss);
+            overlay.addEventListener("click", ev => { if (ev.target === overlay) dismiss(); });
+
+            const tryUnlock = async () => {
+                const pin = inp.value;
+                if (!pin) { errEl.textContent = "PIN required."; return; }
+                okBtn.disabled = true;
+                okBtn.innerHTML = `<span class="lc-agentic-spinner"></span>`;
+                try {
+                    await decryptStoredVaultKey(pin); // verify PIN is correct
+                    overlay.classList.remove("lc-pin-overlay--show");
+                    setTimeout(() => overlay.remove(), 300);
+                    resolve(pin);
+                } catch {
+                    errEl.textContent = "Wrong PIN — try again.";
+                    inp.value = "";
+                    inp.focus();
+                    okBtn.disabled = false;
+                    okBtn.textContent = "Execute swap";
+                }
+            };
+            okBtn.addEventListener("click", tryUnlock);
+            inp.addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+            setTimeout(() => inp.focus(), 100);
+        }
+    });
+}
+
 export function refreshDiaryStoreBtn() {
     const feed = document.getElementById("diary-feed");
     const btn  = document.getElementById("btn-diary-gen");
