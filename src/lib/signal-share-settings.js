@@ -25,12 +25,6 @@ export const SIGNAL_SHARE_ROWS = [
         pactAgentLockTrigger: "dating_app",
     },
     {
-        id: "notification",
-        label: "Notification shapes",
-        blurb: "App id + category only — never message bodies.",
-        pactAgentLockTrigger: null,
-    },
-    {
         id: "contact_radar",
         label: "Presence / reachability",
         blurb: "Online-offline stretches vs battery — flags unexplained dark periods when charge should allow connectivity.",

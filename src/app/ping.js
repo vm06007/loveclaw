@@ -1,89 +1,20 @@
+export { getVaultAddress, refreshVaultDisplay } from "./vault.js";
+export { bumpPingBadge, clearPingBadge } from "./chat-log.js";
+
 import { state } from "../lib/state.js";
 import { axl } from "../axl/client.js";
-import { ipcSend } from "./ipc-send.js";
-
-const chatLog = [];
-
-let chatUnread = 0;
-
-export function bumpPingBadge() {
-    const chatTab = document.querySelector('.tab[data-tab="chat"]');
-    if (chatTab?.classList.contains("active")) {
-        return;
-    }
-    chatUnread++;
-    const badge = document.getElementById("chat-badge");
-    if (badge) {
-        badge.textContent = String(chatUnread);
-        badge.classList.remove("hidden");
-    }
-}
-
-export function clearPingBadge() {
-    chatUnread = 0;
-    const badge = document.getElementById("chat-badge");
-    if (badge) {
-        badge.textContent = "";
-        badge.classList.add("hidden");
-    }
-}
-
-function addBubble(side, text, ack = false) {
-    chatLog.push({ side, text, ack, ts: Date.now() });
-    flushChatLog();
-}
-
-function flushChatLog() {
-    const chat = document.getElementById("chat-log");
-    if (!chat) {
-        return;
-    }
-    const empty = document.getElementById("chat-empty");
-    if (empty) {
-        empty.remove();
-    }
-    const rendered = chat.querySelectorAll(".chat-row").length;
-    const toAdd = chatLog.slice(rendered);
-    toAdd.forEach(({ side, text, ack, ts }) => {
-        const row = document.createElement("div");
-        row.className = `chat-row ${side}`;
-        const bubble = document.createElement("div");
-        bubble.className = `chat-bubble${ack ? " ack" : ""}`;
-        bubble.textContent = text;
-        const timeEl = document.createElement("div");
-        timeEl.className = "chat-time";
-        timeEl.textContent = new Date(ts).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
-        row.appendChild(bubble);
-        row.appendChild(timeEl);
-        chat.appendChild(row);
-    });
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function clearChatWindow() {
-    chatLog.length = 0;
-    const chat = document.getElementById("chat-log");
-    if (!chat) {
-        return;
-    }
-    chat.innerHTML = `
-        <div class="ping-empty" id="chat-empty">
-            <div class="ping-empty-icon" aria-hidden="true">~</div>
-            <div class="ping-empty-text">send a message or tap ping to test the link</div>
-        </div>
-    `;
-}
-
-function setChatClearModal(open) {
-    const m = document.getElementById("modal-chat-clear");
-    if (m) {
-        m.classList.toggle("hidden", !open);
-    }
-}
+import { chatLog, addBubble, bumpPingBadge, clearChatWindow, setChatClearModal } from "./chat-log.js";
+import { transportSend } from "./transport.js";
+import { maybeHandleLoveclawPrompt, testLoveclawAiConnection } from "./lovclaw-ai.js";
+import {
+    getAiSettings,
+    isShareConversationsOn,
+    persistAiSettings,
+    loadAiSettingsIntoModal,
+    readAiSettingsFromModal,
+    setAiSettingsModal,
+    syncAiProviderFields,
+} from "./ai-settings.js";
 
 /**
  * Shown in dashboard chat tab header (AXL port vs. local IPC).
@@ -105,14 +36,6 @@ export function renderPingStatus() {
     partner.innerHTML = `
     <span class="ping-status-name">${state.partnerName || "partner"}</span>
     <span class="ping-status-port${isBc ? " bc" : ""}">${partnerPort}</span>`;
-}
-
-function transportSend(payload) {
-    if (axl.available) {
-        axl.send(state.partnerAxlKey, payload);
-    } else {
-        ipcSend(payload);
-    }
 }
 
 export function sendPing() {
@@ -143,8 +66,12 @@ export function sendChat() {
     }
     input.value = "";
     const msg = { type: "chat", from: state.myName, text, ts: Date.now() };
-    transportSend(msg);
+    const isLoveclawMsg = /^@love(c(l(a(w)?)?)?)?(\s|$)|^@claw(\s|$)|^@lovc(l(a(w)?)?)?(\s|$)/i.test(text.trim());
+    if (!isLoveclawMsg || isShareConversationsOn()) {
+        transportSend(msg);
+    }
     addBubble("right", text);
+    void maybeHandleLoveclawPrompt(text);
 }
 
 export function handlePing(msg) {
@@ -203,13 +130,50 @@ export function handleChat(msg) {
     bumpPingBadge();
 }
 
+export function handleAgenticChatLine(msg) {
+    const body = typeof msg?.text === "string" ? msg.text.trim() : "";
+    if (!body) {
+        return;
+    }
+    addBubble("left", `LoveClaw: ${body}`, true);
+    bumpPingBadge();
+}
+
 export function initPingActions() {
+    // Quick-actions lightning button
+    const quickBtn  = document.getElementById("btn-quick");
+    const quickMenu = document.getElementById("quick-menu");
+    if (quickBtn && quickMenu) {
+        const openMenu  = () => { quickMenu.classList.add("quick-menu--open"); quickBtn.setAttribute("aria-expanded", "true"); };
+        const closeMenu = () => { quickMenu.classList.remove("quick-menu--open"); quickBtn.setAttribute("aria-expanded", "false"); };
+        const toggleMenu = () => quickMenu.classList.contains("quick-menu--open") ? closeMenu() : openMenu();
+
+        quickBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleMenu(); });
+        document.addEventListener("click", (e) => {
+            if (!quickBtn.contains(e.target) && !quickMenu.contains(e.target)) closeMenu();
+        });
+
+        document.getElementById("quick-ping")?.addEventListener("click", () => {
+            closeMenu();
+            if (!state.paired) return;
+            sendPing();
+        });
+
+        document.getElementById("quick-swap")?.addEventListener("click", () => {
+            closeMenu();
+            const input = document.getElementById("chat-input");
+            if (input) {
+                input.value = "@loveclaw lets swap 0.0005 ETH to USDC";
+                input.focus();
+            }
+        });
+    }
+
+    // Legacy ping button (kept for compat if it exists)
     const pingBtn = document.getElementById("btn-ping");
     if (pingBtn) {
         pingBtn.addEventListener("click", () => {
-            if (!state.paired) {
-                return;
-            }
+            if (!state.paired) return;
             sendPing();
         });
     }
@@ -228,6 +192,59 @@ export function initPingActions() {
                 return;
             }
             setChatClearModal(true);
+        });
+    }
+
+    const aiBtn = document.getElementById("btn-chat-ai-settings");
+    if (aiBtn) {
+        aiBtn.addEventListener("click", () => {
+            loadAiSettingsIntoModal();
+            setAiSettingsModal(true);
+        });
+    }
+    const aiProvider = document.getElementById("ai-provider");
+    if (aiProvider) {
+        aiProvider.addEventListener("change", () => {
+            syncAiProviderFields(String(aiProvider.value || ""));
+        });
+    }
+    const aiSave = document.getElementById("modal-ai-settings-save");
+    if (aiSave) {
+        aiSave.addEventListener("click", async () => {
+            if (aiSave instanceof HTMLButtonElement) {
+                aiSave.disabled = true;
+            }
+            try {
+                const draft = readAiSettingsFromModal();
+                const test = await testLoveclawAiConnection(draft);
+                if (!test.ok) {
+                    addBubble(
+                        "left",
+                        `LoveClaw: AI settings were not saved. ${test.reason || "Connection test failed."}`,
+                        true,
+                    );
+                    bumpPingBadge();
+                    return;
+                }
+                persistAiSettings(draft);
+                setAiSettingsModal(false);
+                if (test.skipped) {
+                    addBubble("left", "LoveClaw: AI settings saved (AI stays off until you enable it on this device).", true);
+                } else {
+                    addBubble("left", "LoveClaw: AI settings saved and the model connection test succeeded.", true);
+                }
+                bumpPingBadge();
+            } finally {
+                if (aiSave instanceof HTMLButtonElement) {
+                    aiSave.disabled = false;
+                }
+            }
+        });
+    }
+    const aiClose = document.getElementById("modal-ai-settings-close");
+    if (aiClose) {
+        aiClose.addEventListener("click", () => {
+            setAiSettingsModal(false);
         });
     }
 
