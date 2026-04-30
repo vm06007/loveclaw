@@ -155,6 +155,9 @@ export function initCreateScreen() {
         state.myName = name;
         state.coupleId = generateKey().slice(0, 16);
         state.createdAt = Date.now();
+        state.paired = false;
+        state.partnerName = "";
+        state.partnerAxlKey = "";
 
         const btn = document.getElementById("btn-generate");
         const origLabel = btn.textContent;

@@ -120,31 +120,11 @@ export function syncPactChangesOverlay() {
 }
 
 export function syncProposeBreakPactButton() {
-    const btn = document.getElementById("btn-propose-break-pact");
-    if (!btn) {
-        return;
-    }
-    const disabled =
-        !state.paired ||
-        Boolean(state.breakPactIncoming) ||
-        Boolean(state.breakPactOutgoingPending) ||
-        Boolean(state.pactChangesIncoming) ||
-        Boolean(state.pactChangesOutgoingPending);
-    btn.disabled = disabled;
+    // always clickable — no disabled state
 }
 
-/** Disable pact edit while break or pact-change flows are pending (call after `renderPact`). */
 export function syncEditPactButton() {
-    const editBtn = document.getElementById("btn-edit-pact");
-    if (!editBtn) {
-        return;
-    }
-    editBtn.disabled =
-        !state.paired ||
-        Boolean(state.breakPactIncoming) ||
-        Boolean(state.breakPactOutgoingPending) ||
-        Boolean(state.pactChangesIncoming) ||
-        Boolean(state.pactChangesOutgoingPending);
+    // always clickable — no disabled state
 }
 
 export function onPactChangesProposeReceived(msg) {

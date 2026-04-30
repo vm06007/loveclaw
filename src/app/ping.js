@@ -167,6 +167,15 @@ export function initPingActions() {
                 input.focus();
             }
         });
+
+        document.getElementById("quick-pact")?.addEventListener("click", () => {
+            closeMenu();
+            const input = document.getElementById("chat-input");
+            if (input) {
+                input.value = "@loveclaw new rule: no centralized exchange apps allowed";
+                input.focus();
+            }
+        });
     }
 
     // Legacy ping button (kept for compat if it exists)

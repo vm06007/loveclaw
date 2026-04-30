@@ -1,6 +1,7 @@
 import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
 import { renderPactRuleToggles } from "./create.js";
+import { state, saveState } from "../lib/state.js";
 
 export function initHomeScreen() {
     const fullscreenPill = document.getElementById("home-fullscreen-pill");
@@ -40,7 +41,29 @@ export function initHomeScreen() {
     }
 
     document.getElementById("btn-create").addEventListener("click", () => {
+        // Always wipe pairing state so we can never get stuck in limbo
+        const savedName = state.myName;
+        state.paired = false;
+        state.partnerName = "";
+        state.partnerAxlKey = "";
+        state.myAxlKey = "";
+        state.coupleId = "";
+        state.code = "";
+        state.createdAt = null;
+        state.breakPactIncoming = null;
+        state.breakPactOutgoingPending = false;
+        state.pactChangesIncoming = null;
+        state.pactChangesOutgoingPending = false;
+        state.pactChangesOutgoingProposal = null;
+        saveState(state);
+
         renderPactRuleToggles();
+
+        const nameInput = document.getElementById("create-name");
+        if (nameInput && !nameInput.value.trim() && savedName) {
+            nameInput.value = savedName;
+        }
+
         showScreen("create");
     });
 

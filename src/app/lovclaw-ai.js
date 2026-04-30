@@ -135,7 +135,7 @@ function scrubPartnerWord(text, partnerName) {
  * @param {boolean} jsonMode ask API for JSON where supported
  * @returns {Promise<string|null>} assistant text
  */
-async function fetchLoveclawChatCompletions(settings, messages, temperature, jsonMode = false) {
+export async function fetchLoveclawChatCompletions(settings, messages, temperature, jsonMode = false) {
     const endpoint = settings.customUrl || String(import.meta.env?.VITE_LOVECLAW_LLM_URL || "").trim();
     const openrouterKey = settings.openrouterKey || String(import.meta.env?.VITE_OPENROUTER_API_KEY || "").trim();
     const openrouterModel = settings.openrouterModel || String(import.meta.env?.VITE_OPENROUTER_MODEL || "").trim() || "openai/gpt-4o-mini";
