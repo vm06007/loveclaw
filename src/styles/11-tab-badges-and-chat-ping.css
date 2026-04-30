@@ -54,7 +54,20 @@
     background: rgba(83,74,183,.08);
     border-color: rgba(83,74,183,.3);
 }
-.ping-status-sep { color: var(--border); font-size: 10px; }
+.ping-status-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 0;
+}
+.ping-status-heart-svg {
+    display: block;
+    width: 20px;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
 .ping-chat {
     flex: 1;
     overflow-y: auto;
@@ -179,10 +192,68 @@
     cursor: pointer;
     transition: background .15s ease, transform .08s ease, border-color .15s ease;
 }
+.btn-chat-ai {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(93, 202, 165, 0.45);
+    border-radius: 5px;
+    background: rgba(93, 202, 165, 0.08);
+    color: var(--teal);
+    cursor: pointer;
+    transition: background .15s ease, transform .08s ease, border-color .15s ease;
+}
+.btn-chat-ai svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    display: block;
+}
+.btn-chat-ai:hover,
+.btn-chat-ai:focus-visible {
+    background: rgba(93, 202, 165, 0.18);
+    border-color: var(--teal);
+    outline: none;
+}
+.btn-chat-ai:active {
+    transform: translateY(1px);
+}
+.ai-settings-inner {
+    max-width: 360px;
+    text-align: left;
+}
+.ai-settings-label {
+    display: block;
+    font-size: 6px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    margin-top: 8px;
+    letter-spacing: .8px;
+}
+.ai-settings-optin {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 8px;
+    color: var(--text);
+    font-size: 7px;
+}
+.ai-settings-select {
+    width: 100%;
+}
+.ai-settings-group {
+    margin-top: 8px;
+}
 .btn-chat-clear svg {
-    width: 13px;
-    height: 13px;
-    fill: currentColor;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    display: block;
 }
 .btn-chat-clear:hover,
 .btn-chat-clear:focus-visible {

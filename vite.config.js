@@ -5,6 +5,13 @@ import os from "node:os";
 /** Set `LOVECLAW_DEV_HTTPS=1` so phones can use getUserMedia over LAN (https + self-signed). */
 const useDevHttps = process.env.LOVECLAW_DEV_HTTPS === "1";
 
+/**
+ * Relay is opt-in. Enable with:
+ *   npm run dev:alice --relay   (sets npm_config_relay=true)
+ *   LOVECLAW_RELAY=1 bun run dev:alice
+ */
+const relayEnabled = !!(process.env.LOVECLAW_RELAY || process.env.npm_config_relay);
+
 /** Tauri can set this; otherwise bind all interfaces (0.0.0.0) so the phone can use the QR LAN URL. */
 const tauriHost = process.env.TAURI_DEV_HOST;
 const devServerHost = tauriHost || true;
@@ -64,6 +71,9 @@ const axlProxy = (port) => ({
 
 export default defineConfig({
   plugins: [localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
+  define: {
+    "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
+  },
   clearScreen: false,
   server: {
     port: 1420,
@@ -79,9 +89,15 @@ export default defineConfig({
       "/axl9002": axlProxy(9002),
       "/axl9012": axlProxy(9012),
       "/relay": {
-        target: "http://127.0.0.1:9095",
+        target: "http://127.0.0.1:9090",
         changeOrigin: true,
         rewrite: path => path.replace(/^\/relay/, ""),
+        onError(err, _req, res) {
+          if (err.code === "ECONNREFUSED") {
+            res.writeHead(503, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ relay: "offline" }));
+          }
+        },
       },
     },
   },

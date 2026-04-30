@@ -1,5 +1,5 @@
 import { state, saveState } from "../lib/state.js";
-import { handlePing, handlePong, handleChat } from "./ping.js";
+import { handlePing, handlePong, handleChat, handleAgenticChatLine } from "./ping.js";
 import { triggerBreach } from "./breach.js";
 import {
     renderDiaryFeed,
@@ -33,6 +33,9 @@ export function handleAxlMessage(msg) {
             break;
         case "chat":
             handleChat(msg);
+            break;
+        case "agentic_chat_line":
+            handleAgenticChatLine(msg);
             break;
         case "score": {
             const v = msg.score ?? msg.value ?? msg.trust;

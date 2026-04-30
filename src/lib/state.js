@@ -1,6 +1,6 @@
 // Namespaced per role so two Tauri instances don't share storage.
 // Updated in boot() when role is known from get_instance_config or ?role=.
-import { migrateTriggers } from "./pact-triggers.js";
+import { migrateTriggers, PACT_BREACH_TRIGGER_IDS } from "./pact-triggers.js";
 import { mergeSignalShares, applyPactAgentLocks } from "./signal-share-settings.js";
 
 const DEFAULT_KEY = "loveclaw-state";
@@ -43,6 +43,24 @@ const DEFAULT_STATE = {
     pactChangesIncoming: null,
     pactChangesOutgoingPending: false,
     pactChangesOutgoingProposal: null,
+    customPactRules: [],
+    /** Built-in breach ids removed from the pact (hidden from edit list until reset). */
+    omittedBaseBreachTriggerIds: [],
+    aiSettings: {
+        enabled: true,
+        provider: "zgcompute",
+        openrouterKey: "",
+        openrouterModel: "openai/gpt-4o-mini",
+        huggingfaceKey: "",
+        huggingfaceModel: "google/gemma-2-9b-it",
+        zgComputeUrl: "",
+        zgComputeSecret: "",
+        zgComputeModel: "qwen/qwen-2.5-7b-instruct",
+        localUrl: "http://127.0.0.1:11434",
+        localModel: "gemma3:4b",
+        customUrl: "",
+        customToken: "",
+    },
     signals: [],
     diary: [],
     calNotes: {},
@@ -61,7 +79,36 @@ function loadState() {
             return { ...DEFAULT_STATE };
         }
         const parsed = { ...DEFAULT_STATE, ...JSON.parse(raw) };
+        const rawTriggers = Array.isArray(parsed.triggers) ? parsed.triggers.map(x => String(x)) : [];
+        parsed.customPactRules = Array.isArray(parsed.customPactRules)
+            ? parsed.customPactRules
+                .filter(r => r && typeof r === "object")
+                .map((r) => ({
+                    id: String(r.id || "").trim(),
+                    label: String(r.label || "").trim(),
+                    hint: String(r.hint || "").trim(),
+                    category: r.category === "automation" ? "automation" : "breach",
+                }))
+                .filter(r => r.id && r.label)
+            : [];
+        parsed.aiSettings = {
+            ...DEFAULT_STATE.aiSettings,
+            ...(parsed.aiSettings && typeof parsed.aiSettings === "object" ? parsed.aiSettings : {}),
+        };
+        parsed.omittedBaseBreachTriggerIds = Array.isArray(parsed.omittedBaseBreachTriggerIds)
+            ? [...new Set(
+                parsed.omittedBaseBreachTriggerIds
+                    .map((x) => String(x))
+                    .filter((id) => PACT_BREACH_TRIGGER_IDS.includes(id)),
+            )]
+            : [];
         parsed.triggers = migrateTriggers(parsed.triggers);
+        if (Array.isArray(parsed.triggers)) {
+            const customIds = new Set(parsed.customPactRules.map(r => r.id));
+            const fromStoredCustom = rawTriggers
+                .filter(id => customIds.has(id));
+            parsed.triggers = [...new Set([...parsed.triggers, ...fromStoredCustom])];
+        }
         const se = Number(parsed.stakeEth);
         parsed.stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
         parsed.myProfile = { ...EMPTY_MY_PROFILE, ...(parsed.myProfile && typeof parsed.myProfile === "object" ? parsed.myProfile : {}) };

@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "dev:alice": "LOVECLAW_ROLE=alice tauri dev",
-    "dev:boris": "LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw"
+    "dev:alice:relay": "LOVECLAW_RELAY=1 LOVECLAW_ROLE=alice tauri dev",
+    "dev:boris": "LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw",
+    "dev:boris:relay": "LOVECLAW_RELAY=1 LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

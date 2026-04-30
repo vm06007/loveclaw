@@ -9,6 +9,9 @@ import {
 /** Default: no proposed stake; inviter can set a positive amount to encode in the invite. */
 export const STAKE_DEFAULT_ETH = 0;
 
+/** Automation rows hidden from invite/join pact preview cards only (pact payload unchanged). */
+const INVITE_SUMMARY_HIDDEN_AUTOMATION_IDS = new Set(["diary"]);
+
 function escapeHtml(s) {
     return String(s)
         .replace(/&/g, "&amp;")
@@ -58,8 +61,66 @@ export const PACT_RULES = [
     },
 ];
 
-export function pactRuleLabel(id) {
-    return PACT_RULES.find(r => r.id === id)?.label ?? id;
+export function sanitizeCustomPactRules(customRules) {
+    if (!Array.isArray(customRules)) {
+        return [];
+    }
+    const seen = new Set();
+    return customRules
+        .filter(r => r && typeof r === "object")
+        .map((r) => ({
+            id: String(r.id || "").trim(),
+            label: String(r.label || "").trim(),
+            hint: String(r.hint || "").trim(),
+            category: r.category === "automation" ? "automation" : "breach",
+        }))
+        .filter((r) => {
+            if (!r.id || !r.label || seen.has(r.id) || PACT_RULES.some(base => base.id === r.id)) {
+                return false;
+            }
+            seen.add(r.id);
+            return true;
+        });
+}
+
+export function getAllPactRules(customRules = state.customPactRules) {
+    return [...PACT_RULES, ...sanitizeCustomPactRules(customRules)];
+}
+
+export function getPactRuleById(id, customRules = state.customPactRules) {
+    return getAllPactRules(customRules).find(r => r.id === id) || null;
+}
+
+export function pactRuleLabel(id, customRules = state.customPactRules) {
+    return getPactRuleById(id, customRules)?.label ?? id;
+}
+
+export function getAllTriggerIds(customRules = state.customPactRules) {
+    return getAllPactRules(customRules).map(r => r.id);
+}
+
+export function getAutomationTriggerIds(customRules = state.customPactRules) {
+    return getAllPactRules(customRules)
+        .filter((r) => {
+            const isBaseRule = PACT_TRIGGER_IDS.includes(r.id);
+            if (isBaseRule) {
+                return PACT_AUTOMATION_TRIGGER_IDS.includes(r.id);
+            }
+            return r.category === "automation";
+        })
+        .map(r => r.id);
+}
+
+export function getBreachTriggerIds(customRules = state.customPactRules) {
+    return getAllPactRules(customRules)
+        .filter((r) => {
+            const isBaseRule = PACT_TRIGGER_IDS.includes(r.id);
+            if (isBaseRule) {
+                return PACT_BREACH_TRIGGER_IDS.includes(r.id);
+            }
+            return r.category !== "automation";
+        })
+        .map(r => r.id);
 }
 
 /**
@@ -92,16 +153,22 @@ export function formatStakeSummary(n) {
 
 
 /**
- * Renders 4 on/off rows plus mandatory ETH stake (read-only on invite / join preview).
+ * Renders breach + optional automation rows plus mandatory ETH stake (read-only invite / join preview).
  * @param {{ triggers: string[]; stakeEth: number; }} p
  * @param {{ heading: string; lead: string; leadHtml?: boolean; }} head
  */
 export function buildPactSummaryCardHtml(p, head) {
     const leadInner = head.leadHtml ? head.lead : escapeHtml(head.lead);
     const titleInner = escapeHtml(head.heading);
-    const active = new Set((p.triggers || []).filter(t => PACT_TRIGGER_IDS.includes(t)));
-    const breachRules = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
-    const automationRules = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
+    const allTriggerIds = getAllTriggerIds(p.customRules || state.customPactRules);
+    const active = new Set((p.triggers || []).filter(t => allTriggerIds.includes(t)));
+    const allRules = getAllPactRules(p.customRules || state.customPactRules);
+    const breachRules = allRules.filter(r => getBreachTriggerIds(p.customRules || state.customPactRules).includes(r.id));
+    const automationRules = allRules.filter(
+        r =>
+            getAutomationTriggerIds(p.customRules || state.customPactRules).includes(r.id)
+            && !INVITE_SUMMARY_HIDDEN_AUTOMATION_IDS.has(r.id),
+    );
     const rowForRule = r => `
       <div class="pact-toggle-row invite-pact-readonly">
         <span class="pact-toggle-name">${escapeHtml(r.label)}</span>
@@ -109,6 +176,10 @@ export function buildPactSummaryCardHtml(p, head) {
       </div>`;
     const breachRows = breachRules.map(rowForRule).join("");
     const automationRows = automationRules.map(rowForRule).join("");
+    const automationSection =
+        automationRows.length > 0
+            ? `<p class="pact-rules-subheading">automation tasks</p>${automationRows}`
+            : "";
     const stakeLabel = "Mandatory ETH stake";
     const sv = Number(p.stakeEth);
     const hasStake = Number.isFinite(sv) && sv > 0;
@@ -123,9 +194,8 @@ export function buildPactSummaryCardHtml(p, head) {
     <div class="invite-pact-card">
       <div class="pact-rules-heading">${titleInner}</div>
       <p class="pact-rules-lead">${leadInner}</p>
-      <p class="pact-rules-subheading">automation tasks</p>
-      ${automationRows}
-      <p class="pact-rules-subheading pact-rules-subheading--spaced">breach triggers</p>
+      ${automationSection}
+      <p class="pact-rules-subheading${automationSection ? " pact-rules-subheading--spaced" : ""}">breach triggers</p>
       ${breachRows}
       ${stakeRow}
     </div>`;
@@ -158,6 +228,7 @@ export function buildPact() {
         name: state.myName,
         key: state.myAxlKey,
         triggers: state.triggers,
+        customRules: sanitizeCustomPactRules(state.customPactRules),
         coupleId: state.coupleId,
         ts: Date.now(),
         stakeEth,
@@ -211,10 +282,11 @@ export function renderJoinPactPreview(container, pact) {
     }
     const se = Number(pact.stakeEth);
     const stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
-    const t = (pact.triggers || []).filter(x => PACT_TRIGGER_IDS.includes(x));
+    const allIds = getAllTriggerIds(pact.customRules || []);
+    const t = (pact.triggers || []).filter(x => allIds.includes(x));
     const n = escapeHtml(pact.name);
     const html = buildPactSummaryCardHtml(
-        { triggers: t, stakeEth },
+        { triggers: t, stakeEth, customRules: pact.customRules || [] },
         {
             heading: "you are joining this Claw",
             lead: `Invited by <strong class="pact-partner-name">${n}</strong> — review the pact before you connect.`,

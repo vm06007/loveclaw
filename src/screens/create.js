@@ -4,7 +4,6 @@ import { buildPact, renderQR, generateKey, PACT_RULES, renderInvitePactSummary }
 import {
     PACT_TRIGGER_IDS,
     PACT_BREACH_TRIGGER_IDS,
-    PACT_AUTOMATION_TRIGGER_IDS,
 } from "../lib/pact-triggers.js";
 import { axl } from "../axl/client.js";
 import { startAxlPoll } from "../axl/poll.js";
@@ -75,16 +74,9 @@ export function renderPactRuleToggles() {
     mount.replaceChildren();
 
     const breachRules = PACT_RULES.filter(r => PACT_BREACH_TRIGGER_IDS.includes(r.id));
-    const automationRules = PACT_RULES.filter(r => PACT_AUTOMATION_TRIGGER_IDS.includes(r.id));
-
-    const autoHeading = document.createElement("p");
-    autoHeading.className = "pact-rules-subheading";
-    autoHeading.textContent = "automation tasks";
-    mount.appendChild(autoHeading);
-    automationRules.forEach(rule => appendPactRuleBlock(mount, rule));
 
     const breachHeading = document.createElement("p");
-    breachHeading.className = "pact-rules-subheading pact-rules-subheading--spaced";
+    breachHeading.className = "pact-rules-subheading";
     breachHeading.textContent = "breach triggers";
     mount.appendChild(breachHeading);
     breachRules.forEach(rule => appendPactRuleBlock(mount, rule));

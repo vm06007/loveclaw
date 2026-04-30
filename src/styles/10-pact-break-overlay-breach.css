@@ -211,6 +211,47 @@ button.pact-category-heading::-moz-focus-inner {
     font-size: 9px;
     color: var(--text-dim);
 }
+.pact-edit-row--breach {
+    justify-content: space-between;
+    gap: 10px;
+}
+.pact-edit-row-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    cursor: pointer;
+}
+.pact-edit-trigger-delete {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(255, 80, 80, 0.35);
+    border-radius: 3px;
+    background: rgba(255, 80, 80, 0.08);
+    color: var(--red, #e85555);
+    cursor: pointer;
+    line-height: 0;
+}
+.pact-edit-trigger-delete:hover,
+.pact-edit-trigger-delete:focus-visible {
+    border-color: rgba(255, 80, 80, 0.65);
+    background: rgba(255, 80, 80, 0.15);
+    color: #ff8a8a;
+}
+.pact-edit-trigger-delete-svg {
+    display: block;
+    pointer-events: none;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+}
 .pact-edit-checkbox.pact-toggle-input {
     margin-top: 0;
     border-radius: 2px;

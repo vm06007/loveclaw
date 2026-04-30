@@ -14,7 +14,61 @@
     --border:   #1e1e3a;
     --text:     #e8e8f0;
     --text-dim: #6b6b90;
-    --muted:    #444466; /* loveclaw-app :root --muted */
+    --muted:    #444466;
     --font:     'Press Start 2P', monospace;
     --radius:   4px;
+}
+
+/* ── Light mode overrides ───────────────────────────────── */
+[data-theme="light"] {
+    --bg:       #f2f2ff;
+    --bg2:      #e8e8f8;
+    --bg3:      #dcdcf0;
+    --border:   #c0c0e0;
+    --text:     #0a0a1e;
+    --text-dim: #4a4a70;
+    --muted:    #a0a0cc;
+}
+[data-theme="light"] body {
+    background: var(--bg);
+    color: var(--text);
+}
+[data-theme="light"] .dash-top,
+[data-theme="light"] .home-topbar,
+[data-theme="light"] .install-banner {
+    background: var(--bg2);
+    border-color: var(--border);
+}
+[data-theme="light"] .dash-logo,
+[data-theme="light"] .topbar-logo {
+    color: var(--text);
+}
+[data-theme="light"] .install-banner {
+    background: linear-gradient(90deg, #dde0f8, #ead8f8);
+}
+[data-theme="light"] .notif-banner {
+    background: linear-gradient(90deg, #f8ddd8, #f8d8e8);
+}
+[data-theme="light"] .screen {
+    background: var(--bg);
+}
+[data-theme="light"] .dash-tabs {
+    background: var(--bg3);
+    border-color: var(--border);
+}
+[data-theme="light"] .tab {
+    color: var(--text-dim);
+}
+[data-theme="light"] .tab.active {
+    color: var(--teal-d);
+    border-color: var(--teal-d);
+}
+[data-theme="light"] .dash-pill-btn {
+    background: var(--bg3);
+    border-color: var(--border);
+    color: var(--text-dim);
+}
+[data-theme="light"] .btn-theme-toggle {
+    border-color: var(--border);
+    color: var(--text-dim);
 }

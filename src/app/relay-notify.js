@@ -1,16 +1,19 @@
 /**
  * Web Push subscription + SSE fallback for in-app notifications.
  * Uses Vite proxy /relay/* → http://127.0.0.1:9090/* to avoid mixed-content blocks.
+ * Relay is opt-in: start with --relay flag or LOVECLAW_RELAY=1.
  */
 
 import { state } from "../lib/state.js";
 
+const RELAY_ENABLED = import.meta.env.VITE_RELAY === "1";
 // All relay calls go through the Vite proxy (same origin, no mixed-content)
 const RELAY = "/relay";
 
 let _es = null;
 
 export async function initRelayNotify() {
+    if (!RELAY_ENABLED) return;
     if (!("Notification" in window)) {
         fetch(`${RELAY}/debug`, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ error: "Notification API not available" }) }).catch(() => {});
