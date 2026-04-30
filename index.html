@@ -597,6 +597,30 @@
 
   </div>
 
+  <!-- Vault deposit address modal -->
+  <div class="modal-sheet vault-deposit-sheet hidden" id="modal-vault-deposit" aria-modal="true" role="dialog" aria-labelledby="vault-deposit-title">
+    <div class="vault-deposit-modal">
+      <div class="vault-deposit-head">
+        <span class="vault-deposit-title" id="vault-deposit-title">mutual vault</span>
+        <button class="lc-profile-icon-btn" id="vault-deposit-close" aria-label="close">✕</button>
+      </div>
+      <div class="vault-deposit-body">
+        <p class="vault-deposit-hint">deposit ETH or USDC to the shared vault contract:</p>
+        <div class="vault-deposit-qr-wrap" id="vault-deposit-qr-wrap"></div>
+        <div class="vault-deposit-addr-row">
+          <code class="vault-deposit-addr" id="vault-deposit-addr"></code>
+          <button type="button" class="vault-deposit-copy-btn" id="vault-deposit-copy" title="Copy address">
+            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+              <rect x="3" y="1" width="7" height="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+              <rect x="1" y="3" width="7" height="9" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+        <p class="vault-deposit-copied hidden" id="vault-deposit-copied">copied!</p>
+      </div>
+    </div>
+  </div>
+
   <!-- 0G Storage success modal -->
   <div class="modal-sheet lc-zg-store-sheet hidden" id="modal-zg-store" aria-modal="true" role="dialog">
     <div class="lc-zg-store-modal">
