@@ -99,6 +99,12 @@ export default defineConfig({
           }
         },
       },
+      "/uniswap": {
+        target: "https://trade-api.gateway.uniswap.org",
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/uniswap/, ""),
+        secure: true,
+      },
     },
   },
   envPrefix: ["VITE_", "TAURI_ENV_*"],

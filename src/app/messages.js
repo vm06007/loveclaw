@@ -176,36 +176,43 @@ export function handleAxlMessage(msg) {
             onShareLocationCancelMessage();
             break;
         case "swap_propose":
+            if (msg.from === state.myName) break; // ignore own echo
             if (msg.intent && msg.summary) {
-                state.swapIncoming = { intent: msg.intent, summary: msg.summary, from: msg.from, ts: msg.ts };
+                state.swapPending   = null;
+                state.swapExecuting = null;
+                state.swapResult    = null;
+                state.swapIncoming  = { intent: msg.intent, summary: msg.summary, from: msg.from, ts: msg.ts };
                 saveState(state);
                 void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
+                void import("./ping.js").then(m => m.bumpPingBadge?.());
             }
             break;
         case "swap_confirm":
+            if (msg.from === state.myName) break; // ignore own echo
             if (state.swapPending) {
                 state.swapPending.partnerConfirmed = true;
                 saveState(state);
                 void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
             }
             break;
+        case "swap_executing":
+            state.swapIncoming  = null;
+            state.swapPending   = null;
+            state.swapExecuting = { summary: msg.summary };
+            saveState(state);
+            void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
+            break;
         case "swap_deny":
-            if (state.swapPending) {
-                state.swapPending = null;
-                saveState(state);
-                void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
-            }
+            state.swapPending  = null;
+            state.swapIncoming = null;
+            saveState(state);
+            void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
             break;
         case "swap_result":
-            if (msg.txHash) {
-                void import("./ping.js").then(m =>
-                    m.handleAgenticChatLine?.({
-                        text: `Vault swap executed! tx: ${msg.txHash}`,
-                        from: msg.from,
-                        ts: msg.ts,
-                    })
-                );
-            }
+            state.swapExecuting = null;
+            state.swapResult    = { txHash: msg.txHash, summary: msg.summary };
+            saveState(state);
+            void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
             break;
         default:
             break;

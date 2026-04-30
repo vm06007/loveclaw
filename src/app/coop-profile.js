@@ -519,7 +519,8 @@ export function openCoopProfile(who) {
                 renderTodayTab();
                 if (state.paired) {
                     const ok = await sendMyProfileToCoop();
-                    showProfileToast(ok ? "Photo shared with coop" : "Photo saved (will sync when online)");
+                    const partnerLabel = (state.partnerName || "").trim() || "partner";
+                    showProfileToast(ok ? `Photo shared with ${partnerLabel}` : "Photo saved (will sync when online)");
                 }
             } catch (e) {
                 console.warn("[profile] avatar", e);

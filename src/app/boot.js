@@ -106,8 +106,14 @@ export async function boot() {
         state.paired = false;
         state.breakPactIncoming = null;
         state.breakPactOutgoingPending = false;
-        saveState(state);
     }
+
+    // Swap state is session-only — clear on every boot so stale proposals don't linger.
+    state.swapPending   = null;
+    state.swapIncoming  = null;
+    state.swapExecuting = null;
+    state.swapResult    = null;
+    saveState(state);
 
     const params = new URLSearchParams(location.search);
     if (params.get("pact")) {

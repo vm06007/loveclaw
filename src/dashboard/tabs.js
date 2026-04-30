@@ -21,6 +21,7 @@ export function initDashboardTabs() {
             }
             if (tab.dataset.tab === "chat") {
                 clearPingBadge();
+                void import("./render.js").then(m => m.renderSwapProposal?.());
             }
             syncPactBadge();
             syncPactBreakOverlay();

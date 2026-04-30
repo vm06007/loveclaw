@@ -375,7 +375,7 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
 .today-couple-labels {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
+    margin-top: 4px;
     padding: 0 8px;
     font-size: 8px;
     color: var(--text-dim);
@@ -438,11 +438,13 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     min-height: 32px;
     padding-left: 10px;
 }
+.today-budget-main-row > #today-budget-toggle { margin-left: auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.today-budget-refresh.spinning .today-budget-toggle-glyph { display: inline-block; animation: spin 0.6s linear infinite; }
 .today-budget-main-row::before {
     content: "●";
     position: absolute;
@@ -568,25 +570,45 @@ button.today-avatar.today-avatar--partner:not(:disabled):active {
     border-color: rgba(93, 202, 165, 0.72);
     background: rgba(93, 202, 165, 0.16);
 }
+.today-budget-send-btn {
+    flex: 0 0 auto;
+    color: #6ea8fe;
+    border-color: rgba(110, 168, 254, 0.5);
+    background: rgba(110, 168, 254, 0.08);
+}
+.today-budget-send-glyph svg {
+    margin-left: 0;
+}
+.today-budget-send-glyph svg rect {
+    fill: currentColor;
+}
+.today-budget-send-btn:hover,
+.today-budget-send-btn:focus-visible {
+    color: #9dc3ff;
+    border-color: rgba(110, 168, 254, 0.72);
+    background: rgba(110, 168, 254, 0.16);
+}
 /* Vault deposit modal */
 .vault-deposit-sheet {
     position: fixed;
     inset: 0;
     z-index: 900;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     background: rgba(7, 7, 15, 0.72);
     backdrop-filter: blur(4px);
+    padding: 20px;
 }
 .vault-deposit-modal {
     width: 100%;
     max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
     background: var(--bg2);
     border: 1px solid rgba(93, 202, 165, 0.35);
-    border-bottom: none;
-    border-radius: 12px 12px 0 0;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 20px 20px 28px;
     font-family: 'Press Start 2P', monospace;
 }
 .vault-deposit-head {

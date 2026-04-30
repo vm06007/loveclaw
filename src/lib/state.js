@@ -43,8 +43,11 @@ const DEFAULT_STATE = {
     pactChangesIncoming: null,
     pactChangesOutgoingPending: false,
     pactChangesOutgoingProposal: null,
+    coupleVaultAddress: "",   // shared deposit address — separate from individual agent wallets
     swapPending: null,
     swapIncoming: null,
+    swapExecuting: null,
+    swapResult: null,
     customPactRules: [],
     /** Built-in breach ids removed from the pact (hidden from edit list until reset). */
     omittedBaseBreachTriggerIds: [],

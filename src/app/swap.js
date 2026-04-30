@@ -3,9 +3,23 @@
  * Uses the Uniswap Trading API v1 (https://trade-api.gateway.uniswap.org/v1).
  */
 import { state } from "../lib/state.js";
-import { decryptStoredKey } from "../lib/agent-key-store.js";
+import { encryptAndStoreVaultKey, decryptStoredVaultKey, hasEncryptedVaultKey } from "../lib/agent-key-store.js";
 
-const UNISWAP_API = "https://trade-api.gateway.uniswap.org/v1";
+const VAULT_FALLBACK    = String(import.meta.env.VITE_VAULT_ADDRESS     || "").trim();
+const VAULT_DEFAULT_KEY = String(import.meta.env.VITE_VAULT_PRIVATE_KEY || "").trim();
+const VAULT_DEFAULT_PIN = String(import.meta.env.VITE_VAULT_PIN         || "").trim();
+
+function getVaultAddr() {
+    return String(state.coupleVaultAddress || VAULT_FALLBACK).trim();
+}
+
+async function ensureVaultKey() {
+    if (!hasEncryptedVaultKey()) {
+        await encryptAndStoreVaultKey(VAULT_DEFAULT_KEY, VAULT_DEFAULT_PIN);
+    }
+}
+
+const UNISWAP_API = "/uniswap/v1";
 const CHAIN_ID = 1; // Ethereum mainnet
 
 export const KNOWN_TOKENS = {
@@ -100,12 +114,13 @@ export function formatQuoteSummary(intent, quoteResp) {
     }
 }
 
-export async function executeSwap(intent, pin = "0000") {
+export async function executeSwap(intent) {
+    await ensureVaultKey();
+    const pin = VAULT_DEFAULT_PIN;
     const key = getUniswapKey();
     if (!key) throw new Error("No Uniswap API key.");
 
-    const swapper = String(state.myProfile?.agentWalletAddress || "").trim();
-    if (!swapper) throw new Error("No agent wallet registered. Set up your agent in the profile modal first.");
+    const swapper = getVaultAddr();
 
     // Fresh quote at execution time (quotes expire in ~30s)
     const quoteResp = await fetchSwapQuote(intent, swapper);
@@ -123,9 +138,26 @@ export async function executeSwap(intent, pin = "0000") {
     const { swap } = await swapRes.json();
     if (!swap?.data) throw new Error("Swap API returned no transaction data.");
 
-    const privateKey = await decryptStoredKey(pin);
+    const privateKey = await decryptStoredVaultKey(pin);
     const { ethers } = await import("https://esm.sh/ethers@6.13.0");
-    const provider = new ethers.JsonRpcProvider("https://eth.llamarpc.com");
+    const RPC_CANDIDATES = [
+        "https://cloudflare-eth.com",
+        "https://ethereum.publicnode.com",
+        "https://rpc.ankr.com/eth",
+        "https://eth.llamarpc.com",
+    ];
+    let provider;
+    for (const rpcUrl of RPC_CANDIDATES) {
+        try {
+            const p = new ethers.JsonRpcProvider(rpcUrl);
+            await p.getTransactionCount(new ethers.Wallet(privateKey).address, "pending");
+            provider = p;
+            break;
+        } catch {
+            // try next
+        }
+    }
+    if (!provider) throw new Error("All RPC endpoints are unavailable or rate-limited.");
     const wallet = new ethers.Wallet(privateKey, provider);
 
     const tx = await wallet.sendTransaction({

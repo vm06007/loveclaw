@@ -1,64 +1,75 @@
-/* ── Swap proposal overlay ──────────────────────────────── */
-.swap-proposal-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 60;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(7, 7, 15, 0.88);
-    backdrop-filter: blur(4px);
-}
-.swap-proposal-overlay.hidden { display: none; }
-
-.swap-proposal-inner {
-    background: var(--bg2);
+/* ── Swap proposal chat bubble ───────────────────────────── */
+.chat-bubble--swap {
+    background: rgba(29, 158, 117, 0.08);
     border: 1px solid var(--teal-d);
-    border-radius: 10px;
-    padding: 24px 20px;
-    width: min(340px, 88vw);
+    color: var(--text);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 0 24px rgba(29, 158, 117, 0.25);
+    gap: 6px;
+    max-width: 82%;
+    padding: 10px 14px;
 }
 
-.swap-proposal-label {
+.swap-bubble-label {
     font-family: var(--font);
-    font-size: 8px;
+    font-size: 7px;
     color: var(--teal);
     letter-spacing: 1px;
     text-transform: lowercase;
-    margin: 0;
 }
 
-.swap-proposal-summary {
+.swap-bubble-summary {
     font-family: var(--font);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text);
-    margin: 0;
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
-.swap-proposal-status {
+.swap-bubble-status {
     font-family: var(--font);
     font-size: 7px;
     color: var(--text-dim);
-    margin: 0;
-    min-height: 1em;
 }
 
-.swap-proposal-actions {
+.swap-bubble-btns {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    margin-top: 4px;
 }
-.swap-proposal-actions.hidden { display: none; }
-.swap-proposal-actions .btn { flex: 1; font-size: 7px; padding: 10px 8px; }
+.swap-bubble-btns .btn { flex: 1; font-size: 7px; padding: 8px 6px; }
 
-.swap-proposal-execute {
-    font-size: 7px;
-    padding: 10px 8px;
-    border-color: var(--teal-d);
+.chat-bubble--swap.swap-bubble--executing .swap-bubble-status {
+    color: var(--amber);
+    animation: swap-pulse 1s ease-in-out infinite;
+}
+@keyframes swap-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+.chat-bubble--swap.swap-bubble--done {
+    border-color: var(--teal);
+}
+.chat-bubble--swap.swap-bubble--done .swap-bubble-status {
     color: var(--teal);
 }
-.swap-proposal-execute:disabled { opacity: 0.5; cursor: not-allowed; }
+.swap-bubble-tx {
+    font-size: 6px;
+    word-break: break-all;
+    opacity: 0.75;
+}
+.swap-bubble-tx--link {
+    color: var(--teal);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+}
+.swap-bubble-tx--link:hover {
+    opacity: 1;
+    color: #8de8c8;
+}
+
+.chat-bubble--swap.swap-bubble--error .swap-bubble-status {
+    color: var(--red);
+}

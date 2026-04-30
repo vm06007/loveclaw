@@ -12,11 +12,18 @@ import {
 } from "./storage.js";
 import { resolveWalletAddress } from "./wallet.js";
 
+const CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+};
+
 function json(res: unknown, status = 200) {
     return new Response(JSON.stringify(res), {
         status,
         headers: {
             "Content-Type": "application/json; charset=utf-8",
+            ...CORS_HEADERS,
         },
     });
 }
@@ -74,14 +81,16 @@ async function handleApi(req: Request, pathname: string) {
     }
 
     if (pathname === "/api/upload" && req.method === "POST") {
-        if (!pk) {
-            return json({ error: "PRIVATE_KEY missing in .env.local" }, 400);
-        }
-        let body: { text?: string };
+        let body: { text?: string; privateKey?: string };
         try {
-            body = (await req.json()) as { text?: string };
+            body = (await req.json()) as { text?: string; privateKey?: string };
         } catch {
             return json({ error: "Invalid JSON body" }, 400);
+        }
+        // Accept key from request body (PIN-decrypted by browser) or fall back to .env.local
+        const useKey = (body.privateKey ?? "").trim() || pk;
+        if (!useKey) {
+            return json({ error: "privateKey required — register your agent and set a PIN first" }, 400);
         }
         const text = body.text ?? "";
         if (text.length > 512 * 1024) {
@@ -90,7 +99,7 @@ async function handleApi(req: Request, pathname: string) {
         try {
             const { rootHash, txHash, txSeq } = await uploadUtf8Text(
                 { rpcUrl: ep.rpcUrl, indexerRpc: ep.indexerRpc },
-                pk,
+                useKey,
                 text,
             );
             const chainBase = chainScanUrl(ep.network);
@@ -240,6 +249,11 @@ for (const port of portRange) {
             async fetch(req) {
                 const url = new URL(req.url);
                 const pathname = url.pathname.replace(/\/$/, "") || "/";
+
+                // CORS preflight
+                if (req.method === "OPTIONS") {
+                    return new Response(null, { status: 204, headers: CORS_HEADERS });
+                }
 
                 if (pathname.startsWith("/api/")) {
                     return handleApi(req, pathname);
