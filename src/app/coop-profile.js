@@ -517,6 +517,10 @@ export function openCoopProfile(who) {
                 avatar.appendChild(im);
                 syncRemovePhotoVisibility();
                 renderTodayTab();
+                if (state.paired) {
+                    const ok = await sendMyProfileToCoop();
+                    showProfileToast(ok ? "Photo shared with coop" : "Photo saved (will sync when online)");
+                }
             } catch (e) {
                 console.warn("[profile] avatar", e);
             }
@@ -541,7 +545,7 @@ export function openCoopProfile(who) {
             );
             rmBtn.classList.toggle("hidden", !hasAvatar);
         };
-        rmBtn.addEventListener("click", () => {
+        rmBtn.addEventListener("click", async () => {
             const cur = { ...EMPTY_MY_PROFILE, ...(state.myProfile || {}) };
             state.myProfile = { ...cur, avatarDataUrl: "" };
             saveState(state);
@@ -549,6 +553,10 @@ export function openCoopProfile(who) {
             avatar.textContent = nMe;
             syncRemovePhotoVisibility();
             renderTodayTab();
+            if (state.paired) {
+                const ok = await sendMyProfileToCoop();
+                showProfileToast(ok ? "Photo removed for coop" : "Photo removed (will sync when online)");
+            }
         });
         syncRemovePhotoVisibility();
 

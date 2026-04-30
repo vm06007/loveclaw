@@ -175,6 +175,38 @@ export function handleAxlMessage(msg) {
         case "share_location_cancel":
             onShareLocationCancelMessage();
             break;
+        case "swap_propose":
+            if (msg.intent && msg.summary) {
+                state.swapIncoming = { intent: msg.intent, summary: msg.summary, from: msg.from, ts: msg.ts };
+                saveState(state);
+                void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
+            }
+            break;
+        case "swap_confirm":
+            if (state.swapPending) {
+                state.swapPending.partnerConfirmed = true;
+                saveState(state);
+                void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
+            }
+            break;
+        case "swap_deny":
+            if (state.swapPending) {
+                state.swapPending = null;
+                saveState(state);
+                void import("../dashboard/render.js").then(m => m.renderSwapProposal?.());
+            }
+            break;
+        case "swap_result":
+            if (msg.txHash) {
+                void import("./ping.js").then(m =>
+                    m.handleAgenticChatLine?.({
+                        text: `Vault swap executed! tx: ${msg.txHash}`,
+                        from: msg.from,
+                        ts: msg.ts,
+                    })
+                );
+            }
+            break;
         default:
             break;
     }

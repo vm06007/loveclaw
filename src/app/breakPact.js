@@ -36,6 +36,7 @@ export function applyBreakPactUnpair() {
     state.pactChangesOutgoingProposal = null;
     state.partnerTrustScore = 100;
     state.partnerProfile = { ...EMPTY_PARTNER_PROFILE };
+    state.omittedBaseBreachTriggerIds = [];
     saveState(state);
     syncPactBadge();
     syncPactBreakOverlay();
@@ -99,7 +100,10 @@ export function syncPactChangesOverlay() {
         titleEl.textContent = `${who} proposed pact changes`;
     }
     if (diffEl && incoming?.proposal) {
-        const d = computePactProposalDiff(state.triggers, state.stakeEth, incoming.proposal);
+        const d = computePactProposalDiff(state.triggers, state.stakeEth, incoming.proposal, {
+            customRules: state.customPactRules,
+            omittedBaseBreachTriggerIds: state.omittedBaseBreachTriggerIds,
+        });
         diffEl.textContent = formatPactProposalDiffPlain(d);
     } else if (diffEl) {
         diffEl.textContent = "";

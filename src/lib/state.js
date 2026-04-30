@@ -43,6 +43,8 @@ const DEFAULT_STATE = {
     pactChangesIncoming: null,
     pactChangesOutgoingPending: false,
     pactChangesOutgoingProposal: null,
+    swapPending: null,
+    swapIncoming: null,
     customPactRules: [],
     /** Built-in breach ids removed from the pact (hidden from edit list until reset). */
     omittedBaseBreachTriggerIds: [],
