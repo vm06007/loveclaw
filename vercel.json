@@ -1,6 +1,5 @@
 {
     "rewrites": [
-        { "handle": "filesystem" },
         {
             "source": "/uniswap/:path*",
             "destination": "https://trade-api.gateway.uniswap.org/:path*"
