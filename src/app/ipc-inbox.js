@@ -17,7 +17,15 @@ function routeIncoming(msg) {
     if (_seen.size > 200) {
         _seen.clear();
     }
-    if (msg.type === "axl_handshake" && !state.paired) {
+    // Inviter tab: partner mesh key is unknown until joiner sends handshake (joiner already has inviter key from pact).
+    if (
+        msg.type === "axl_handshake"
+        && msg.key
+        && msg.key !== state.myAxlKey
+        && !state.paired
+        && !state.partnerAxlKey
+        && String(state.myAxlKey || "").trim()
+    ) {
         state.partnerAxlKey = msg.key;
         completePairing(msg.name);
         return;

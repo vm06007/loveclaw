@@ -343,7 +343,8 @@
                     <span class="today-budget-breakdown-values">
                         <span class="today-token-chip">
                             <span class="today-token-icon today-token-icon--eth" aria-hidden="true">Ξ</span>
-                        </span>, 
+                            <span id="today-budget-eth">0.00</span> ETH
+                        </span>,
                         <span class="today-token-chip">
                             <span class="today-token-icon today-token-icon--usdc" aria-hidden="true">$</span>
                             <span id="today-budget-usdc">0.00</span> USDC
@@ -561,10 +562,13 @@
           <div class="btn-quick-wrap" id="btn-quick-wrap">
             <div class="quick-menu" id="quick-menu" aria-hidden="true">
               <button type="button" class="quick-menu-item" id="quick-ping">
-                <span class="quick-menu-icon">◎</span> Test Ping
+                <span class="quick-menu-icon"><svg viewBox="0 0 12 12" width="12" height="12" fill="currentColor" aria-hidden="true"><rect x="5" y="1" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="7" y="3" width="2" height="2"/><rect x="1" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="3" y="7" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/></svg></span> Test Ping
               </button>
               <button type="button" class="quick-menu-item" id="quick-swap">
-                <span class="quick-menu-icon">⇄</span> Test Swap
+                <span class="quick-menu-icon"><svg viewBox="0 0 12 12" width="12" height="12" fill="currentColor" aria-hidden="true"><rect x="1" y="3" width="7" height="2"/><rect x="8" y="1" width="2" height="2"/><rect x="8" y="5" width="2" height="2"/><rect x="4" y="7" width="7" height="2"/><rect x="2" y="5" width="2" height="2"/><rect x="2" y="9" width="2" height="2"/></svg></span> Test Swap
+              </button>
+              <button type="button" class="quick-menu-item" id="quick-pact">
+                <span class="quick-menu-icon"><svg viewBox="0 0 12 12" width="12" height="12" fill="currentColor" aria-hidden="true"><rect x="2" y="1" width="8" height="1"/><rect x="1" y="2" width="1" height="8"/><rect x="10" y="2" width="1" height="8"/><rect x="2" y="10" width="8" height="1"/><rect x="3" y="3" width="6" height="1"/><rect x="3" y="5" width="6" height="1"/><rect x="3" y="7" width="4" height="1"/></svg></span> Test Pact
               </button>
             </div>
             <button type="button" class="btn-quick" id="btn-quick" title="Quick actions" aria-label="Quick actions" aria-expanded="false">

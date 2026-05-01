@@ -10,6 +10,25 @@ import { handleAxlMessage } from "./messages.js";
 import { renderPingStatus } from "./ping.js";
 
 /**
+ * `?role=alice` / `?role=boris`, or production paths `/alice` / `/boris` (see `vercel.json`).
+ * Query wins if both are present.
+ */
+function parseRoleFromLocation() {
+    const q = new URLSearchParams(location.search).get("role");
+    if (q && String(q).trim()) {
+        return String(q).trim().toLowerCase();
+    }
+    const raw = (location.pathname || "/").replace(/\/+$/, "") || "/";
+    if (raw === "/alice") {
+        return "alice";
+    }
+    if (raw === "/boris") {
+        return "boris";
+    }
+    return null;
+}
+
+/**
  * Match window title "LoveClaw — Alice": capitalize role when name matches role or name is absent.
  */
 function displayNameFromInstance(role, name) {
@@ -59,7 +78,7 @@ function maybeTauriSessionReset() {
 
 export async function boot() {
     const urlParams = new URLSearchParams(location.search);
-    const urlRole = urlParams.get("role");
+    const urlRole = parseRoleFromLocation();
     /** Same idea as title "LoveClaw — Alice"; fill inputs whenever they are still empty. */
     let instanceDisplayName = "";
 

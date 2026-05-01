@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/axl9002/:path*",
+            "destination": "https://YOUR_ALICE_API_HOST/:path*"
+        },
+        {
+            "source": "/axl9012/:path*",
+            "destination": "https://YOUR_BORIS_API_HOST/:path*"
+        }
+    ]
+}

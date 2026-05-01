@@ -92,6 +92,15 @@
     margin: 0 0 12px;
     padding: 0 0 0 2px;
 }
+.home-info-hint__webdemo {
+    display: block;
+    margin-top: 8px;
+    opacity: 0.95;
+}
+.home-info-hint__webdemo code {
+    font-size: inherit;
+    word-break: break-all;
+}
 .home-screen-inner .logo-wrap {
     padding-top: 20px;
 }

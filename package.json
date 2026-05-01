@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bash run.sh",
     "dev": "vite",
+    "phone-demo": "bash scripts/phone-demo-ngrok.sh",
     "dev:https": "LOVECLAW_DEV_HTTPS=1 vite",
     "build": "vite build",
     "preview": "vite preview",

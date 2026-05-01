@@ -1,0 +1,10 @@
+# Copy to e.g. ngrok-two-axl.yml and run: ngrok start --all --config ngrok-two-axl.yml
+# Requires ngrok authtoken. Gives two HTTPS URLs — paste into Vercel DEMO_AX_9002_URL / DEMO_AX_9012_URL.
+version: "2"
+tunnels:
+    alice_axl:
+        proto: http
+        addr: 9002
+    boris_axl:
+        proto: http
+        addr: 9012

@@ -39,6 +39,28 @@ function getLanIPv4() {
     return hit || addrs[0] || null;
 }
 
+/** `/alice` and `/boris` serve the SPA like `/` (matches Vercel rewrites). Browser URL unchanged. */
+function pathRoleSpaPlugin() {
+    const rewrite = (req, _res, next) => {
+        const u = req.url || "";
+        const pathname = u.split("?")[0];
+        if (pathname === "/alice" || pathname === "/alice/" || pathname === "/boris" || pathname === "/boris/") {
+            const qs = u.includes("?") ? u.slice(u.indexOf("?")) : "";
+            req.url = `/${qs}`;
+        }
+        next();
+    };
+    return {
+        name: "loveclaw-path-roles",
+        configureServer(server) {
+            server.middlewares.use(rewrite);
+        },
+        configurePreviewServer(server) {
+            server.middlewares.use(rewrite);
+        },
+    };
+}
+
 function localIpPlugin() {
     const handler = (req, res, next) => {
         const path = (req.url || "").split("?")[0];
@@ -70,7 +92,7 @@ const axlProxy = (port) => ({
 });
 
 export default defineConfig({
-  plugins: [localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
+  plugins: [pathRoleSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
   define: {
     "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
   },
@@ -80,7 +102,7 @@ export default defineConfig({
     strictPort: true,
     host: devServerHost,
     /* So https://*.ngrok-free.app (etc.) proxied to this dev server passes Vite’s host check */
-    allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app", ".ngrok.dev"],
+    allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app", ".ngrok.dev", ".loveclaw.app"],
     hmr: tauriHost
       ? { protocol: "ws", host: tauriHost, port: 1421 }
       : undefined,

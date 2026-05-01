@@ -59,7 +59,7 @@ export function initJoinScreen() {
         const se = Number(pact.stakeEth);
         state.stakeEth = Number.isFinite(se) && se >= 0 ? se : 0;
         state.createdAt = Date.now();
-        state.paired = true;
+        state.paired = false;
         state.myAxlKey = "";
 
         const joinBtn = document.getElementById("btn-join-submit");

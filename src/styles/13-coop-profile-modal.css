@@ -471,14 +471,14 @@ button.today-avatar:not(:disabled):focus-visible {
     z-index: 1100;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
+    gap: 18px;
+    padding: 20px 26px;
     background: rgba(10, 10, 24, 0.96);
     border: 1px solid rgba(175, 169, 236, 0.45);
-    border-radius: 10px;
+    border-radius: 14px;
     box-shadow: 0 0 20px rgba(83, 74, 183, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: min(90vw, 340px);
+    max-width: min(90vw, 600px);
 }
 
 .lc-agent-reg-toast--show {
@@ -490,7 +490,7 @@ button.today-avatar:not(:disabled):focus-visible {
 .lc-agent-reg-toast__text {
     color: var(--purple-l, #AFA9EC);
     font-family: 'Press Start 2P', monospace;
-    font-size: 5px;
+    font-size: 10px;
     line-height: 1.6;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -501,9 +501,9 @@ button.today-avatar:not(:disabled):focus-visible {
     background: none;
     border: none;
     color: var(--purple-l, #AFA9EC);
-    font-size: 10px;
+    font-size: 20px;
     cursor: pointer;
-    padding: 2px 4px;
+    padding: 4px 8px;
     opacity: 0.7;
     transition: opacity 0.15s;
 }

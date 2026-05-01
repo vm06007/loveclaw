@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        { "source": "/alice", "destination": "/index.html" },
+        { "source": "/alice/", "destination": "/index.html" },
+        { "source": "/boris", "destination": "/index.html" },
+        { "source": "/boris/", "destination": "/index.html" }
+    ]
+}
