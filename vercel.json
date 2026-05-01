@@ -1,8 +1,6 @@
 {
     "rewrites": [
-        { "source": "/alice", "destination": "/index.html" },
-        { "source": "/alice/", "destination": "/index.html" },
-        { "source": "/boris", "destination": "/index.html" },
-        { "source": "/boris/", "destination": "/index.html" }
+        { "handle": "filesystem" },
+        { "source": "/(.*)", "destination": "/index.html" }
     ]
 }

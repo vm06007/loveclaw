@@ -122,8 +122,8 @@ fi
 
 say "Phones can open (HTTPS):"
 echo ""
-echo "  Inviter:  ${PUBLIC_URL}/alice   (or ${PUBLIC_URL}/?role=alice)"
-echo "  Partner:  ${PUBLIC_URL}/boris   (or ${PUBLIC_URL}/?role=boris)"
+echo "  Inviter:  ${PUBLIC_URL}/alice   (any /tag, e.g. /you /judge — or ?role=alice)"
+echo "  Partner:  ${PUBLIC_URL}/boris   (or ?role=boris)"
 echo ""
 echo "Flow: Alice tab → Create → Generate invite. Boris tab → Join → paste code."
 echo "ngrok web inspect: $NGROK_API"

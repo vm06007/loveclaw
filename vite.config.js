@@ -39,19 +39,39 @@ function getLanIPv4() {
     return hit || addrs[0] || null;
 }
 
-/** `/alice` and `/boris` serve the SPA like `/` (matches Vercel rewrites). Browser URL unchanged. */
-function pathRoleSpaPlugin() {
+/**
+ * `https://loveclaw.app/<tag>` (single path segment) serves the SPA like `/` (matches Vercel rewrites).
+ * Browser URL unchanged. Skips /api, /assets, AXL proxies, Vite internals.
+ */
+function pathInstanceSpaPlugin() {
+    const reserved = (p) =>
+        p === "/"
+        || p.startsWith("/api/")
+        || p.startsWith("/assets/")
+        || p.startsWith("/@")
+        || p.startsWith("/node_modules/")
+        || p.startsWith("/src/")
+        || p.startsWith("/axl9002")
+        || p.startsWith("/axl9012")
+        || p.startsWith("/relay")
+        || p.startsWith("/uniswap")
+        || p === "/local-ip";
     const rewrite = (req, _res, next) => {
         const u = req.url || "";
         const pathname = u.split("?")[0];
-        if (pathname === "/alice" || pathname === "/alice/" || pathname === "/boris" || pathname === "/boris/") {
+        if (reserved(pathname)) {
+            next();
+            return;
+        }
+        const m = /^\/([a-zA-Z0-9_-]{1,48})\/?$/.exec(pathname);
+        if (m) {
             const qs = u.includes("?") ? u.slice(u.indexOf("?")) : "";
             req.url = `/${qs}`;
         }
         next();
     };
     return {
-        name: "loveclaw-path-roles",
+        name: "loveclaw-path-instance",
         configureServer(server) {
             server.middlewares.use(rewrite);
         },
@@ -92,7 +112,7 @@ const axlProxy = (port) => ({
 });
 
 export default defineConfig({
-  plugins: [pathRoleSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
+  plugins: [pathInstanceSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
   define: {
     "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
   },

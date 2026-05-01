@@ -9,23 +9,38 @@ import { completePairing } from "./pairing.js";
 import { handleAxlMessage } from "./messages.js";
 import { renderPingStatus } from "./ping.js";
 
+/** Reserved one-segment paths (must not become storage keys). */
+const RESERVED_INSTANCE_TAGS = new Set([
+    "api",
+    "assets",
+    "favicon.ico",
+    "robots.txt",
+    "index.html",
+]);
+
 /**
- * `?role=alice` / `?role=boris`, or production paths `/alice` / `/boris` (see `vercel.json`).
- * Query wins if both are present.
+ * `?role=mytag` or a single path segment `https://loveclaw.app/mytag` (see `vercel.json`).
+ * Tag: lowercase letters, digits, `_`, `-`, max 48 chars. Query `role` wins if present.
  */
-function parseRoleFromLocation() {
+function parseInstanceTagFromLocation() {
     const q = new URLSearchParams(location.search).get("role");
     if (q && String(q).trim()) {
-        return String(q).trim().toLowerCase();
+        const t = String(q).trim().toLowerCase();
+        return /^[a-z0-9_-]{1,48}$/.test(t) && !RESERVED_INSTANCE_TAGS.has(t) ? t : null;
     }
     const raw = (location.pathname || "/").replace(/\/+$/, "") || "/";
-    if (raw === "/alice") {
-        return "alice";
+    if (raw === "/") {
+        return null;
     }
-    if (raw === "/boris") {
-        return "boris";
+    const m = /^\/([a-zA-Z0-9_-]{1,48})$/.exec(raw);
+    if (!m) {
+        return null;
     }
-    return null;
+    const tag = m[1].toLowerCase();
+    if (RESERVED_INSTANCE_TAGS.has(tag)) {
+        return null;
+    }
+    return tag;
 }
 
 /**
@@ -78,7 +93,7 @@ function maybeTauriSessionReset() {
 
 export async function boot() {
     const urlParams = new URLSearchParams(location.search);
-    const urlRole = parseRoleFromLocation();
+    const urlRole = parseInstanceTagFromLocation();
     /** Same idea as title "LoveClaw — Alice"; fill inputs whenever they are still empty. */
     let instanceDisplayName = "";
 
@@ -87,7 +102,13 @@ export async function boot() {
         if (roleKey !== getStorageKey()) {
             setStorageKeyAndReload(roleKey);
         }
-        axl.setPreferPort(urlRole === "boris" ? 9012 : 9002);
+        if (urlRole === "alice") {
+            axl.setPreferPort(9002);
+        } else if (urlRole === "boris") {
+            axl.setPreferPort(9012);
+        } else {
+            axl.setPreferPort(null);
+        }
         const urlNameParam = urlParams.get("name");
         instanceDisplayName =
             (urlNameParam && urlNameParam.trim()) || displayNameFromInstance(urlRole, null);
