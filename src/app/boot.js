@@ -13,6 +13,7 @@ import { renderPingStatus } from "./ping.js";
 const RESERVED_INSTANCE_TAGS = new Set([
     "api",
     "assets",
+    "welcome",
     "favicon.ico",
     "robots.txt",
     "index.html",

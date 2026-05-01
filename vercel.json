@@ -4,6 +4,25 @@
             "source": "/uniswap/:path*",
             "destination": "https://trade-api.gateway.uniswap.org/:path*"
         },
-        { "source": "/(.*)", "destination": "/index.html" }
+        {
+            "source": "/",
+            "destination": "/welcome/index.html",
+            "missing": [
+                { "type": "query", "key": "pact" },
+                { "type": "query", "key": "role" }
+            ]
+        },
+        {
+            "source": "/index.html",
+            "destination": "/welcome/index.html",
+            "missing": [
+                { "type": "query", "key": "pact" },
+                { "type": "query", "key": "role" }
+            ]
+        },
+        {
+            "source": "/((?!api/|assets/|welcome/|uniswap/|favicon\\.ico|robots\\.txt).*)",
+            "destination": "/index.html"
+        }
     ]
 }

@@ -40,6 +40,37 @@ function getLanIPv4() {
 }
 
 /**
+ * Bare `/` or `/index.html` without `?pact=` / `?role=` → marketing `public/welcome/index.html` (matches Vercel).
+ */
+function welcomeRootPlugin() {
+    const handler = (req, _res, next) => {
+        const u = req.url || "";
+        const pathname = u.split("?")[0];
+        if (pathname !== "/" && pathname !== "/index.html") {
+            next();
+            return;
+        }
+        const qs = u.includes("?") ? u.slice(u.indexOf("?") + 1) : "";
+        const sp = new URLSearchParams(qs);
+        if (sp.has("pact") || sp.has("role")) {
+            next();
+            return;
+        }
+        req.url = "/welcome/index.html";
+        next();
+    };
+    return {
+        name: "loveclaw-welcome-root",
+        configureServer(server) {
+            server.middlewares.use(handler);
+        },
+        configurePreviewServer(server) {
+            server.middlewares.use(handler);
+        },
+    };
+}
+
+/**
  * `https://loveclaw.app/<tag>` (single path segment) serves the SPA like `/` (matches Vercel rewrites).
  * Browser URL unchanged. Skips /api, /assets, AXL proxies, Vite internals.
  */
@@ -48,6 +79,8 @@ function pathInstanceSpaPlugin() {
         p === "/"
         || p.startsWith("/api/")
         || p.startsWith("/assets/")
+        || p.startsWith("/welcome/")
+        || p === "/welcome"
         || p.startsWith("/@")
         || p.startsWith("/node_modules/")
         || p.startsWith("/src/")
@@ -112,7 +145,7 @@ const axlProxy = (port) => ({
 });
 
 export default defineConfig({
-  plugins: [pathInstanceSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
+  plugins: [welcomeRootPlugin(), pathInstanceSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
   define: {
     "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
   },

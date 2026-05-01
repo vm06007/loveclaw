@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoveClaw — welcome</title>
+    <style>
+        :root {
+            --bg: #120a12;
+            --fg: #f4e6ee;
+            --muted: #9a7a8c;
+            --accent: #d4537e;
+            --accent-dim: #8f3d5a;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            background: radial-gradient(ellipse 120% 80% at 50% -20%, #2a1424 0%, var(--bg) 55%);
+            color: var(--fg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            margin: 0 0 8px;
+        }
+        h1 span {
+            color: var(--accent);
+        }
+        p.lead {
+            color: var(--muted);
+            max-width: 28rem;
+            line-height: 1.6;
+            margin: 0 0 28px;
+            font-size: 0.95rem;
+        }
+        .tag-box {
+            width: 100%;
+            max-width: 22rem;
+            margin-bottom: 28px;
+        }
+        .tag-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .tag-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .tag-form input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-dim);
+            background: rgba(0, 0, 0, 0.35);
+            color: var(--fg);
+            font-size: 1rem;
+        }
+        .tag-form input::placeholder {
+            color: var(--muted);
+            opacity: 0.85;
+        }
+        .tag-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(212, 83, 126, 0.25);
+        }
+        .prefill-label {
+            margin: 0 0 10px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: left;
+        }
+        .prefills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+        button.btn {
+            font: inherit;
+            cursor: pointer;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            border: 1px solid var(--accent-dim);
+            color: var(--fg);
+            background: rgba(212, 83, 126, 0.12);
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn:hover {
+            background: rgba(212, 83, 126, 0.22);
+            border-color: var(--accent);
+        }
+        .btn--primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .btn--primary:hover {
+            filter: brightness(1.08);
+        }
+        .note {
+            max-width: 32rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.55;
+            border-top: 1px solid rgba(212, 83, 126, 0.2);
+            padding-top: 20px;
+        }
+        code {
+            font-size: 0.78em;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+  </head>
+  <body>
+    <h1>LOVE<span>CLAW</span></h1>
+    <p class="lead">commit / protect / remember — pair with someone you trust, then share a dashboard built for two.</p>
+    <div class="tag-box">
+      <label class="tag-label" for="tag-input">Your device tag</label>
+      <form class="tag-form" id="tag-form" action="#" method="get">
+        <input
+          id="tag-input"
+          name="tag"
+          type="text"
+          maxlength="48"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          placeholder="type a tag, then open"
+        />
+        <button type="submit" class="btn btn--primary">Open</button>
+      </form>
+      <p class="prefill-label">Quick picks</p>
+      <div class="prefills">
+        <button type="button" class="btn" data-tag="alice">Alice</button>
+        <button type="button" class="btn" data-tag="boris">Boris</button>
+        <button type="button" class="btn" data-tag="yiying">Yiying</button>
+        <button type="button" class="btn" data-tag="vitally">Vitally</button>
+      </div>
+    </div>
+    <p class="note">
+      <strong>Invite link?</strong> If someone sent you a URL with <code>?pact=…</code>, open that full link on this domain — it opens the app directly. Each device should use a <strong>different</strong> tag (e.g.
+      <code>/alice</code> and <code>/boris</code>) so sessions stay separate.
+    </p>
+    <script>
+        (function () {
+            var TAG_RE = /^[a-zA-Z0-9_-]{1,48}$/;
+            function normalize(s) {
+                return String(s || "").trim().toLowerCase();
+            }
+            function go(tag) {
+                var t = normalize(tag);
+                if (!TAG_RE.test(t)) {
+                    window.alert("Use letters, numbers, underscore, or hyphen only (1–48 characters).");
+                    return;
+                }
+                var url = "/" + encodeURIComponent(t);
+                var w = window.open(url, "_blank");
+                if (w) {
+                    w.opener = null;
+                }
+            }
+            var form = document.getElementById("tag-form");
+            var input = document.getElementById("tag-input");
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                go(input.value);
+            });
+            document.querySelectorAll(".prefills [data-tag]").forEach(function (el) {
+                el.addEventListener("click", function () {
+                    go(el.getAttribute("data-tag"));
+                });
+            });
+        })();
+    </script>
+  </body>
+</html>
