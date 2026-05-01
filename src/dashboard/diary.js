@@ -1,6 +1,8 @@
 import { state, saveState } from "../lib/state.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { axl } from "../axl/client.js";
+import { getAiSettings } from "../app/ai-settings.js";
+import { fetchLoveclawChatCompletions } from "../app/lovclaw-ai.js";
 import {
     AI_PLACEHOLDERS,
     DIARY_IMG_LOCATIONS,
@@ -81,6 +83,9 @@ function renderDiaryCal(feed, year, month, selectedKey) {
     }
     html += `</div></div>`;
 
+    // declared here so event listeners registered after feed.innerHTML can close over it
+    let noteEntries = [];
+
     if (!selectedKey) {
         feed.dataset.diaryHasImage = "0";
     }
@@ -92,23 +97,32 @@ function renderDiaryCal(feed, year, month, selectedKey) {
         const dateLabel = new Date(sy, sm, sd).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
         const stickyDateLabel = new Date(sy, sm, sd).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
         // calNotes[key] is an array of {author, text, ts}; handle old string format
-        let noteEntries = state.calNotes?.[selectedKey] || [];
+        noteEntries = state.calNotes?.[selectedKey] || [];
         if (typeof noteEntries === "string") noteEntries = noteEntries ? [{ author: "you", text: noteEntries, ts: 0 }] : [];
         const notesListHtml = noteEntries.length ? noteEntries.map((n, i) => {
             const isMine = !n.author || n.author === "you";
-            const delBtn = isMine ? `<button class="diary-note-del" data-note-ts="${n.ts}" title="delete">×</button>` : "";
+            const delBtn = isMine ? `<button class="diary-note-del" data-note-ts="${n.ts}" title="delete this note">✕</button>` : "";
             return `<div class="diary-note-entry" data-note-idx="${i}">
             <span class="diary-note-author">${n.author || "you"}${n.ts ? ` · ${new Date(n.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}${delBtn}</span>
             <div class="diary-note-bubble">${n.text}</div>
           </div>`;
         }).join("") : "";
         const hasMineNotes = noteEntries.some(n => !n.author || n.author === "you");
+        const hasPartnerNotes = noteEntries.some(n => n.author && n.author !== "you");
+        const bothHaveNotes = hasMineNotes && hasPartnerNotes;
+        const partnerName = (state.partnerName && String(state.partnerName).trim()) || "partner";
+        const generateBtn = noteEntries.length > 0
+            ? bothHaveNotes
+                ? `<button class="diary-note-generate btn btn-ghost btn-sm diary-note-action-btn" id="diary-note-generate">generate diary</button>`
+                : `<button class="diary-note-generate btn btn-ghost btn-sm diary-note-action-btn" id="diary-note-generate" disabled title="ask ${partnerName} to add their notes">generate diary</button>`
+            : "";
         const noteWidget = `<div class="diary-note-wrap">
           ${notesListHtml ? `<div class="diary-notes-list">${notesListHtml}</div>` : ""}
           <textarea class="diary-note-input" id="diary-note-input" placeholder="add a note for this day..." rows="2"></textarea>
           <div class="diary-note-actions">
-            ${hasMineNotes ? `<button class="diary-note-delall btn btn-ghost btn-sm" id="diary-note-delall">delete my notes</button>` : ""}
-            <button class="diary-note-save btn btn-ghost btn-sm" id="diary-note-save">add note</button>
+            ${generateBtn}
+            ${hasMineNotes ? `<button class="diary-note-delall btn btn-ghost btn-sm diary-note-action-btn" id="diary-note-delall">delete my notes</button>` : ""}
+            <button class="diary-note-save btn btn-ghost btn-sm diary-note-action-btn" id="diary-note-save">add note</button>
           </div>
         </div>`;
 
@@ -131,24 +145,28 @@ function renderDiaryCal(feed, year, month, selectedKey) {
             const hash = sy * 10000 + sm * 100 + sd;
             const hasImplied = Math.abs((hash | 0) * 2654435761) % 3 !== 0;
 
-            if (entries.length === 0 && !hasImplied) {
+            const generatedImg = state.calGeneratedImages?.[selectedKey];
+
+            if (!generatedImg && entries.length === 0 && !hasImplied) {
                 feed.dataset.diaryHasImage = "0";
                 html += `<div class="diary-pending-panel">
                   <div class="diary-pending-date diary-pending-date--past">${dateLabel}</div>
-                  <p class="diary-pending-msg">no signals logged this day.</p>
+                  <p class="diary-pending-msg">not enough signals logged this day — feel free to add a description for the diary.</p>
                   ${noteWidget}
-                </div>`;
+                    </div>`;
             } else {
                 feed.dataset.diaryHasImage = "1";
-                // real entries OR implied signals → show image + sticky
                 const imgIdx = sd % DIARY_IMG_POOL.length;
-                const imgSrc = `prototype/diary/images/${DIARY_IMG_POOL[imgIdx]}`;
+                const imgSrc = generatedImg?.url || `prototype/diary/images/${DIARY_IMG_POOL[imgIdx]}`;
                 const locPool = DIARY_IMG_LOCATIONS[imgIdx];
                 const location = locPool[Math.abs(hash * 1234567 | 0) % locPool.length];
                 const placeholder = AI_PLACEHOLDERS[imgIdx].replace("{loc}", location);
-                const stickyBody = entries.length > 0
-                    ? entries[0].text.slice(0, 120) + (entries[0].text.length > 120 ? "..." : "")
-                    : placeholder;
+                const firstNote = (noteEntries[0]?.text || "").trim();
+                const stickyBody = generatedImg
+                    ? (firstNote ? firstNote.slice(0, 120) + (firstNote.length > 120 ? "..." : "") : (generatedImg.prompt || placeholder).slice(0, 120))
+                    : entries.length > 0
+                        ? entries[0].text.slice(0, 120) + (entries[0].text.length > 120 ? "..." : "")
+                        : placeholder;
                 const STICKY_POS = ["tl", "tr"];
                 const stickyPos = STICKY_POS[sd % STICKY_POS.length];
                 html += `<div class="diary-entry-panel">
@@ -158,7 +176,8 @@ function renderDiaryCal(feed, year, month, selectedKey) {
                       <span class="diary-sticky-date">${stickyDateLabel}</span>${stickyBody}
                     </div>
                     <button class="diary-cal-toggle diary-cal-toggle--img" id="diary-cal-toggle">${collapsed ? "&#9660;" : "&#9650;"}</button>
-                  </div>`;
+                  </div>
+                  ${generatedImg ? `<div class="diary-img-del-bar" id="diary-img-del-bar"><button class="diary-img-del-btn" id="diary-img-del-btn">delete image</button></div>` : ""}`;
                 if (entries.length > 0) {
                     html += entries.map(e => `
                   <div class="diary-entry">
@@ -166,7 +185,7 @@ function renderDiaryCal(feed, year, month, selectedKey) {
                     <div class="diary-entry-text">${e.text}</div>
                   </div>`).join("");
                 }
-                html += noteWidget + `</div>`;
+                html += `</div>`;
             }
         }
     }
@@ -216,7 +235,7 @@ function renderDiaryCal(feed, year, month, selectedKey) {
             imgWrap.appendChild(sp);
         }
 
-        // click — speech bubbles + shake
+        // click — speech bubbles + shake; triple-click removes generated image
         const BUBBLES = [
             { text: "so cute~",  big: false },
             { text: "aww !!",    big: false },
@@ -226,7 +245,40 @@ function renderDiaryCal(feed, year, month, selectedKey) {
             { text: "hihi !",    big: false },
             { text: "♥ ♥",       big: false },
         ];
-        imgWrap.addEventListener("click", () => {
+        const delBar = document.getElementById("diary-img-del-bar");
+        let _dimTimer = null;
+        function showDelBar() {
+            if (!delBar) return;
+            delBar.classList.add("diary-img-del-bar--visible");
+            clearTimeout(_dimTimer);
+            _dimTimer = setTimeout(() => delBar.classList.remove("diary-img-del-bar--visible"), 3000);
+        }
+
+        document.getElementById("diary-img-del-btn")?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            clearTimeout(_dimTimer);
+            if (selectedKey && state.calGeneratedImages?.[selectedKey]) {
+                delete state.calGeneratedImages[selectedKey];
+                saveState(state);
+                renderDiaryFeed();
+            }
+        });
+
+        let _clicks = 0, _clickTimer = null;
+        imgWrap.addEventListener("click", (e) => {
+            _clicks++;
+            clearTimeout(_clickTimer);
+            _clickTimer = setTimeout(() => { _clicks = 0; }, 600);
+
+            if (_clicks >= 3) {
+                _clicks = 0;
+                clearTimeout(_clickTimer);
+                if (state.calGeneratedImages?.[selectedKey]) {
+                    showDelBar();
+                }
+                return;
+            }
+
             imgWrap.classList.remove("diary-img-wrap--shake");
             void imgWrap.offsetWidth;
             imgWrap.classList.add("diary-img-wrap--shake");
@@ -250,6 +302,10 @@ function renderDiaryCal(feed, year, month, selectedKey) {
             setTimeout(() => overlay.remove(), 1800);
         });
     }
+
+    document.getElementById("diary-note-generate")?.addEventListener("click", () => {
+        onDiaryGenerateClick(selectedKey, noteEntries, year, month);
+    });
 
     // note add (co-op chat)
     document.getElementById("diary-note-save")?.addEventListener("click", () => {
@@ -374,13 +430,26 @@ export function renderDiaryFeed() {
     const feed = document.getElementById("diary-feed");
     if (!feed) return;
     const now = new Date();
-    const year = feed.dataset.viewYear !== undefined ? parseInt(feed.dataset.viewYear) : now.getFullYear();
-    const month = feed.dataset.viewMonth !== undefined ? parseInt(feed.dataset.viewMonth) : now.getMonth();
-    if (feed.dataset.viewYear === undefined) feed.dataset.viewYear = now.getFullYear();
-    if (feed.dataset.viewMonth === undefined) feed.dataset.viewMonth = now.getMonth();
-    // pre-select today on first open
+    let year = feed.dataset.viewYear !== undefined ? parseInt(feed.dataset.viewYear) : now.getFullYear();
+    let month = feed.dataset.viewMonth !== undefined ? parseInt(feed.dataset.viewMonth) : now.getMonth();
+    // If no past days exist in the chosen month (e.g. it's the 1st of the month),
+    // show the previous month so previously-generated diary entries remain visible.
+    if (feed.dataset.viewYear === undefined && feed.dataset.viewMonth === undefined) {
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const hasPastDays = now.getDate() > 1;
+        if (!hasPastDays) {
+            month = now.getMonth() - 1;
+            if (month < 0) { month = 11; year--; }
+        }
+        feed.dataset.viewYear = year;
+        feed.dataset.viewMonth = month;
+    }
+    // pre-select the most recent past day on first open
     if (feed.dataset.selectedDate === undefined) {
-        feed.dataset.selectedDate = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+        const selDay = (year === now.getFullYear() && month === now.getMonth())
+            ? now.getDate()
+            : new Date(year, month + 1, 0).getDate(); // last day of selected month
+        feed.dataset.selectedDate = `${year}-${month}-${selDay}`;
     }
     renderDiaryCal(feed, year, month, feed.dataset.selectedDate || null);
     // push all local notes to partner so both sides stay in sync (throttled)
@@ -406,22 +475,125 @@ export function renderDiaryCalIfOpen(dayKey) {
     }
 }
 
-export async function onDiaryGenerateClick() {
-    const recentSignals = state.signals.slice(-20).map(s => `${s.type}: ${s.value}`).join(", ");
-    let text = `[${new Date().toLocaleTimeString()}] signals today - ${recentSignals || "no signals recorded yet"}`;
+export async function onDiaryGenerateClick(selectedKey, noteEntries, year, month) {
+    const feed = document.getElementById("diary-feed");
 
-    if (isTauri()) {
-        try {
-            text = await invoke("generate_diary_entry", { signals: recentSignals });
-        } catch (e) {
-            console.warn("[diary]", e);
+    const btn = document.getElementById("diary-note-generate");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="diary-gen-spinner"></span>generating...`;
+    }
+    // Disable the entire note form during generation
+    const actionsEl = feed?.querySelector(".diary-note-actions");
+    const inputEl   = feed?.querySelector("#diary-note-input");
+    const allBtns   = actionsEl ? [...actionsEl.querySelectorAll("button")] : [];
+    allBtns.forEach(b => { b.disabled = true; });
+    if (inputEl) inputEl.disabled = true;
+
+    try {
+        const settings = getAiSettings();
+
+        const myName = state.myName || "me";
+        const partnerName = state.partnerName || "partner";
+        const notes = (noteEntries || []).map(n => `${n.author || myName}: ${n.text}`).join("\n");
+
+        const openrouterKey = settings.openrouterKey
+            || String(import.meta.env?.VITE_OPENROUTER_API_KEY || "").trim();
+        if (!openrouterKey) throw new Error("OpenRouter API key is required — add it in AI Settings");
+
+        // Resolve images to data-URLs
+        async function resolveImage(urlOrDataUrl) {
+            if (urlOrDataUrl?.startsWith("data:image/")) return urlOrDataUrl;
+            try {
+                const r = await fetch(urlOrDataUrl);
+                if (!r.ok) return null;
+                const blob = await r.blob();
+                return await new Promise((res, rej) => {
+                    const reader = new FileReader();
+                    reader.onload = () => res(reader.result);
+                    reader.onerror = rej;
+                    reader.readAsDataURL(blob);
+                });
+            } catch { return null; }
         }
-    }
 
-    state.diary.unshift({ ts: Date.now(), text });
-    if (state.diary.length > 50) {
-        state.diary = state.diary.slice(0, 50);
+        const [myAvatar, partnerAvatar, styleRef] = await Promise.all([
+            resolveImage(state.myProfile?.avatarDataUrl || `/src/img/${myName.toLowerCase()}.jpg`),
+            resolveImage(state.partnerProfile?.avatarDataUrl || `/src/img/${partnerName.toLowerCase()}.jpg`),
+            resolveImage("/prototype/diary/images/beachparty.jpg"),
+        ]);
+
+        // Step 1 — craft a pixel-art image prompt; pass avatar photos so the LLM
+        //          can see the characters' actual appearance (hair, features, etc.)
+        const step1Content = [];
+        if (myAvatar) step1Content.push({ type: "image_url", image_url: { url: myAvatar } });
+        if (partnerAvatar) step1Content.push({ type: "image_url", image_url: { url: partnerAvatar } });
+        const avatarNote = (myAvatar || partnerAvatar)
+            ? `${myAvatar ? `First image is ${myName}. ` : ""}${partnerAvatar ? `${myAvatar ? "Second" : "First"} image is ${partnerName}. ` : ""}Use their actual appearance (hair colour, features) in the prompt. `
+            : "";
+        step1Content.push({
+            type: "text",
+            text: `You write image generation prompts. A couple named ${myName} and ${partnerName} wrote these diary notes about their day:\n\n${notes}\n\n${avatarNote}Write ONE concise image prompt (max 55 words) for a pixel-art diary illustration. Requirements: 8-bit / 16-bit pixel art style, warm retro palette, chibi couple characters doing the day's main activity together, cozy atmosphere, no text or UI in image. Return ONLY the prompt, no explanation.`,
+        });
+
+        const imagePrompt = await fetchLoveclawChatCompletions(
+            settings,
+            [{ role: "user", content: step1Content }],
+            0.7,
+        ) || `8-bit pixel art of a cute chibi couple enjoying a cozy day together, warm retro colors, no text`;
+
+        // Step 2 — generate image via OpenRouter (google/gemini-3.1-flash-image-preview)
+        console.log("[diary] image prompt:", imagePrompt);
+
+        // Build multimodal content: style reference first, then avatars, then scene prompt
+        const msgContent = [];
+        if (styleRef) msgContent.push({ type: "image_url", image_url: { url: styleRef } });
+        if (myAvatar) msgContent.push({ type: "image_url", image_url: { url: myAvatar } });
+        if (partnerAvatar) msgContent.push({ type: "image_url", image_url: { url: partnerAvatar } });
+        const styleNote = styleRef ? `The first image shows the exact pixel-art style to match (8-bit, warm retro palette, chibi characters). ` : "";
+        const refNote = (myAvatar || partnerAvatar)
+            ? `${styleNote}${myAvatar ? `Next image is ${myName}. ` : ""}${partnerAvatar ? `${myAvatar ? "Following image" : "Next image"} is ${partnerName}. ` : ""}Depict these people faithfully in the scene. `
+            : styleNote;
+        msgContent.push({ type: "text", text: `${refNote}${imagePrompt}` });
+
+        const imgRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${openrouterKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": String(import.meta.env?.VITE_OPENROUTER_APP_URL || "http://localhost:1420"),
+                "X-Title": "LoveClaw Diary",
+            },
+            body: JSON.stringify({
+                model: "google/gemini-3.1-flash-image-preview",
+                messages: [{ role: "user", content: msgContent }],
+                modalities: ["image", "text"],
+            }),
+        });
+
+        const imgJson = await imgRes.json();
+        if (!imgRes.ok) {
+            throw new Error(`Image generation error ${imgRes.status}: ${imgJson?.error?.message || JSON.stringify(imgJson).slice(0, 200)}`);
+        }
+
+        // Per OpenRouter docs: image is in choices[0].message.images[0].image_url.url
+        const msg = imgJson.choices?.[0]?.message;
+        const imgSrc = msg?.images?.[0]?.image_url?.url ?? null;
+        if (!imgSrc) {
+            console.error("[diary] full response:", JSON.stringify(imgJson));
+            throw new Error("No image in response — check console for details");
+        }
+
+        if (!state.calGeneratedImages) state.calGeneratedImages = {};
+        state.calGeneratedImages[selectedKey] = { url: imgSrc, ts: Date.now(), prompt: imagePrompt };
+        saveState(state);
+
+    } catch (e) {
+        console.error("[diary] image gen failed:", e);
+        const { addBubble, bumpPingBadge } = await import("../app/chat-log.js");
+        addBubble("left", `LoveClaw: diary image generation failed — ${e.message || "check console"}`, true);
+        bumpPingBadge();
+    } finally {
+        renderDiaryFeed();
     }
-    saveState(state);
-    renderDiaryFeed();
 }
