@@ -5,7 +5,11 @@
             "destination": "https://trade-api.gateway.uniswap.org/:path*"
         },
         {
-            "source": "/((?!api/|assets/|welcome/|uniswap/|favicon\\.ico|robots\\.txt).*)",
+            "source": "/relay/:path*",
+            "destination": "https://loveclaw-relay.ngrok.app/:path*"
+        },
+        {
+            "source": "/((?!api/|assets/|welcome/|uniswap/|relay/|favicon\\.ico|robots\\.txt).*)",
             "destination": "/index.html"
         }
     ]

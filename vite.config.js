@@ -164,9 +164,7 @@ const axlProxy = (port) => ({
 
 export default defineConfig({
   plugins: [welcomeRootPlugin(), pathInstanceSpaPlugin(), localIpPlugin(), ...(useDevHttps ? [basicSsl()] : [])],
-  define: {
-    "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
-  },
+  define: {},
   clearScreen: false,
   logLevel: tauriDevChild && viteServeOnly ? "silent" : "info",
   server: {

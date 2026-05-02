@@ -13,23 +13,20 @@ const RELAY = "/relay";
 let _es = null;
 
 export async function initRelayNotify() {
-    if (!RELAY_ENABLED) return;
-    if (!("Notification" in window)) {
-        fetch(`${RELAY}/debug`, { method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ error: "Notification API not available" }) }).catch(() => {});
-        return;
-    }
+    if (!("Notification" in window)) return;
 
-    fetch(`${RELAY}/debug`, { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ permission: Notification.permission, sw: "serviceWorker" in navigator, push: "PushManager" in window }) }).catch(() => {});
+    if (RELAY_ENABLED) {
+        fetch(`${RELAY}/debug`, { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ permission: Notification.permission, sw: "serviceWorker" in navigator, push: "PushManager" in window }) }).catch(() => {});
+    }
 
     if (Notification.permission === "granted") {
         await _subscribePush();
-    } else if (Notification.permission === "default") {
+    } else {
         _showBanner();
     }
 
-    _connectSse();
+    if (RELAY_ENABLED) _connectSse();
 }
 
 function _showBanner() {
@@ -41,17 +38,35 @@ function _showBanner() {
     banner.classList.remove("hidden");
 
     allow?.addEventListener("click", async () => {
-        banner.classList.add("hidden");
+        const btn = document.getElementById("notif-banner-btn");
+        const txt = document.getElementById("notif-banner-text");
+        if (btn) btn.disabled = true;
+        if (txt) txt.textContent = "requesting…";
+
         const perm = await Notification.requestPermission();
-        if (perm === "granted") await _subscribePush();
+
+        if (perm === "granted") {
+            if (txt) txt.textContent = "subscribing…";
+            await _subscribePush();
+            if (txt) txt.textContent = "✓ notifications on";
+            setTimeout(() => banner.classList.add("hidden"), 2000);
+        } else if (perm === "denied") {
+            if (txt) txt.textContent = "blocked — enable in phone Settings";
+            if (btn) { btn.disabled = false; btn.textContent = "retry"; }
+        } else {
+            if (txt) txt.textContent = "dismissed — tap Allow to retry";
+            if (btn) { btn.disabled = false; btn.textContent = "Allow"; }
+        }
     }, { once: true });
 
     dismiss?.addEventListener("click", () => {
         banner.classList.add("hidden");
+        setTimeout(() => banner.classList.remove("hidden"), 30_000);
     }, { once: true });
 }
 
 async function _subscribePush() {
+    if (!RELAY_ENABLED) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
         fetch(`${RELAY}/debug`, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sw: "serviceWorker" in navigator, push: "PushManager" in window, perm: Notification.permission }) });

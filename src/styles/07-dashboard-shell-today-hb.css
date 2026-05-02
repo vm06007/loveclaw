@@ -68,6 +68,7 @@
     color: var(--pink-l, #ED93B1);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    margin-bottom: 20px;
 }
 .notif-banner-dismiss {
     font-family: var(--font);
