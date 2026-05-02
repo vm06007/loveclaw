@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<!-- saved from url=(0059)file:///Users/vm06007/Downloads/loveclaw-infographic_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveClaw — Trust as a Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./LoveClaw — Trust as a Protocol_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0A090E;
+    --surface: #13121A;
+    --surface-2: #1A1822;
+    --line: rgba(240, 230, 220, 0.08);
+    --line-strong: rgba(240, 230, 220, 0.18);
+    --text: #F2ECE2;
+    --text-2: #A49CAE;
+    --text-3: #6B6474;
+    --rose: #E89089;
+    --rose-soft: #F4BDB4;
+    --ice: #8FB4CE;
+    --ice-soft: #B6D2E4;
+    --amber: #D4A574;
+
+    --serif: 'Instrument Serif', 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Manrope', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(232, 144, 137, 0.08), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 90% 40%, rgba(143, 180, 206, 0.06), transparent 70%);
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 80px 48px 120px;
+  }
+
+  /* ============ HEADER ============ */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 96px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .top-bar .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--rose);
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ============ HERO ============ */
+  .hero { margin-bottom: 120px; position: relative; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--rose);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .eyebrow::before {
+    content: '// ';
+    color: var(--text-3);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 128px;
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 40px;
+  }
+  h1 .ampersand {
+    font-style: italic;
+    color: var(--rose);
+  }
+  .tagline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 28px;
+    line-height: 1.4;
+    color: var(--text-2);
+    max-width: 640px;
+    margin-bottom: 56px;
+  }
+  .tagline em {
+    font-style: normal;
+    color: var(--text);
+  }
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .hero-meta div span {
+    display: block;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-top: 6px;
+  }
+
+  /* ============ SECTION BASE ============ */
+  .section { margin-bottom: 120px; }
+  .section-head {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 32px;
+    align-items: baseline;
+    margin-bottom: 48px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--rose);
+    letter-spacing: 0.1em;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .section-title em {
+    font-style: italic;
+    color: var(--rose);
+  }
+  .section-lede {
+    grid-column: 2;
+    margin-top: 12px;
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  /* ============ PREMISE ============ */
+  .premise {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 32px;
+    padding-left: 0;
+  }
+  .premise-col {
+    padding: 0;
+  }
+  .premise-col p {
+    color: var(--text-2);
+    font-size: 16px;
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+  .premise-col p:first-child::first-letter {
+    font-family: var(--serif);
+    font-size: 56px;
+    float: left;
+    line-height: 0.85;
+    padding-right: 8px;
+    padding-top: 4px;
+    color: var(--rose);
+  }
+  .pull-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 32px;
+    line-height: 1.25;
+    color: var(--text);
+    border-left: 2px solid var(--rose);
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+
+  /* ============ ARCHITECTURE DIAGRAM ============ */
+  .diagram-frame {
+    grid-column: 2 / -1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 56px 48px;
+    position: relative;
+  }
+  .diagram-frame::before {
+    content: 'fig.01 / system architecture';
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  svg.arch {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .arch text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    fill: var(--text);
+  }
+  .arch text.label {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--text);
+  }
+  .arch text.sub {
+    font-size: 10px;
+    fill: var(--text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ============ COMPONENTS GRID ============ */
+  .components {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .component {
+    background: var(--ink);
+    padding: 40px 36px;
+    position: relative;
+    min-height: 240px;
+  }
+  .component .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.12em;
+    margin-bottom: 24px;
+  }
+  .component .num::before { content: 'ƒ.'; color: var(--rose); }
+  .component h3 {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .component h3 em {
+    font-style: italic;
+    color: var(--ice);
+  }
+  .component p {
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 380px;
+  }
+  .component .icon {
+    position: absolute;
+    top: 40px;
+    right: 36px;
+    width: 32px;
+    height: 32px;
+    opacity: 0.7;
+  }
+
+  /* ============ LIFECYCLE ============ */
+  .lifecycle {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    position: relative;
+  }
+  .step {
+    padding: 0 20px 0 0;
+    position: relative;
+  }
+  .step + .step { padding-left: 24px; }
+  .step + .step::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 14px;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--rose);
+    letter-spacing: 0.15em;
+    margin-bottom: 16px;
+  }
+  .step h4 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.005em;
+  }
+  .step p {
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .step.breach h4 { color: var(--rose); }
+  .step.breach .step-num { color: var(--rose); }
+
+  /* ============ PRINCIPLES ============ */
+  .principles {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .principle {
+    padding-top: 20px;
+    border-top: 1px solid var(--rose);
+  }
+  .principle .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--rose);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .principle h4 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .principle p {
+    font-size: 13.5px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  /* ============ FOOTER ============ */
+  footer {
+    margin-top: 120px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+  }
+  .footer-mark {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .footer-mark span.heart {
+    color: var(--rose);
+    font-style: normal;
+  }
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 820px) {
+    .wrap { padding: 48px 24px 80px; }
+    h1 { font-size: 72px; }
+    .tagline { font-size: 22px; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .section-head { grid-template-columns: 48px 1fr; gap: 16px; }
+    .section-title { font-size: 32px; }
+    .section-lede { grid-column: 2; }
+    .premise { grid-template-columns: 48px 1fr; }
+    .premise-col + .premise-col { grid-column: 2; }
+    .diagram-frame { grid-column: 2; padding: 40px 20px; }
+    .components { grid-template-columns: 1fr; }
+    .lifecycle, .principles {
+      grid-column: 2;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .step + .step { padding-left: 0; }
+    .step + .step::before { display: none; }
+    footer { flex-direction: column; align-items: flex-start; }
+    .footer-meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div><span class="dot"></span>Protocol Brief · v0.1</div>
+    <div>Agent-to-Agent Accountability</div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="eyebrow">Relationship Integrity Protocol</div>
+    <h1>Love<span class="ampersand">Claw</span>.</h1>
+    <p class="tagline">
+      A mutual accountability layer for modern relationships — where
+      <em>trust becomes a protocol</em>, and commitments hold themselves to account.
+    </p>
+    <div class="hero-meta">
+      <div>Category<span>Consumer · Web3</span></div>
+      <div>Primitive<span>Mutual Collateral</span></div>
+      <div>Substrate<span>On-chain + On-device</span></div>
+      <div>Status<span>Concept · 2026</span></div>
+    </div>
+  </section>
+
+  <!-- SECTION 01 — PREMISE -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">01 / Premise</div>
+      <h2 class="section-title">Promises are soft. <em>Stakes are not.</em></h2>
+    </div>
+    <div class="premise">
+      <div></div>
+      <div class="premise-col">
+        <p>Every relationship runs on promises — the unspoken kind and the written kind. They erode quietly. Nobody signs them. Nobody enforces them. When they break, both parties debate what was ever agreed in the first place.</p>
+        <p>LoveClaw offers a different posture: two partners define their own rules, stake collateral against them, and let a neutral system do the remembering.</p>
+      </div>
+      <div class="premise-col">
+        <p class="pull-quote">The goal is not punishment. It is legibility — of what was promised, and what was kept.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 02 — ARCHITECTURE -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">02 / Architecture</div>
+      <h2 class="section-title">Four layers, <em>one commitment.</em></h2>
+      <p class="section-lede">A locally-private agent runs on each partner's device, coordinating through an encrypted relay. Rules are evaluated mutually; enforcement is delegated to a smart contract holding shared collateral.</p>
+    </div>
+
+    <div class="premise">
+      <div></div>
+      <div class="diagram-frame">
+        <svg class="arch" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#6B6474"></path>
+            </marker>
+            <marker id="arrow-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#E89089"></path>
+            </marker>
+          </defs>
+
+          <!-- Phone A -->
+          <g>
+            <rect x="40" y="40" width="180" height="90" rx="3" fill="none" stroke="#8FB4CE" stroke-width="1"></rect>
+            <text class="sub" x="56" y="64">Partner A · device</text>
+            <text class="label" x="56" y="92">Local Agent</text>
+            <text x="56" y="112" fill="#A49CAE">signals · app usage · location</text>
+          </g>
+
+          <!-- Phone B -->
+          <g>
+            <rect x="680" y="40" width="180" height="90" rx="3" fill="none" stroke="#8FB4CE" stroke-width="1"></rect>
+            <text class="sub" x="696" y="64">Partner B · device</text>
+            <text class="label" x="696" y="92">Local Agent</text>
+            <text x="696" y="112" fill="#A49CAE">signals · app usage · location</text>
+          </g>
+
+          <!-- Relay -->
+          <g>
+            <rect x="350" y="20" width="200" height="130" rx="3" fill="#1A1822" stroke="#F2ECE2" stroke-width="1"></rect>
+            <text class="sub" x="366" y="46">Layer 01</text>
+            <text class="label" x="366" y="72">Secure Relay</text>
+            <text x="366" y="96" fill="#A49CAE">end-to-end encrypted</text>
+            <text x="366" y="112" fill="#A49CAE">no plaintext retained</text>
+            <text x="366" y="128" fill="#A49CAE">signed message stream</text>
+          </g>
+
+          <!-- Arrows phone->relay -->
+          <line x1="220" y1="85" x2="345" y2="85" stroke="#6B6474" stroke-width="1" marker-end="url(#arrow)"></line>
+          <line x1="680" y1="85" x2="555" y2="85" stroke="#6B6474" stroke-width="1" marker-end="url(#arrow)"></line>
+
+          <!-- Rule Engine -->
+          <g>
+            <rect x="350" y="190" width="200" height="80" rx="3" fill="#1A1822" stroke="#F2ECE2" stroke-width="1"></rect>
+            <text class="sub" x="366" y="216">Layer 02</text>
+            <text class="label" x="366" y="242">Rule Engine</text>
+            <text x="366" y="260" fill="#A49CAE">mutual predicate evaluation</text>
+          </g>
+          <line x1="450" y1="150" x2="450" y2="185" stroke="#6B6474" stroke-width="1" marker-end="url(#arrow)"></line>
+
+          <!-- Breach decision -->
+          <g>
+            <polygon points="450,300 530,340 450,380 370,340" fill="none" stroke="#E89089" stroke-width="1"></polygon>
+            <text class="label" x="450" y="338" text-anchor="middle" fill="#E89089">Breach?</text>
+            <text x="450" y="354" text-anchor="middle" fill="#A49CAE" font-size="10">mutual signal reached</text>
+          </g>
+          <line x1="450" y1="270" x2="450" y2="298" stroke="#6B6474" stroke-width="1" marker-end="url(#arrow)"></line>
+
+          <!-- No path (loop back) -->
+          <path d="M 370 340 Q 250 340 250 250 Q 250 150 345 150" fill="none" stroke="#6B6474" stroke-width="1" stroke-dasharray="3,3"></path>
+          <text class="sub" x="180" y="250" fill="#6B6474">no → continue</text>
+
+          <!-- Smart Contract -->
+          <g>
+            <rect x="620" y="300" width="220" height="80" rx="3" fill="#1A1822" stroke="#E89089" stroke-width="1"></rect>
+            <text class="sub" x="636" y="326" fill="#E89089">Layer 03 · on-chain</text>
+            <text class="label" x="636" y="352">Smart Contract</text>
+            <text x="636" y="370" fill="#A49CAE">collateral · penalty · release</text>
+          </g>
+          <line x1="530" y1="340" x2="615" y2="340" stroke="#E89089" stroke-width="1.2" marker-end="url(#arrow-rose)"></line>
+          <text class="sub" x="545" y="334" fill="#E89089">yes</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03 — COMPONENTS -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">03 / Components</div>
+      <h2 class="section-title">The four <em>moving parts.</em></h2>
+    </div>
+
+    <div class="components">
+
+      <div class="component">
+        <div class="num">01 · client</div>
+        <h3>The <em>local agent.</em></h3>
+        <p>A privacy-first daemon running on each partner's phone. It observes only the signals both partners explicitly agreed to share — app categories, location fences, presence. Raw data never leaves the device.</p>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="6" y="2" width="12" height="20" rx="2"></rect>
+          <circle cx="12" cy="18" r="0.8" fill="currentColor"></circle>
+        </svg>
+      </div>
+
+      <div class="component">
+        <div class="num">02 · transport</div>
+        <h3>The <em>secure relay.</em></h3>
+        <p>An end-to-end encrypted channel that couriers signed messages between agents. The relay sees timing and size — never content. Messages are ephemeral by default; a hash chain is anchored for auditability.</p>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4"></path>
+        </svg>
+      </div>
+
+      <div class="component">
+        <div class="num">03 · logic</div>
+        <h3>The <em>rule engine.</em></h3>
+        <p>Both partners co-author the rules in plain language, which compile to predicates. Example: <span style="font-family: var(--mono); font-size: 12px; color: var(--ice);">if(late_hours &gt; 2 &amp;&amp; ¬disclosed) → breach</span>. Evaluation is mutual — a breach requires both agents to agree.</p>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="3" width="18" height="18" rx="1"></rect>
+          <path d="M8 9h8M8 12h5M8 15h8"></path>
+        </svg>
+      </div>
+
+      <div class="component">
+        <div class="num">04 · settlement</div>
+        <h3>The <em>smart contract.</em></h3>
+        <p>A shared vault holding collateral — cash, crypto, or a charity pledge. On a confirmed breach, funds route according to pre-agreed terms: partial forfeit, donation, or cool-off lockup. On graduation, collateral returns in full.</p>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="7" width="18" height="12" rx="1"></rect>
+          <path d="M3 11h18M7 15h2"></path>
+        </svg>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 04 — LIFECYCLE -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">04 / Lifecycle</div>
+      <h2 class="section-title">One <em>breach,</em> from signal to settlement.</h2>
+    </div>
+
+    <div class="premise">
+      <div></div>
+      <div class="lifecycle">
+        <div class="step">
+          <div class="step-num">T+00s</div>
+          <h4>Signal observed</h4>
+          <p>Local agent on Phone A registers an event matching a monitored predicate.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">T+02s</div>
+          <h4>Cross-check</h4>
+          <p>Encrypted request to Phone B's agent confirms independent context.</p>
+        </div>
+        <div class="step breach">
+          <div class="step-num">T+04s</div>
+          <h4>Rule triggers</h4>
+          <p>Predicate evaluates true on both sides. Breach state is ratified.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">T+06s</div>
+          <h4>Contract called</h4>
+          <p>Signed attestation submitted on-chain. A grace window opens for challenge.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">T+72h</div>
+          <h4>Settlement</h4>
+          <p>If uncontested, collateral routes per agreement. Both partners notified.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 05 — PRINCIPLES -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">05 / Principles</div>
+      <h2 class="section-title">What LoveClaw <em>refuses to do.</em></h2>
+      <p class="section-lede">The protocol is opinionated. It exists to make commitments legible — not to surveil, coerce, or punish. These guardrails are non-negotiable.</p>
+    </div>
+
+    <div class="premise">
+      <div></div>
+      <div class="principles">
+        <div class="principle">
+          <div class="label">001 · Consent</div>
+          <h4>No rule without both signatures.</h4>
+          <p>Every predicate is co-authored and co-signed. Either partner can veto. Unilateral monitoring is not a feature.</p>
+        </div>
+        <div class="principle">
+          <div class="label">002 · Locality</div>
+          <h4>Raw signals never leave the device.</h4>
+          <p>Only attestations cross the wire. Location traces, messages, and app contents remain on-device at all times.</p>
+        </div>
+        <div class="principle">
+          <div class="label">003 · Exit</div>
+          <h4>Graceful dissolution is a first-class action.</h4>
+          <p>Ending the protocol returns all collateral with no penalty. Leaving a relationship is never a breach.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-mark">love<span class="heart">♥</span>claw</div>
+    <div class="footer-meta">
+      Drafted 2026 · Concept brief<br>
+      Not financial, legal, or relationship advice<br>
+      v0.1 / specimen sheet
+    </div>
+  </footer>
+
+</div>
+
+
+
+</body></html>
