@@ -176,7 +176,15 @@ function initInstallBanner() {
     const textEl = document.getElementById("install-banner-text");
     const installBtn = document.getElementById("install-banner-btn");
     const no = document.getElementById("install-banner-dismiss");
+    const qrBtn = document.getElementById("install-banner-qr");
     if (!bar || !no) return;
+
+    if (qrBtn) {
+        qrBtn.addEventListener("click", () => {
+            const openQr = document.getElementById("btn-qr-phone");
+            if (openQr) openQr.click();
+        });
+    }
 
     const tauri = isTauri();
     const isIOS = getIsIOS();

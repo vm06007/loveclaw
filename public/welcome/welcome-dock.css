@@ -65,7 +65,7 @@
 .device-tag-panel.device-tag-panel--open {
     transform: translateY(0);
     pointer-events: auto;
-    min-height: 200px;
+    min-height: 110px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -123,24 +123,31 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
 }
 .device-tag-panel .prefills {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 5px;
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
+    width: 100%;
 }
 .device-tag-panel button.btn {
     font: inherit;
     cursor: pointer;
     font-family: var(--font);
     font-size: 10px;
+}
+.device-tag-panel .btn.btn--prefill {
+    font-size: 9px;
+    flex: 1 1 0;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
 }
 .device-tag-panel .btn--primary {
     flex-shrink: 0;
@@ -179,6 +186,14 @@
     border-color: var(--teal);
     color: var(--teal);
 }
+@media (max-width: 640px) {
+    .tag-l, .tag-c { display: none; }
+    .tag-r {
+        right: 50%;
+        transform: translateX(50%);
+    }
+}
+
 @media (max-width: 520px) {
     .hero-title { bottom: 256px; }
     .hero-sub { bottom: 228px; }

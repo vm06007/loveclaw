@@ -23,15 +23,15 @@
 .welcome-nav-hamburger {
     display: none;
     position: fixed;
-    top: calc(10px + env(safe-area-inset-top, 0px));
-    right: 14px;
+    top: calc(30px + env(safe-area-inset-top, 0px));
+    right: 30px;
     z-index: 64;
-    width: 44px;
-    height: 44px;
+    width: 31px;
+    height: 31px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 3px;
     padding: 0;
     border: 2px solid var(--purple);
     border-radius: var(--radius);
@@ -49,20 +49,20 @@
 }
 .welcome-nav-hamburger-bar {
     display: block;
-    width: 20px;
-    height: 3px;
+    width: 14px;
+    height: 2px;
     background: var(--purple-l);
     border-radius: 1px;
     transition: transform 0.2s ease, opacity 0.2s ease;
 }
 .welcome-nav-hamburger--open .welcome-nav-hamburger-bar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: translateY(5px) rotate(45deg);
 }
 .welcome-nav-hamburger--open .welcome-nav-hamburger-bar:nth-child(2) {
     opacity: 0;
 }
 .welcome-nav-hamburger--open .welcome-nav-hamburger-bar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: translateY(-5px) rotate(-45deg);
 }
 .welcome-top-menu {
     position: fixed;
@@ -70,7 +70,7 @@
     left: 0;
     right: 0;
     z-index: 62;
-    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 24px 20px;
     background: linear-gradient(to bottom, rgba(7, 7, 15, 0.96) 0%, rgba(7, 7, 15, 0.55) 100%);
     border-bottom: 1px solid var(--border);
     transform: translateY(-100%);
@@ -94,7 +94,7 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 28px;
     align-items: center;
     justify-content: flex-end;
 }
