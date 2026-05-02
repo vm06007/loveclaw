@@ -2,25 +2,19 @@
 
 > *The A.I. Arbiter for Connected Couples*
 
-LoveClaw is a **relationship pact app** for two people who explicitly opt in to mutual accountability. Each partner runs the app on their own device, pairs over an invite, and keeps the relationship **off a central couple server**: device agents stream consented signals, partners sync over **AXL** peer-to-peer, and optional layers add **AI breach review**, **0G memory**, and **on-chain vault / Uniswap** flows.
-
 Built for **AgentHack 2026**.
 
 ---
 
-## What you can do with it
+## 1. Product overview
 
-- **Connect a couple** — One person creates a pact and invite (QR / link); the other joins. After an **AXL handshake**, both sides share scores, diary hooks, breach alerts, pact-change proposals, and optional location sharing without routing that traffic through LoveClaw’s servers.
-- **Profile activity (consented signals)** — The local agent contributes **heartbeat** data (presence, battery, app surface, location snippets, etc.). The **Today** experience and **heartbeat map** visualize you vs. your match; the **signal relay** console (SSE) shows the same stream operators and demos use for debugging.
-- **Rules + stakes** — Turn on built-in triggers (dating installs, location anomalies, offline patterns) and optional **ETH stake** semantics tied to the shared vault narrative. **Custom rules** extend the pact when both people agree (see below).
-- **AI diary & chat copilot** — Daily pixel-art diary generation from a shared context bundle; **@loveclaw** chat for pact help, Uniswap phrasing, and **agent-authored rule drafts**.
-- **Optional infra** — **Signal relay** for server-side AI breach classification on ingested signals; **Memory router + 0G** for durable episodes; **Uniswap Trading API** for quoted swaps from the couple vault wallet.
+LoveClaw is a **relationship pact app** for two people who **opt in** to mutual accountability: local agents read **consented** device signals, a **pact** defines what counts as a breach, and the two phones sync **peer-to-peer over AXL** — not through a central “couples server.” Optional pieces add **AI diary**, **signal relay analysis**, **0G-backed memory**, and **vault / Uniswap** demos.
 
-This repo is a **hackathon prototype**: not production security or legal advice; pairing and enforcement paths are for demonstration and research.
+**Disclaimer:** hackathon **prototype** — not production security, custody, or legal advice.
 
 ---
 
-## How it works (high level)
+## 2. Conceptual diagram
 
 ```
 Phone A                                    Phone B
@@ -50,191 +44,221 @@ Phone A                                    Phone B
              Monitoring continues
 ```
 
-### Local agents
+---
 
-Each device runs a **LoveClaw agent** that reads **consented** signals: app usage metadata, GPS / network location, battery and charging, foreground focus, notification categories (not bodies), screen-on patterns, and more. No private message text or keystrokes — only what the product surface describes and the couple opts into.
+## 3. Device agent & consent
 
-### Mutual rules
-
-Both agents share a **pact**: built-in triggers plus any **custom** rows. Signals feed a rule engine locally and, when the relay is enabled, an **AI classifier** on the signal server for richer narratives. Outcomes can surface trust score changes, breach overlays, and **AXL** messages to the other device.
-
-### Optional on-chain enforcement
-
-When the story includes staking, collateral (ETH) is framed as locked in mutual commitment; breach flows can tie into vault / penalty semantics in the UI and demos.
+| Topic | Content |
+|-------|---------|
+| **Role** | A **LoveClaw agent** on each device reads signals the product exposes and the user consents to. |
+| **In scope** | App usage **metadata**, GPS / network location, battery & charging, foreground app / package focus, **notification categories** (not message bodies), screen-on / unlock patterns, optional heartbeat-style presence. |
+| **Out of scope** | Private DM text, keystrokes, notification bodies — not part of the stated model. |
 
 ---
 
-## AXL — peer-to-peer couple sync
+## 4. Pairing two devices
 
-**AXL** is the mesh layer partners use so **messages never need a central “couples cloud”**.
-
-| Concern | Behavior |
-|--------|----------|
-| **Transport** | HTTP control plane to local AXL nodes (`topology`, `send`, `recv`). Dev defaults: proxy to **:9002** and **:9012** (Alice / Boris style two-node demo). Tauri release talks to `127.0.0.1:9002` / `9012` directly. |
-| **Identity** | Ed25519 public keys from topology; pairing embeds keys in the invite so the joiner targets the right peer. |
-| **Handshake** | `axl_handshake` carries names, couple id, optional **instance tag** so replays and wrong-cohort traffic are easier to reject. |
-| **After pairing** | `breach`, `score`, `diary`, diary notes, **pact change proposals** (`pact_changes_propose` / accept flow), pings, optional **share location** requests for the heartbeat map — all over the same link. |
-
-**Running two nodes locally** — See `examples/axl-demo/` (Go `axl/node` binaries, configs, logs). Convenience script from repo root: `bash run.sh` builds/starts two nodes and opens two browser roles (the script currently spawns the dev server; prefer **`bun run dev`** for day-to-day — see [Running](#running)).
-
-**Expectation** — If AXL is down, pairing and live partner sync degrade; the Vite app can still run in demo/offline modes. For real two-device tests, keep both mesh endpoints reachable from each browser or Tauri instance.
+| Step | Who | What happens |
+|------|-----|----------------|
+| 1 | Creator | Builds a pact, generates **invite** (QR / link). Payload includes agreed triggers, optional stake, custom rules, and **creator AXL public key**. |
+| 2 | Joiner | Opens invite, finishes join UI, sends **`axl_handshake`** over AXL with name / couple id / optional instance tag. |
+| 3 | Both | Store each other’s keys; polling starts; ongoing sync is **P2P over AXL** (in dev, still localhost mesh endpoints). |
 
 ---
 
-## Dynamic pacts — agents draft rules, humans confirm
+## 5. AXL — peer-to-peer mesh
 
-Rules are not only static checkboxes. The **LoveClaw pact architect** (AI settings → provider of your choice) reads **@loveclaw** messages, the current pact snapshot, and can return structured actions:
+**Scope:** transport and identity **only**. Business rules live in **§6 Pacts** and **§7 Signals**; storage in **§12 0G**; swaps in **§11 Uniswap**.
 
-- **`propose_rule`** — Adds a **custom pact rule** (id, label, hint, category) and sends a **`pact_changes_propose`** payload over **AXL** so the other person must **accept** before triggers update. Nothing silently changes on both sides without that confirmation.
-- **`need_info` / `not_possible` / `chat`** — Clarifies parameters or refuses rules that cannot be approximated from available signals (e.g. “read my partner’s DMs”).
+| Topic | Detail |
+|-------|--------|
+| **Purpose** | Partner messages do not require a central LoveClaw couple backend. |
+| **API** | HTTP to mesh nodes: `topology`, `send`, `recv`. |
+| **Dev ports** | Typically **:9002** and **:9012** (two-node Alice/Boris layout) via Vite proxy; Tauri release uses `127.0.0.1:9002` / `9012`. |
+| **Keys** | Ed25519 public keys from topology; invite binds joiner to creator key. |
+| **Handshake** | Message type `axl_handshake` (names, couple id, optional **instance tag** for cohort / replay hygiene). |
+| **Post-pair message families** | Includes `breach`, `score`, `diary`, diary notes, `pact_changes_propose` / accept flow, pings, optional location-share handshakes for the map. |
 
-**Custom rules can express almost any mutual agreement** that you could later map to **detectable signals** — mainly **installed apps, display names, notification metadata, time windows, location bands**, and combinations thereof. The copilot is instructed to only propose rules that plausibly fit that sensor set.
+**Run two nodes:** `examples/axl-demo/` (Go `axl/node`). From repo root, `bash run.sh` can start nodes + open two browser roles; for daily dev use **`bun run dev`** after nodes are up (see **§14**).
 
-**Examples couples might agree on**
-
-| Intent | How detection might look (illustrative) |
-|--------|----------------------------------------|
-| **No dating apps** | Built-in `dating_app` trigger plus relay **AI + keyword** paths on dating/hookup-like packages and titles. |
-| **No dating / hookup surfaces** | Same family of signals; architect can phrase a custom row for nuance (e.g. exclude a named benign app). |
-| **No centralized exchange apps — non-custodial wallets only** | A custom rule the architect describes in terms of **app inventory**: custodial exchange clients (e.g. **Kraken**, **Binance** — identifiable by package / brand strings) vs **self-custody** wallets (e.g. **Bitcoin.com** wallet — different category). Installing the former could contribute to a breach narrative under that pact; installing the latter would not, by design. Exact package lists evolve with stores and regional apps; the pact **hint** documents what the two of you mean. |
-| **Screen-off by midnight on weeknights** | Combines time-of-day + screen-on / unlock signals. |
-
-**Reality check** — The **reference relay classifier** (`prototype/relay/breach_ai.py`) is optimized for **dating / hookup** style signals today. **Custom rule rows** are first-class in state, invites, and UI; wiring every custom id to new server-side classifiers is ongoing product work. Treat exchange-vs-wallet style rules as **the contract you negotiate**, with enforcement depth depending on how you extend ingest + AI prompts.
+**If AXL is down:** pairing and live sync degrade; the web app may still run in demo/offline modes.
 
 ---
 
-## 0G — storage, memory, and compute
+## 6. Pacts & rules
 
-LoveClaw integrates **0G** in three complementary ways:
+**Scope:** what the couple agrees to and how **agents + UI** update the pact. **Not** mesh wire format (that is **§5**); **not** relay implementation (**§8**).
 
-1. **0G Compute (AI settings)** — Optional **decentralized inference** endpoint alongside OpenRouter, Ollama, HuggingFace, or a custom OpenAI-compatible URL.
-2. **0G Memory (EverMemOS)** — **`memory_router.py`** exposes `/episode`, `/search`, `/recent` on **:9091** and forwards to EverMemOS (**:1995**). Breach, together-time, diary, handshake, and related **episodes** can be indexed for semantic recall when building diary context.
-3. **0G Storage (example)** — **`examples/0g-storage-memory/`** is a Bun + TypeScript sample: upload encrypted pact / diary snapshots with the **0G TS SDK**, verify downloads — the pattern for **durable, on-chain blobs** beside hot app state.
+### 6.1 Built-in pact rows
 
-**Docker** — EverMemOS pulls MongoDB, Elasticsearch, Milvus, Redis, and **zgs_kv** toward **0G testnet**. See `CLAUDE.md` / commands below for `~/0g-memory` clone, `.env` keys (`LLM_API_KEY`, `VECTORIZE_API_KEY`, `RERANK_API_KEY`, `ZEROG_WALLET_KEY`), and `python3 memory_router.py docker-up`.
+| Id | Role |
+|----|------|
+| `dating_app` | Dating-oriented installs from app metadata / relay-assisted signals. |
+| `location` | Movement vs routine — stops, routes, timing. |
+| `contact` | Long unexplained offline while battery suggests the phone could be on. |
+| `diary` | **Automation** — AI daily diary from shared context (not a breach monitor by default). |
 
-Diary copy in-product may mention writing memories to **0G Storage** for long-term couple archives; the example repo is the place to experiment with that SDK end-to-end.
+### 6.2 Dynamic rules (pact architect)
 
----
+| Piece | Behavior |
+|-------|----------|
+| **Entry point** | **@loveclaw** in chat + configured LLM (**§13**). |
+| **Structured outcomes** | JSON: `propose_rule`, `need_info`, `not_possible`, `chat`. |
+| **`propose_rule`** | Inserts a **custom** row (id, label, hint, category) and sends **`pact_changes_propose`** over **AXL**; the other person must **accept** before triggers change. |
+| **Copilot constraint** | Only proposes rules that could be approximated from **§3** signals (apps, names, notification metadata, time, location bands, etc.). |
 
-## Uniswap — shared vault swaps
+### 6.3 Example pact intents (illustrative)
 
-The **couple vault** path includes **Uniswap Trading API v1** integration for **Ethereum mainnet** quotes and calldata:
+| Intent | Detection idea (high level) |
+|--------|-----------------------------|
+| No dating / hookup apps | Built-in `dating_app` + relay dating/hookup classification. |
+| No custodial exchange apps; non-custodial wallets OK | Custom rule + **app inventory**: e.g. **Kraken** / **Binance**-style client packages vs **Bitcoin.com**-style self-custody wallet — former flagged under that pact, latter not. Exact packages vary by store/region; **hint** text records what you two mean. |
+| Screen-off by midnight (weeknights) | Time windows + screen-on / unlock signals. |
 
-- Chat quick action seeds: *“@loveclaw lets swap 0.0005 ETH to USDC”* (natural language still goes through the swap / vault helpers where wired).
-- **`src/app/swap.js`** — `POST /uniswap/v1/quote` and `POST /uniswap/v1/swap` with an API key; execution uses **ethers** + public RPC candidates to broadcast the returned transaction from the decrypted vault key (demo / hackathon flow — protect keys accordingly).
-- **Configuration** — Set **`VITE_UNISWAP_API_KEY`** in `.env` (see `.env.example`, [Uniswap Dev Hub](https://hub.uniswap.org/)) or store the key in **AI settings** where the UI exposes it. **Vite dev** proxies `/uniswap` to `trade-api.gateway.uniswap.org`; **Vercel** rewrites the same path in `vercel.json`.
+### 6.4 Enforcement note
 
-**Expectation** — Swaps require **gas ETH** on the vault wallet, a valid quote, and network availability. This is **not** a audited custody product; it demonstrates **joint financial intent** next to the pact narrative.
-
----
-
-## Features (short)
-
-### Loyalty & signals
-
-Real-time-ish fidelity and routine signals: dating-oriented installs, location story, offline/contact patterns, configurable triggers. High scores / breach paths can drive overlays and **AXL** `breach` messages. Built-in rows include `dating_app`, `location`, `contact`, and automation `diary`.
-
-### Smart staking (narrative)
-
-Mutual ETH stake / vault framing for commitment and penalty storytelling in the UI and demos.
-
-### AI diary
-
-Context bundle from signals + notes → LLM image prompt → **Gemini** (via OpenRouter) pixel art for the calendar; partner sync over AXL.
-
-### Heartbeat map & “profiling”
-
-**Heartbeat** runs on a timer and aggregates signal history for the **Today** tab. The **heartbeat map** (Leaflet) shows your position and, after mutual consent, your match’s shared pin — useful for **spatial profiling** in the benign sense (“where are we both active?”). For **engineering profiling**, use browser DevTools Performance, or the signal relay SSE console to watch ingest volume and breach decisions.
+| Layer | Today |
+|-------|--------|
+| **Relay `breach_ai.py`** | Tuned for **dating / hookup**-style classification + keyword fallback. |
+| **Custom rule ids** | First-class in **state, invite, UI**; per–rule-id server classifiers are **extension work** beyond the reference relay. |
 
 ---
 
-## Architecture
+## 7. Signals, heartbeat & profiling
 
-```
-Vite app (index.html + src/)  or  Tauri shell
-    ├── LoveClaw agent   localhost:18789  — device signals (when present)
-    ├── AXL              :9002 / :9012   — P2P mesh (see vite proxy + env)
-    ├── Signal Relay     localhost:9090  — ingest, breach_ai, SSE console
-    └── Memory Router    localhost:9091  — 0G Memory / EverMemOS facade
+**Scope:** what the **couple sees** from device data. **Not** the Python relay service (**§8**); not AXL framing (**§5**).
 
-memory_router.py
-    └── EverMemOS        localhost:1995  — Docker (see 0G section)
-```
-
-### Key modules (src/)
-
-- **`src/axl/client.js`**, **`src/axl/poll.js`** — Mesh client and inbound loop.
-- **`src/app/heartbeat.js`**, **`src/app/heartbeat-map.js`** — Signal-driven today + map UX.
-- **`src/app/lovclaw-ai.js`**, **`src/app/ai-settings.js`** — Pact architect + providers.
-- **`src/app/swap.js`**, **`src/app/vault.js`** — Uniswap + vault display.
-- **`prototype/relay/`** — Relay implementation (`breach_ai.py`, ingest, push, memory client).
+| Topic | Detail |
+|-------|--------|
+| **Heartbeat** | Periodic aggregation of recent signals for the **Today** tab. |
+| **Heartbeat map** | Leaflet map: your position; after **mutual** location-share accept, partner pin. |
+| **Profiling (product sense)** | Consented **activity profile** — where/when apps and presence patterns show up in UI and history. |
+| **Profiling (engineering)** | Browser DevTools Performance; or **§8** SSE console for ingest / breach stream. |
 
 ---
 
-## Pairing flow
+## 8. Signal relay service
 
-1. **Creator** generates an invite — AXL public key, triggers, optional stake and **custom rules** ride in the encoded pact bundle.
-2. **Joiner** opens the link, completes join UI, sends **`axl_handshake`** back over AXL.
-3. Both store keys; polling begins; subsequent traffic is **P2P-shaped** (still localhost-to-mesh in dev).
+**Scope:** the **Python** service on **localhost:9090**. **Not** 0G (**§12**); not Uniswap (**§11**).
+
+| Topic | Detail |
+|-------|--------|
+| **Code** | `prototype/relay/` + `prototype/signal-relay.py`. |
+| **Role** | Ingests signal batches, runs **`breach_ai.py`** (optional Claude + keyword fallback), broadcasts events over **SSE** to the operator console, can forward episodes toward the memory router. |
+| **UI** | Console at `http://localhost:9090/` (with static/console assets as wired in the relay). |
 
 ---
 
-## Running
+## 9. Diary & AI copilot
+
+**Scope:** diary generation and **@loveclaw** chat UX. **Not** the full provider matrix (**§13**).
+
+| Topic | Detail |
+|-------|--------|
+| **Diary** | Context bundle (signals + notes) → LLM prompt → pixel-art image (e.g. **Gemini** via OpenRouter) → calendar; partner artifacts sync over **AXL**. |
+| **Chat** | **@loveclaw** for pact help, quick seeds (e.g. swap phrasing, “new rule: …”), and **§6** pact architect flows. |
+
+---
+
+## 10. Vault & ETH stake
+
+**Scope:** mutual commitment **story** in the UI / demos. **Not** Uniswap API details (**§11**).
+
+| Topic | Detail |
+|-------|--------|
+| **Stake** | Optional proposed ETH at invite time; displayed as shared commitment. |
+| **Vault** | Joint wallet narrative for demos; breach / penalty flows tie into product storytelling. |
+
+### 10.1 LoveClawPact — deployed smart contract
+
+The on-chain pact contract is **live and verified on Ethereum mainnet**.
+
+| Field | Value |
+|-------|-------|
+| **Contract** | `LoveClawPact` |
+| **Address** | [`0x597a01608952220f1d833c833111731E6762085c`](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c) |
+| **Network** | Ethereum mainnet (chain 1) |
+| **Verified** | ✅ [Etherscan source verified](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c#code) |
+| **Source** | `evm/src/LoveClawPact.sol` |
+| **Compiler** | Solidity `0.8.30`, optimizer 200 runs |
+
+**Key functions:**
+
+| Function | Who | What |
+|----------|-----|------|
+| `createPact(partnerB, agentA, agentB, triggers)` | Partner A | Creates pact, deposits stake A |
+| `joinPact(pactId)` | Partner B | Joins and deposits stake B |
+| `initiateInstantBreach(pactId, accused, evidence)` | Agent | First agent files instant breach |
+| `confirmInstantBreach(pactId)` | Other agent | Second agent confirms → victim receives full stake immediately |
+| `rejectInstantBreach(pactId)` | Other agent | Second agent rejects → pact returns to Active |
+| `fileBreachWithDelay(pactId, accused, evidence, window)` | Agent | Files breach with dispute window (default 24 h, max 7 days) |
+| `disputeBreach(pactId)` | Accused partner | Disputes within the window |
+| `claimBreachPayout(pactId)` | Innocent partner | Claims full stake after window expires undisputed |
+| `dissolvePact(pactId)` | Either partner | Mutual dissolution — splits stake 50/50 |
+| `proposeTriggerAmendment` / `acceptTriggerAmendment` | Partners | Two-step trigger bitmask amendment |
+
+**Trigger bitmask constants:**
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| `TRIGGER_DATING_APP` | `1` | Dating app detected |
+| `TRIGGER_LOCATION` | `2` | Location anomaly |
+| `TRIGGER_CONTACT` | `4` | Contact anomaly |
+| `TRIGGER_DIARY` | `8` | Diary signal |
+
+**To redeploy or run tests:**
 
 ```bash
-bun install
-
-# Primary: Vite PWA / web (default http://localhost:1420 — see vite.config)
-bun run dev
-
-# Optional: HTTPS for LAN / getUserMedia (phones)
-LOVECLAW_DEV_HTTPS=1 bun run dev
-
-# Signal relay — AI breach stream + SSE console → http://localhost:9090/
-python3 prototype/signal-relay.py
-
-# Memory router — 0G Memory API → http://localhost:9091/ (optional)
-python3 memory_router.py serve
-python3 memory_router.py docker-up   # first-time EverMemOS stack
-
-# Two Tauri dev identities (separate processes; second bumps port if needed)
-bun run dev:alice
-bun run dev:boris
-
-# Same with relay env hint (see vite.config — LOVECLAW_RELAY=1)
-bun run dev:alice:relay
-bun run dev:boris:relay
+cd evm
+forge build
+forge test
+forge script script/Deploy.s.sol:Deploy \
+  --rpc-url <RPC_URL> \
+  --private-key $PRIVATE_KEY \
+  --broadcast --verify \
+  --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
-**Two-node AXL + two tabs** — From repo root, `bash run.sh` (under `examples/axl-demo`) builds the Go node if needed, starts Alice/Boris listeners, and opens `?role=alice` / `?role=boris` in the browser. If the script’s embedded dev command disagrees with your toolchain, start **`bun run dev`** yourself after the nodes are up.
+---
 
-### Prerequisites
+## 11. Uniswap integration
 
-- **[Bun](https://bun.sh/)** — install and scripts
-- **Python 3.10+** — relay + memory router
-- **Go 1.21+** — build `examples/axl-demo/axl/node`
-- **Docker** — optional, for 0G Memory / EverMemOS
+**Scope:** **Uniswap Trading API v1** + vault signing path **only**. **Not** general DeFi (**§10** is stake narrative); **not** 0G.
+
+| Topic | Detail |
+|-------|--------|
+| **Network** | **Ethereum mainnet** quotes / calldata in reference implementation. |
+| **Code** | `src/app/swap.js` — `POST /uniswap/v1/quote`, `POST /uniswap/v1/swap`; broadcast via **ethers** + public RPC rotation. |
+| **Secrets** | `VITE_UNISWAP_API_KEY` in `.env` (see `.env.example`) or Uniswap key in **AI settings** where exposed. |
+| **Proxy** | Vite dev proxies `/uniswap` → `trade-api.gateway.uniswap.org`; `vercel.json` rewrites for deploy. |
+| **Requirements** | Vault wallet needs **gas ETH**; quotes expire; not an audited custody product. |
 
 ---
 
-## AI configuration
+## 12. 0G stack
 
-**Settings → AI** in the app:
+**Scope:** everything **0G-branded** — compute, memory, storage sample, Docker. **Not** AXL (**§5**); not Uniswap (**§11**).
 
-| Provider | Role |
-|----------|------|
-| OpenRouter | Recommended multi-model + image models |
-| Local Ollama | Offline models |
-| **0G Compute** | Decentralized inference |
-| HuggingFace | Hosted open weights |
-| Custom URL | Any OpenAI-compatible endpoint |
+### 12.1 0G Compute
 
-The **pact architect** system prompt defines JSON-only responses and built-in rule ids (`dating_app`, `location`, `contact`, `diary`).
+Optional **decentralized inference** endpoint in **Settings → AI** (alongside OpenRouter, Ollama, HuggingFace, custom URL).
 
----
+### 12.2 0G Memory (EverMemOS)
 
-## 0G quick start (copy-paste)
+| Topic | Detail |
+|-------|--------|
+| **Router** | `memory_router.py` — HTTP on **:9091** → EverMemOS **:1995**. |
+| **Endpoints** | e.g. `/episode`, `/search`, `/recent` — typed episodes (breach, together, diary, handshake, …). |
+| **Docker stack** | MongoDB, Elasticsearch, Milvus, Redis, **zgs_kv** → **0G testnet**. |
+
+### 12.3 0G Storage (example app)
+
+| Topic | Detail |
+|-------|--------|
+| **Path** | `examples/0g-storage-memory/` (Bun + TypeScript, **0G TS SDK**). |
+| **Purpose** | Upload / verify encrypted pact or diary **blob** snapshots — pattern for durable on-chain archives. |
+
+### 12.4 0G quick start (Docker + clone)
 
 ```bash
 git clone https://github.com/0gfoundation/0g-memory ~/0g-memory
@@ -246,26 +270,103 @@ cd ~/0g-memory && ./install.sh && ./start_service.sh
 
 ---
 
-## Project layout
+## 13. AI model providers (settings)
 
-```
-src/                 Vite app — screens, dashboard, AXL, AI, swap, heartbeat
-  app/               Boot, breach UI, ping, coop profile, messages
-  axl/               Mesh client + poll loop
-  dashboard/         Today, signals, diary, pact tabs
-  lib/               State, invite, pact helpers
-prototype/relay/     Python relay + breach AI + memory client
-examples/axl-demo/   Two-node mesh demo + keys
-examples/0g-storage-memory/  Bun SDK sample for 0G Storage
-src-tauri/           Tauri desktop wrapper
-memory_router.py     0G Memory HTTP adapter
-```
+**Scope:** which **LLM / image** backends the app can call from **Settings → AI**. **Not** pact rule JSON schema (**§6** — that is the pact architect contract).
+
+| Provider | Use |
+|----------|-----|
+| OpenRouter | Recommended multi-model + image routes. |
+| Local Ollama | Offline. |
+| **0G Compute** | Decentralized inference (**§12.1**). |
+| HuggingFace | Hosted open models. |
+| Custom URL | OpenAI-compatible endpoint. |
+
+The **pact architect** system prompt requires JSON-only replies and reserved ids: `dating_app`, `location`, `contact`, `diary`.
 
 ---
 
-## Design language
+## 14. Runbook & prerequisites
 
-Dark cyberpunk / 8-bit retro. Font: `'Press Start 2P'`. Palette: teal `#5DCAA5`, purple `#534AB7`, pink `#D4537E`, amber `#FAC775`, red `#E24B4A`, background `#07070f` / `#0d0d1e`.
+### Commands
+
+```bash
+bun install
+
+# Web / PWA (default http://localhost:1420 — see vite.config)
+bun run dev
+
+# HTTPS for LAN / getUserMedia
+LOVECLAW_DEV_HTTPS=1 bun run dev
+
+# §8 Signal relay
+python3 prototype/signal-relay.py
+
+# §12 Memory router (optional)
+python3 memory_router.py serve
+python3 memory_router.py docker-up
+
+# Two Tauri roles (second instance bumps port if needed)
+bun run dev:alice
+bun run dev:boris
+bun run dev:alice:relay
+bun run dev:boris:relay
+```
+
+### Prerequisites
+
+| Tool | For |
+|------|-----|
+| [Bun](https://bun.sh/) | Install + npm scripts |
+| Python **3.10+** | Relay + memory router |
+| Go **1.21+** | `examples/axl-demo/axl/node` |
+| Docker | **§12** EverMemOS (optional) |
+
+**Two-node AXL:** `bash run.sh` from repo root (see **§5**); if its bundled dev command does not match your setup, run **`bun run dev`** manually after nodes are listening.
+
+---
+
+## 15. Repository layout
+
+| Path | Category |
+|------|----------|
+| `src/` | Vite app — UI, dashboard, **§5** AXL client, **§6–9** flows, **§11** swap. |
+| `src/app/`, `src/dashboard/`, `src/lib/` | Feature modules per areas above. |
+| `evm/` | Solidity contracts — **§10.1** `LoveClawPact` (deployed mainnet). |
+| `prototype/relay/` | **§8** relay + `breach_ai.py`. |
+| `examples/axl-demo/` | **§5** mesh binaries + configs. |
+| `examples/0g-storage-memory/` | **§12.3** Storage SDK demo. |
+| `src-tauri/` | Desktop shell. |
+| `memory_router.py` | **§12.2** 0G Memory HTTP adapter. |
+
+---
+
+## 16. Design system
+
+| Token | Hex |
+|-------|-----|
+| Teal | `#5DCAA5` |
+| Purple | `#534AB7` |
+| Pink | `#D4537E` |
+| Amber | `#FAC775` |
+| Red | `#E24B4A` |
+| Background | `#07070f` / `#0d0d1e` |
+
+Font: **`'Press Start 2P'`** — dark cyberpunk / 8-bit retro.
+
+---
+
+## 17. Architecture (ports)
+
+```
+Vite (index.html + src/)  or  Tauri
+    ├── LoveClaw agent   :18789   — §3 signals (when agent is running)
+    ├── AXL              :9002 / :9012 — §5
+    ├── Signal relay     :9090   — §8
+    └── Memory router    :9091   — §12.2
+
+memory_router.py → EverMemOS :1995 (Docker, §12)
+```
 
 ---
 
