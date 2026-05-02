@@ -89,7 +89,7 @@ async function _subscribePush() {
             applicationServerKey: _urlBase64ToUint8Array(publicKey),
         });
 
-        const name = (state.myName || "").trim().toLowerCase() || "unknown";
+        const name = (state.myName || "").trim().toLowerCase() || (localStorage.getItem("loveclaw-state") ? JSON.parse(localStorage.getItem("loveclaw-state") || "{}").myName || "unknown" : "unknown");
         await fetch(`${RELAY}/push-subscribe`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
