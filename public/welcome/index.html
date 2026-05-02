@@ -37,10 +37,11 @@
   </button>
   <nav id="welcome-top-menu" class="welcome-top-menu" aria-label="Site menu" aria-hidden="true">
     <div class="welcome-top-menu-inner">
-      <a href="/" class="nav-link">HOME</a>
       <a href="#" class="nav-link" data-welcome-nav="about">ABOUT</a>
-      <a href="#" class="nav-link" data-welcome-nav="repository">REPOSITORY</a>
       <a href="#" class="nav-link" data-welcome-nav="usecases">USECASES</a>
+      <a href="#" class="nav-link" data-welcome-nav="repository">REPOSITORY</a>
+      <a href="#" class="nav-link" data-welcome-nav="builders">BUILDERS</a>
+      <a href="#" class="nav-link" data-welcome-nav="demo">DEMO</a>
     </div>
   </nav>
 </div>
@@ -49,7 +50,7 @@
   <h2 id="welcome-nav-dialog-title"></h2>
   <div id="welcome-nav-dialog-body"></div>
   <div class="welcome-nav-dialog-actions">
-    <button type="button" class="btn btn--prefill" id="welcome-nav-dialog-close">CLOSE</button>
+    <button type="button" class="welcome-nav-dialog-close-btn" id="welcome-nav-dialog-close">✕ CLOSE</button>
   </div>
 </dialog>
 
@@ -273,6 +274,12 @@
     <p>COMMIT &nbsp;·&nbsp; PROTECT &nbsp;·&nbsp; REMEMBER</p>
   </div>
   <div class="hero-sub">FORKED FROM OPENCLAW &nbsp;·&nbsp; BUILT FOR TWO</div>
+  <div class="hero-scroll-hint" aria-hidden="true">
+    <svg class="hero-scroll-arrow" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div class="hero-scroll-hint hero-scroll-hint--top" aria-hidden="true">
+    <svg class="hero-scroll-arrow" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>
+  </div>
 
   <!-- chrome -->
   <div class="corner tl"></div>
@@ -448,6 +455,8 @@
             }
             nav.classList.toggle("welcome-top-menu--open", open);
             nav.setAttribute("aria-hidden", open ? "false" : "true");
+            var arrowTop = document.querySelector(".hero-scroll-hint--top");
+            if (arrowTop) arrowTop.style.opacity = open ? "0" : "";
         }
 
         function onMouseMove(e) {
@@ -545,6 +554,8 @@
             var open = dockOpen();
             panel.classList.toggle("device-tag-panel--open", open);
             panel.setAttribute("aria-hidden", open ? "false" : "true");
+            var arrowBottom = document.querySelector(".hero-scroll-hint:not(.hero-scroll-hint--top)");
+            if (arrowBottom) arrowBottom.style.opacity = open ? "0" : "";
         }
 
         function onMove(e) {
@@ -669,23 +680,64 @@
         }
         var panels = {
             about: {
-                title: "ABOUT",
+                title: "ABOUT LOVECLAW",
                 html:
-                    "<p>LoveClaw is a relationship pact app for two people who opt in to mutual accountability. Devices talk peer-to-peer; couple data is not routed through a central server.</p>" +
-                    "<p>Forked from OpenClaw, built for two. AgentHack 2026.</p>",
+                    "<p>LoveClaw is a relationship trust monitoring app for two people who opt in to mutual accountability. Both partners install it on their devices, pair via an invite link, and all data flows directly peer-to-peer over AXL — no central server ever sees your couple data.</p>" +
+                    "<p>The AI breach engine watches for agreed triggers (dating apps, spending, screen time, CEX installs) and fires alerts to both devices instantly. An on-chain vault lets couples put real collateral behind their pact.</p>" +
+                    "<p>Pact rules are dynamic AI prompts — think of each rule as an instruction to LoveClaw's agent. If a signal can be detected on a device, LoveClaw can enforce a pact around it. Just ask: <em>\"@loveclaw new rule: …\"</em> and the agent generates and activates it on the spot.</p>" +
+                    "<p>Built at <strong>ETHGlobal | OpenAgents 2026</strong> — forked from OpenClaw, reimagined for two.</p>",
             },
             repository: {
                 title: "REPOSITORY",
                 html:
-                    "<p>Source, relay prototype, and Tauri app live in this monorepo.</p>" +
-                    "<p>To link your fork: in <code>public/welcome/index.html</code>, turn the REPOSITORY control into a plain <code>&lt;a&gt;</code> with your Git host URL.</p>",
+                    "<p>· GitHub: <a href='https://github.com/vm06007/loveclaw' target='_blank' rel='noopener'>github.com/vm06007/loveclaw</a></p>" +
+                    "<p>· <a href='https://github.com/vm06007/loveclaw/blob/master/README.md' target='_blank' rel='noopener'>README.md</a> — setup, running locally, architecture overview</p>" +
+                    "<p>· <a href='https://github.com/vm06007/loveclaw/blob/master/AXL.md' target='_blank' rel='noopener'>AXL.md</a> — P2P mesh protocol, pairing flow, message types</p>" +
+                    "<p>· <code>prototype/relay/</code> — AI breach engine, signal relay, SSE console</p>" +
+                    "<p>· <code>evm/src/BreachPenalty.sol</code> — on-chain vault &amp; penalty contract</p>" +
+                    "<p>· <code>memory_router.py</code> — 0G Memory / EverMemOS wrapper</p>" +
+                    "<hr style='border-color:var(--border);margin:10px 0'/>" +
+                    "<p><strong style='color:var(--teal)'>Sponsors &amp; Partners</strong></p>" +
+                    "<p>· <strong>ETHGlobal</strong> — hackathon infrastructure &amp; community</p>" +
+                    "<p>· <strong>0G Foundation</strong> — on-chain memory via EverMemOS &amp; 0G testnet</p>" +
+                    "<p>· <strong>AXL / Axelar</strong> — P2P mesh transport layer</p>" +
+                    "<p>· <strong>OpenClaw</strong> — upstream open-source foundation</p>",
+            },
+            demo: {
+                title: "DEMO",
+                html:
+                    "<p>· Enter your name below and tap <strong style='color:var(--pink-l)'>OPEN</strong> to launch the app.</p>" +
+                    "<p>· Create a new Claw — share the invite link or QR code with your partner.</p>" +
+                    "<p>· Once paired, the dashboard shows live trust scores, heartbeat signals, and the shared diary.</p>" +
+                    "<p>· Use <em>@loveclaw new rule: …</em> in the agent chat to set a pact rule on the fly.</p>" +
+                    "<p>· Tap <strong style='color:var(--teal)'>Test Pact</strong> in the quick menu to pick from inspiration examples.</p>" +
+                    "<p>· The <strong style='color:var(--purple-l)'>AI Diary</strong> auto-generates a daily relationship summary from device signals — both partners see the same entry, stored permanently on 0G Memory.</p>" +
+                    "<p>· <strong style='color:var(--purple-l)'>Mutual Funds</strong> — deposit ETH or USDC into a shared Uniswap vault. Both partners must sign to withdraw; breach of pact can trigger an automatic penalty transfer to the other side.</p>" +
+                    "<hr style='border-color:var(--border);margin:10px 0'/>" +
+                    "<p style='color:var(--text-dim)'>For a full walkthrough see <a href='https://github.com/vm06007/loveclaw/blob/master/README.md' target='_blank' rel='noopener'>README.md</a>.</p>",
+            },
+            builders: {
+                title: "BUILDERS",
+                html:
+                    "<p><strong style='color:var(--teal)'>Vitally Marinchenko</strong> — lead engineer &amp; product. Full-stack, EVM, P2P architecture.</p>" +
+                    "<p><strong style='color:var(--teal)'>Yiying Zhu</strong> — design &amp; brand. Visual identity, UX, pixel art system.</p>" +
+                    "<hr style='border-color:var(--border);margin:10px 0'/>" +
+                    "<p>Built at <strong>ETHGlobal | OpenAgents 2026</strong>.</p>" +
+                    "<p>Questions or collabs: open an issue on <a href='https://github.com/vm06007/loveclaw' target='_blank' rel='noopener'>GitHub</a>.</p>",
             },
             usecases: {
                 title: "USE CASES",
                 html:
-                    "<p>· Pair two phones and keep a private pact channel.</p>" +
-                    "<p>· Shared rules, breach signals, and an AI-assisted diary.</p>" +
-                    "<p>· Optional on-chain vault / collateral when both sides agree on enforcement.</p>",
+                    "<p>· Pair two phones and keep a private encrypted pact channel — zero servers in the middle.</p>" +
+                    "<p>· Set shared rules: no dating apps, screen time limits, DeFi-only wallets, digital curfews.</p>" +
+                    "<p>· AI breach engine monitors signals in real time and fires alerts to both partners instantly.</p>" +
+                    "<p>· AI diary auto-generates daily summaries from device signals, stored permanently on 0G Memory.</p>" +
+                    "<p>· AI Diary — auto-generated daily summaries from device signals, shared between both partners and stored permanently on 0G Memory.</p>" +
+                    "<p>· Mutual Funds — deposit into a shared Uniswap vault; both partners must sign to withdraw. Breach of pact triggers an automatic penalty to the other side.</p>" +
+                    "<p>· All data end-to-end encrypted via AXL; only your two devices ever hold the keys.</p>" +
+                    "<hr style='border-color:var(--border);margin:10px 0'/>" +
+                    "<p><strong style='color:var(--teal)'>Pact rules = AI prompts</strong></p>" +
+                    "<p>Every pact rule is a dynamic instruction to LoveClaw's agent. Anything detectable from device signals — apps, location, screen time, network activity — can become an enforceable rule. Just tell the agent what you want: <em>\"@loveclaw new rule: …\"</em> and it generates, explains, and activates the pact on demand for both partners.</p>",
             },
         };
         function openNav(key) {
