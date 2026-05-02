@@ -13,6 +13,11 @@
     z-index: 250;
 }
 .modal-sheet.hidden { display: none; }
+
+/* Join QR: must sit above fixed install (200) + notif (300); keep out of #app overflow clipping (Tauri/WebKit). */
+.modal-sheet.join-qr-scan-modal {
+    z-index: 320;
+}
 .modal-sheet-inner {
     width: 100%;
     max-width: 320px;

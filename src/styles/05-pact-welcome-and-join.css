@@ -244,9 +244,6 @@
 .join-invite-field .join-scan-qr-btn {
     margin-top: 10px;
 }
-.join-qr-scan-modal {
-    z-index: 95;
-}
 .join-qr-scan-inner {
     max-width: 340px;
     text-align: center;

@@ -6,7 +6,11 @@
 <title>LoveClaw — Commit · Protect · Remember</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/welcome/welcome.css">
+<link rel="stylesheet" href="/css/loveclaw-tokens.css">
+<link rel="stylesheet" href="/welcome/welcome-base.css">
+<link rel="stylesheet" href="/welcome/welcome-stage.css">
+<link rel="stylesheet" href="/welcome/welcome-nav.css">
+<link rel="stylesheet" href="/welcome/welcome-dock.css">
 </head>
 <body>
 
@@ -287,58 +291,436 @@
       <div class="device-tag-field-row">
         <input
           id="tag-input"
+          class="tag-form-input"
           name="tag"
           type="text"
           maxlength="48"
           autocomplete="off"
           autocapitalize="none"
           spellcheck="false"
-          placeholder="type a tag, then open"
+          inputmode="text"
+          enterkeyhint="go"
+          placeholder="what is your name?"
+          aria-label="What is your name?"
+          title="Letters, numbers, underscore, or hyphen. One tag per device."
         />
-        <button type="submit" class="btn btn--primary">Open</button>
-      </form>
-      <p class="prefill-label">Quick picks</p>
-      <div class="prefills">
-        <button type="button" class="btn" data-tag="alice">Alice</button>
-        <button type="button" class="btn" data-tag="boris">Boris</button>
-        <button type="button" class="btn" data-tag="yiying">Yiying</button>
-        <button type="button" class="btn" data-tag="vitally">Vitally</button>
+        <button type="submit" class="btn btn--primary" aria-label="Open app">OPEN</button>
       </div>
+    </form>
+    <div class="device-tag-secondary">
+      <div class="prefills" role="group" aria-label="Fill your name from examples">
+        <button type="button" class="btn btn--prefill" data-tag="alice">ALICE</button>
+        <button type="button" class="btn btn--prefill" data-tag="boris">BORIS</button>
+        <button type="button" class="btn btn--prefill" data-tag="yiying">YIYING</button>
+        <button type="button" class="btn btn--prefill" data-tag="vitally">VITALLY</button>
+      </div>
+      <button
+        type="button"
+        class="btn-tag-help"
+        title="Invite: open the full URL with ?pact=… on this domain. Each device uses a different tag (e.g. /alice and /boris)."
+        aria-label="About invite links and device tags"
+      >?</button>
     </div>
-    <p class="note">
-      <strong>Invite link?</strong> If someone sent you a URL with <code>?pact=…</code>, open that full link on this domain — it opens the app directly. Each device should use a <strong>different</strong> tag (e.g.
-      <code>/alice</code> and <code>/boris</code>) so sessions stay separate.
-    </p>
-    <script>
-        (function () {
-            var TAG_RE = /^[a-zA-Z0-9_-]{1,48}$/;
-            function normalize(s) {
-                return String(s || "").trim().toLowerCase();
+  </div>
+</div>
+
+<script>
+  // ── Starfield ─────────────────────────────────────
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    const a1 = (Math.random() * 0.3 + 0.1).toFixed(2);
+    const a2 = (Math.random() * 0.6 + 0.3).toFixed(2);
+    s.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${Math.random()*65}%;
+      width:${sz}px; height:${sz}px;
+      --d:${(Math.random()*3+2).toFixed(1)}s;
+      --del:${(Math.random()*4).toFixed(1)}s;
+      --a1:${a1}; --a2:${a2};
+    `;
+    sf.appendChild(s);
+  }
+
+  // ── Starfield parallax (pointer vs. stage center; stars move slower = depth) ──
+  (function initStarfieldParallax() {
+    const stage = document.querySelector(".stage");
+    if (!stage || !sf || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const strength = 24;
+    const ease = 0.14;
+    let targetX = 0;
+    let targetY = 0;
+    let curX = 0;
+    let curY = 0;
+    let rafId = 0;
+
+    function setTargets(clientX, clientY) {
+      const r = stage.getBoundingClientRect();
+      const halfW = Math.max(r.width * 0.5, 1);
+      const halfH = Math.max(r.height * 0.5, 1);
+      let nx = (clientX - (r.left + r.width * 0.5)) / halfW;
+      let ny = (clientY - (r.top + r.height * 0.5)) / halfH;
+      nx = Math.max(-1.15, Math.min(1.15, nx));
+      ny = Math.max(-1.15, Math.min(1.15, ny));
+      targetX = -nx * strength;
+      targetY = -ny * strength;
+    }
+
+    function tick() {
+      rafId = 0;
+      curX += (targetX - curX) * ease;
+      curY += (targetY - curY) * ease;
+      sf.style.transform = "translate3d(" + curX.toFixed(2) + "px," + curY.toFixed(2) + "px,0)";
+      if (Math.abs(targetX - curX) > 0.04 || Math.abs(targetY - curY) > 0.04) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+
+    function scheduleTick() {
+      if (!rafId) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+
+    function onPointerMove(e) {
+      if (e.pointerType === "mouse" || e.pointerType === "pen") {
+        setTargets(e.clientX, e.clientY);
+        scheduleTick();
+      }
+    }
+
+    setTargets(window.innerWidth * 0.5, window.innerHeight * 0.5);
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+  })();
+</script>
+<script>
+    (function () {
+        var nav = document.getElementById("welcome-top-menu");
+        var hamburger = document.getElementById("welcome-nav-hamburger");
+        var backdrop = document.getElementById("welcome-top-mobile-backdrop");
+        if (!nav) {
+            return;
+        }
+        var mqMobile = window.matchMedia("(max-width: 640px)");
+        var topStripPx = 56;
+        var topStrip = false;
+        var navHover = false;
+        var mobileMenuOpen = false;
+
+        function isMobileLayout() {
+            return mqMobile.matches;
+        }
+
+        function refreshTopStripPx() {
+            topStripPx = Math.min(100, Math.round(window.innerHeight * 0.14));
+        }
+
+        function forceClose() {
+            topStrip = false;
+            navHover = false;
+            mobileMenuOpen = false;
+            syncTopNav();
+        }
+
+        function syncTopNav() {
+            var open;
+            if (isMobileLayout()) {
+                topStrip = false;
+                navHover = false;
+                open = mobileMenuOpen;
+                if (hamburger) {
+                    hamburger.setAttribute("aria-expanded", open ? "true" : "false");
+                    hamburger.classList.toggle("welcome-nav-hamburger--open", open);
+                }
+                if (backdrop) {
+                    backdrop.classList.toggle("is-visible", open);
+                    backdrop.setAttribute("aria-hidden", open ? "false" : "true");
+                }
+            } else {
+                mobileMenuOpen = false;
+                if (backdrop) {
+                    backdrop.classList.remove("is-visible");
+                    backdrop.setAttribute("aria-hidden", "true");
+                }
+                if (hamburger) {
+                    hamburger.setAttribute("aria-expanded", "false");
+                    hamburger.classList.remove("welcome-nav-hamburger--open");
+                }
+                open = topStrip || navHover;
             }
-            function go(tag) {
-                var t = normalize(tag);
-                if (!TAG_RE.test(t)) {
-                    window.alert("Use letters, numbers, underscore, or hyphen only (1–48 characters).");
+            nav.classList.toggle("welcome-top-menu--open", open);
+            nav.setAttribute("aria-hidden", open ? "false" : "true");
+        }
+
+        function onMouseMove(e) {
+            if (isMobileLayout()) {
+                return;
+            }
+            topStrip = e.clientY <= topStripPx;
+            syncTopNav();
+        }
+
+        refreshTopStripPx();
+        document.addEventListener("mousemove", onMouseMove, { passive: true });
+        window.addEventListener(
+            "resize",
+            function () {
+                refreshTopStripPx();
+                syncTopNav();
+            },
+            { passive: true }
+        );
+        if (typeof mqMobile.addEventListener === "function") {
+            mqMobile.addEventListener("change", syncTopNav);
+        } else if (typeof mqMobile.addListener === "function") {
+            mqMobile.addListener(syncTopNav);
+        }
+
+        nav.addEventListener("mouseenter", function () {
+            navHover = true;
+            syncTopNav();
+        });
+        nav.addEventListener("mouseleave", function () {
+            navHover = false;
+            syncTopNav();
+        });
+
+        if (hamburger) {
+            hamburger.addEventListener("click", function () {
+                if (!isMobileLayout()) {
                     return;
                 }
-                var url = "/" + encodeURIComponent(t);
-                var w = window.open(url, "_blank");
-                if (w) {
-                    w.opener = null;
-                }
+                mobileMenuOpen = !mobileMenuOpen;
+                syncTopNav();
+            });
+        }
+        if (backdrop) {
+            backdrop.addEventListener("click", forceClose);
+        }
+
+        nav.addEventListener("click", function (e) {
+            if (!isMobileLayout()) {
+                return;
             }
-            var form = document.getElementById("tag-form");
-            var input = document.getElementById("tag-input");
-            form.addEventListener("submit", function (e) {
+            if (e.target.closest("a.btn--prefill")) {
+                mobileMenuOpen = false;
+                syncTopNav();
+            }
+        });
+
+        window.addEventListener("welcome-top-nav-force-close", forceClose);
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key !== "Escape") {
+                return;
+            }
+            if (!isMobileLayout() || !mobileMenuOpen) {
+                return;
+            }
+            forceClose();
+        });
+
+        syncTopNav();
+    })();
+</script>
+<script>
+    (function () {
+        var panel = document.querySelector(".device-tag-panel");
+        if (!panel) {
+            return;
+        }
+        var heart = document.querySelector(".thread-svg .heart");
+        var STRIP_PX = 200;
+        var bottomStrip = false;
+        var panelHover = false;
+        var heartLatched = false;
+
+        function refreshStripPx() {
+            STRIP_PX = Math.min(220, Math.round(window.innerHeight * 0.28));
+        }
+
+        function dockOpen() {
+            return heartLatched || bottomStrip || panelHover;
+        }
+
+        function syncDock() {
+            var open = dockOpen();
+            panel.classList.toggle("device-tag-panel--open", open);
+            panel.setAttribute("aria-hidden", open ? "false" : "true");
+        }
+
+        function onMove(e) {
+            bottomStrip = window.innerHeight - e.clientY <= STRIP_PX;
+            syncDock();
+        }
+
+        refreshStripPx();
+        document.addEventListener("mousemove", onMove, { passive: true });
+        window.addEventListener("resize", refreshStripPx, { passive: true });
+
+        panel.addEventListener("mouseenter", function () {
+            panelHover = true;
+            syncDock();
+        });
+        panel.addEventListener("mouseleave", function () {
+            panelHover = false;
+            syncDock();
+        });
+
+        function toggleHeartLatch() {
+            heartLatched = !heartLatched;
+            if (heart) {
+                heart.classList.toggle("heart--latched", heartLatched);
+                heart.setAttribute("aria-pressed", heartLatched ? "true" : "false");
+            }
+            syncDock();
+        }
+
+        if (heart) {
+            heart.addEventListener("click", function (e) {
                 e.preventDefault();
-                go(input.value);
+                e.stopPropagation();
+                toggleHeartLatch();
             });
-            document.querySelectorAll(".prefills [data-tag]").forEach(function (el) {
-                el.addEventListener("click", function () {
-                    go(el.getAttribute("data-tag"));
-                });
+            heart.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleHeartLatch();
+                }
             });
-        })();
-    </script>
-  </body>
+            window.setTimeout(function () {
+                heart.classList.add("heart--ready");
+            }, 3100);
+        }
+    })();
+</script>
+<script>
+    (function () {
+        var TAG_RE = /^[a-zA-Z0-9_-]{1,48}$/;
+        var toastEl = document.getElementById("tag-toast");
+        var toastTimer;
+        function normalize(s) {
+            return String(s || "").trim().toLowerCase();
+        }
+        function hideToast() {
+            toastEl.classList.remove("is-visible");
+            toastEl.textContent = "";
+            toastEl.setAttribute("aria-hidden", "true");
+        }
+        function showToast(msg) {
+            if (!msg) {
+                return;
+            }
+            clearTimeout(toastTimer);
+            toastEl.setAttribute("aria-hidden", "false");
+            toastEl.textContent = msg;
+            requestAnimationFrame(function () {
+                toastEl.classList.add("is-visible");
+            });
+            toastTimer = setTimeout(hideToast, 4200);
+        }
+        toastEl.addEventListener("click", function () {
+            clearTimeout(toastTimer);
+            hideToast();
+        });
+        function go(tag, inputEl) {
+            var t = normalize(tag);
+            if (!t) {
+                showToast("Enter your name, then tap OPEN.");
+                if (inputEl) {
+                    inputEl.focus();
+                }
+                return;
+            }
+            if (!TAG_RE.test(t)) {
+                showToast("Use letters, numbers, _ or - only (1 to 48 characters).");
+                if (inputEl) {
+                    inputEl.focus();
+                }
+                return;
+            }
+            var url = "/" + encodeURIComponent(t);
+            var w = window.open(url, "_blank");
+            if (w) {
+                w.opener = null;
+            }
+        }
+        var form = document.getElementById("tag-form");
+        var input = document.getElementById("tag-input");
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            go(input.value, input);
+        });
+        document.querySelectorAll(".device-tag-panel .prefills [data-tag]").forEach(function (el) {
+            el.addEventListener("click", function () {
+                var v = el.getAttribute("data-tag") || "";
+                input.value = v;
+                input.focus();
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        var dlg = document.getElementById("welcome-nav-dialog");
+        var titleEl = document.getElementById("welcome-nav-dialog-title");
+        var bodyEl = document.getElementById("welcome-nav-dialog-body");
+        var closeBtn = document.getElementById("welcome-nav-dialog-close");
+        if (!dlg || !titleEl || !bodyEl || !closeBtn) {
+            return;
+        }
+        var panels = {
+            about: {
+                title: "ABOUT",
+                html:
+                    "<p>LoveClaw is a relationship pact app for two people who opt in to mutual accountability. Devices talk peer-to-peer; couple data is not routed through a central server.</p>" +
+                    "<p>Forked from OpenClaw, built for two. AgentHack 2026.</p>",
+            },
+            repository: {
+                title: "REPOSITORY",
+                html:
+                    "<p>Source, relay prototype, and Tauri app live in this monorepo.</p>" +
+                    "<p>To link your fork: in <code>public/welcome/index.html</code>, turn the REPOSITORY control into a plain <code>&lt;a&gt;</code> with your Git host URL.</p>",
+            },
+            usecases: {
+                title: "USE CASES",
+                html:
+                    "<p>· Pair two phones and keep a private pact channel.</p>" +
+                    "<p>· Shared rules, breach signals, and an AI-assisted diary.</p>" +
+                    "<p>· Optional on-chain vault / collateral when both sides agree on enforcement.</p>",
+            },
+        };
+        function openNav(key) {
+            var p = panels[key];
+            if (!p || typeof dlg.showModal !== "function") {
+                return;
+            }
+            window.dispatchEvent(new Event("welcome-top-nav-force-close"));
+            titleEl.textContent = p.title;
+            bodyEl.innerHTML = p.html;
+            dlg.showModal();
+        }
+        function closeNav() {
+            if (dlg.open) {
+                dlg.close();
+            }
+        }
+        document.querySelectorAll("[data-welcome-nav]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                openNav(btn.getAttribute("data-welcome-nav") || "");
+            });
+        });
+        closeBtn.addEventListener("click", closeNav);
+        dlg.addEventListener("click", function (e) {
+            if (e.target === dlg) {
+                closeNav();
+            }
+        });
+    })();
+</script>
+</body>
 </html>

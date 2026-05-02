@@ -386,6 +386,10 @@ export function initJoinQrScan(getTextarea) {
     if (!btn || !modal || typeof getTextarea !== "function") {
         return;
     }
+    /* #app uses overflow:hidden — fixed modals inside it can fail to paint in WebKit (Tauri). */
+    if (modal.parentElement && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
 
     const close = () => {
         modal.classList.add("hidden");
