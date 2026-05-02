@@ -54,6 +54,10 @@
         display: none;
     }
 }
+/* Stale builds / cached HTML: never show the retired fullscreen pill on any viewport */
+#home-fullscreen-pill {
+    display: none !important;
+}
 .LoveClaw-pill {
     display: inline-flex;
     align-items: center;

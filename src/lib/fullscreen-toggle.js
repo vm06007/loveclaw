@@ -4,11 +4,20 @@ const TRIPLE_CLICK_WINDOW_MS = 550;
  * Enter or exit browser fullscreen (best-effort; ignores permission errors).
  */
 export async function tryToggleFullscreen() {
+    const doc = document;
+    const root = doc.documentElement;
     try {
-        if (document.fullscreenElement) {
-            await document.exitFullscreen();
-        } else {
-            await document.documentElement.requestFullscreen();
+        const fsEl = doc.fullscreenElement || doc.webkitFullscreenElement;
+        if (fsEl) {
+            if (typeof doc.exitFullscreen === "function") {
+                await doc.exitFullscreen();
+            } else if (typeof doc.webkitExitFullscreen === "function") {
+                doc.webkitExitFullscreen();
+            }
+        } else if (typeof root.requestFullscreen === "function") {
+            await root.requestFullscreen();
+        } else if (typeof root.webkitRequestFullscreen === "function") {
+            root.webkitRequestFullscreen();
         }
     } catch {
         /* ignore fullscreen permission / API failures */

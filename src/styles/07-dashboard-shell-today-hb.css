@@ -172,6 +172,11 @@
     color: var(--teal);
 }
 .dash-qr-ico { width: 14px; height: 14px; opacity: .9; }
+@media (pointer: coarse) {
+    .dash-top-actions #btn-qr-phone {
+        display: none;
+    }
+}
 .dash-pill-btn--info .dash-info-dot {
     width: 5px;
     height: 5px;
