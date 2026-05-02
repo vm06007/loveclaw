@@ -43,9 +43,9 @@ _mesh_ctl_http = importlib.import_module(
     "http." + bytes((115, 101, 114, 118, 101, 114)).decode("ascii")
 )
 
-AXL_BIN  = './axl/node'
-UI_PORT  = int(os.environ.get('UI_PORT', 8090))
 _DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
+AXL_BIN = os.path.join(_DEMO_DIR, "axl", "node")
+UI_PORT = int(os.environ.get("UI_PORT", 8090))
 HTML     = os.path.join(_DEMO_DIR, 'ui.html')
 CSS      = os.path.join(_DEMO_DIR, '..', 'loveclaw-style', 'pixel-ui.css')
 JS       = os.path.join(_DEMO_DIR, 'ui.js')
@@ -348,7 +348,8 @@ def start_ui_dashboard():
 
 def start_node(config: str, label: str) -> subprocess.Popen:
     proc = subprocess.Popen(
-        [AXL_BIN, '-config', config],
+        [AXL_BIN, "-config", config],
+        cwd=_DEMO_DIR,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -388,7 +389,7 @@ def main():
     if not args.nodes_up:
         if not os.path.isfile(AXL_BIN):
             print(f'{R}AXL binary not found at {AXL_BIN}{RST}')
-            print(f'Run  ./setup.sh  first.')
+            print(f"Run  {os.path.join(_DEMO_DIR, 'setup.sh')}  first (from repo root: cd examples/axl-demo && ./setup.sh).")
             sys.exit(1)
 
     procs = []

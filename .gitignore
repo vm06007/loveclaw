@@ -3,9 +3,9 @@
 .env
 .env.local
 .env.*.local
-/evm
 /src-tauri/target
 /src-tauri/gen
+/examples/agenticID-examples-main
 .DS_Store
 
 # AXL — cloned and built by setup.sh, not committed

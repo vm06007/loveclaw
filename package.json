@@ -11,10 +11,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "dev:alice": "LOVECLAW_ROLE=alice tauri dev",
-    "dev:alice:relay": "LOVECLAW_RELAY=1 LOVECLAW_ROLE=alice tauri dev",
-    "dev:boris": "LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw",
-    "dev:boris:relay": "LOVECLAW_RELAY=1 LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw"
+    "dev:tauri": "bash scripts/tauri-dev.sh",
+    "dev:tauri:relay": "LOVECLAW_RELAY=1 bash scripts/tauri-dev.sh",
+    "dev:alice": "bash scripts/tauri-dev.sh alice",
+    "dev:alice:relay": "LOVECLAW_RELAY=1 bash scripts/tauri-dev.sh alice",
+    "dev:boris": "bash scripts/tauri-dev.sh boris",
+    "dev:boris:relay": "LOVECLAW_RELAY=1 bash scripts/tauri-dev.sh boris",
+    "dev:yiying": "bash scripts/tauri-dev.sh yiying",
+    "dev:vitally": "bash scripts/tauri-dev.sh vitally",
+    "dev:prebuilt:boris": "LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw",
+    "dev:prebuilt:boris:relay": "LOVECLAW_RELAY=1 LOVECLAW_ROLE=boris ./src-tauri/target/debug/loveclaw"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
@@ -23,6 +29,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
+    "@vercel/functions": "^3.5.0",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "qrcode": "^1.5.4"
