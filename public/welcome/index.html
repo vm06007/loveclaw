@@ -1,151 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LoveClaw — welcome</title>
-    <style>
-        :root {
-            --bg: #120a12;
-            --fg: #f4e6ee;
-            --muted: #9a7a8c;
-            --accent: #d4537e;
-            --accent-dim: #8f3d5a;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: ui-sans-serif, system-ui, sans-serif;
-            background: radial-gradient(ellipse 120% 80% at 50% -20%, #2a1424 0%, var(--bg) 55%);
-            color: var(--fg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            text-align: center;
-        }
-        h1 {
-            font-size: clamp(1.75rem, 5vw, 2.5rem);
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            margin: 0 0 8px;
-        }
-        h1 span {
-            color: var(--accent);
-        }
-        p.lead {
-            color: var(--muted);
-            max-width: 28rem;
-            line-height: 1.6;
-            margin: 0 0 28px;
-            font-size: 0.95rem;
-        }
-        .tag-box {
-            width: 100%;
-            max-width: 22rem;
-            margin-bottom: 28px;
-        }
-        .tag-label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            color: var(--muted);
-            margin-bottom: 8px;
-            text-align: left;
-        }
-        .tag-form {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-        .tag-form input {
-            flex: 1;
-            min-width: 0;
-            padding: 12px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-dim);
-            background: rgba(0, 0, 0, 0.35);
-            color: var(--fg);
-            font-size: 1rem;
-        }
-        .tag-form input::placeholder {
-            color: var(--muted);
-            opacity: 0.85;
-        }
-        .tag-form input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(212, 83, 126, 0.25);
-        }
-        .prefill-label {
-            margin: 0 0 10px;
-            font-size: 0.75rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            text-align: left;
-        }
-        .prefills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: flex-start;
-        }
-        button.btn {
-            font: inherit;
-            cursor: pointer;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.88rem;
-            border: 1px solid var(--accent-dim);
-            color: var(--fg);
-            background: rgba(212, 83, 126, 0.12);
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .btn:hover {
-            background: rgba(212, 83, 126, 0.22);
-            border-color: var(--accent);
-        }
-        .btn--primary {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-        }
-        .btn--primary:hover {
-            filter: brightness(1.08);
-        }
-        .note {
-            max-width: 32rem;
-            font-size: 0.8rem;
-            color: var(--muted);
-            line-height: 1.55;
-            border-top: 1px solid rgba(212, 83, 126, 0.2);
-            padding-top: 20px;
-        }
-        code {
-            font-size: 0.78em;
-            background: rgba(255, 255, 255, 0.06);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-    </style>
-  </head>
-  <body>
-    <h1>LOVE<span>CLAW</span></h1>
-    <p class="lead">commit / protect / remember — pair with someone you trust, then share a dashboard built for two.</p>
-    <div class="tag-box">
-      <label class="tag-label" for="tag-input">Your device tag</label>
-      <form class="tag-form" id="tag-form" action="#" method="get">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveClaw — Commit · Protect · Remember</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/welcome/welcome.css">
+</head>
+<body>
+
+<div class="welcome-top-shell" id="welcome-top-shell">
+  <button
+    type="button"
+    class="welcome-top-mobile-backdrop"
+    id="welcome-top-mobile-backdrop"
+    aria-label="Close menu"
+    aria-hidden="true"
+    tabindex="-1"
+  ></button>
+  <button
+    type="button"
+    class="welcome-nav-hamburger"
+    id="welcome-nav-hamburger"
+    aria-controls="welcome-top-menu"
+    aria-expanded="false"
+    aria-label="Open menu"
+  >
+    <span class="welcome-nav-hamburger-bar" aria-hidden="true"></span>
+    <span class="welcome-nav-hamburger-bar" aria-hidden="true"></span>
+    <span class="welcome-nav-hamburger-bar" aria-hidden="true"></span>
+  </button>
+  <nav id="welcome-top-menu" class="welcome-top-menu" aria-label="Site menu" aria-hidden="true">
+    <div class="welcome-top-menu-inner">
+      <a href="/" class="btn btn--prefill">HOME</a>
+      <button type="button" class="btn btn--prefill" data-welcome-nav="about">ABOUT</button>
+      <button type="button" class="btn btn--prefill" data-welcome-nav="repository">REPOSITORY</button>
+      <button type="button" class="btn btn--prefill" data-welcome-nav="usecases">USECASES</button>
+    </div>
+  </nav>
+</div>
+
+<dialog id="welcome-nav-dialog" class="welcome-nav-dialog" aria-labelledby="welcome-nav-dialog-title">
+  <h2 id="welcome-nav-dialog-title"></h2>
+  <div id="welcome-nav-dialog-body"></div>
+  <div class="welcome-nav-dialog-actions">
+    <button type="button" class="btn btn--prefill" id="welcome-nav-dialog-close">CLOSE</button>
+  </div>
+</dialog>
+
+<div class="stage">
+  <div class="scanlines"></div>
+  <div id="starfield"></div>
+
+  <!-- ═══════ City skyline SVG (verbatim from openclaw-posters) ═══════ -->
+  <svg class="skyline" viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated">
+    <rect width="1200" height="200" fill="#07070f"/>
+    <rect x="0" y="160" width="1200" height="40" fill="#080814"/>
+    <rect x="0" y="158" width="1200" height="4" fill="#1a1a3a" opacity="0.4"/>
+
+    <!-- left cluster -->
+    <rect x="0"   y="80"  width="40"  height="82" fill="#0d1428"/>
+    <rect class="win" style="--d:3.2s;--del:0s;--a:0.7"  x="6"   y="88"  width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.1s;--del:0.5s;--a:0.4" x="18"  y="88"  width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.8s;--del:1s;--a:0.6"  x="6"   y="102" width="8" height="8"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.5s;--del:0.2s;--a:0.5" x="18"  y="102" width="8" height="8"  fill="#FAC775"/>
+    <rect class="win" style="--d:5s;--del:0.8s;--a:0.3"   x="6"   y="116" width="8" height="8"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.5s;--del:1.5s;--a:0.7" x="18"  y="116" width="8" height="8"  fill="#FAC775"/>
+
+    <rect x="48"  y="50"  width="28"  height="112" fill="#101830"/>
+    <rect class="win" style="--d:3.8s;--del:0.3s;--a:0.8" x="52"  y="56"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.9s;--del:0.7s;--a:0.5" x="62"  y="56"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.3s;--del:1.2s;--a:0.6" x="52"  y="68"  width="6" height="6"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.1s;--del:0s;--a:0.4"   x="62"  y="68"  width="6" height="6"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.7s;--del:0.9s;--a:0.7" x="52"  y="80"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:5.2s;--del:0.4s;--a:0.5" x="62"  y="80"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.6s;--del:1.8s;--a:0.3" x="52"  y="92"  width="6" height="6"  fill="#534AB7"/>
+    <rect class="win" style="--d:4.5s;--del:0.6s;--a:0.6" x="62"  y="92"  width="6" height="6"  fill="#FAC775"/>
+    <rect x="76"  y="90"  width="38"  height="72"  fill="#0e1628"/>
+    <rect class="win" style="--d:3s;--del:0.2s;--a:0.6"   x="80"  y="96"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.8s;--del:1s;--a:0.4"   x="91"  y="96"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.4s;--del:0.5s;--a:0.7" x="102" y="96"  width="7" height="7"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.9s;--del:0s;--a:0.5"   x="80"  y="108" width="7" height="7"  fill="#D4537E"/>
+    <rect class="win" style="--d:2.6s;--del:1.3s;--a:0.6" x="91"  y="108" width="7" height="7"  fill="#FAC775"/>
+    <rect x="122" y="110" width="22"  height="52"  fill="#0c1224"/>
+    <rect class="win" style="--d:4.1s;--del:0.7s;--a:0.5" x="126" y="116" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.3s;--del:1.1s;--a:0.7" x="134" y="116" width="5" height="5"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:2.8s;--del:0.3s;--a:0.4" x="126" y="126" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:5.1s;--del:0.9s;--a:0.6" x="134" y="126" width="5" height="5"  fill="#5DCAA5"/>
+
+    <!-- right cluster -->
+    <rect x="1080" y="60"  width="35"  height="102" fill="#111830"/>
+    <rect class="win" style="--d:3.7s;--del:0.4s;--a:0.7" x="1084" y="66"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.5s;--del:0.8s;--a:0.5" x="1095" y="66"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.4s;--del:1.4s;--a:0.6" x="1106" y="66"  width="7" height="7"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:3.2s;--del:0.1s;--a:0.4" x="1084" y="78"  width="7" height="7"  fill="#AFA9EC"/>
+    <rect class="win" style="--d:5.3s;--del:1s;--a:0.7"   x="1095" y="78"  width="7" height="7"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.9s;--del:0.6s;--a:0.5" x="1084" y="90"  width="7" height="7"  fill="#D4537E"/>
+    <rect class="win" style="--d:4s;--del:0.2s;--a:0.6"   x="1095" y="90"  width="7" height="7"  fill="#FAC775"/>
+
+    <rect x="1118" y="90"  width="26"  height="72"  fill="#0e1628"/>
+    <rect class="win" style="--d:3.5s;--del:0.5s;--a:0.6" x="1122" y="96"  width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:4.7s;--del:1.2s;--a:0.4" x="1132" y="96"  width="6" height="6"  fill="#5DCAA5"/>
+    <rect class="win" style="--d:2.6s;--del:0.8s;--a:0.7" x="1122" y="107" width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:3.8s;--del:0s;--a:0.5"   x="1132" y="107" width="6" height="6"  fill="#534AB7"/>
+
+    <rect x="1148" y="100" width="20"  height="62"  fill="#0d1226"/>
+    <rect class="win" style="--d:4.2s;--del:0.6s;--a:0.6" x="1152" y="106" width="5" height="5"  fill="#FAC775"/>
+    <rect class="win" style="--d:2.7s;--del:1.3s;--a:0.4" x="1160" y="106" width="5" height="5"  fill="#FAC775"/>
+    <rect x="1170" y="120" width="30"  height="42"  fill="#111428"/>
+    <rect class="win" style="--d:3.4s;--del:0.4s;--a:0.5" x="1174" y="126" width="6" height="6"  fill="#FAC775"/>
+    <rect class="win" style="--d:5s;--del:0.9s;--a:0.7"   x="1184" y="126" width="6" height="6"  fill="#AFA9EC"/>
+
+    <!-- mid buildings faint -->
+    <rect x="200" y="130" width="18"  height="32"  fill="#0a1020" opacity="0.7"/>
+    <rect x="980" y="125" width="20"  height="37"  fill="#0a1020" opacity="0.7"/>
+    <rect x="580" y="140" width="15"  height="22"  fill="#0a1020" opacity="0.5"/>
+
+    <!-- ground reflection -->
+    <rect x="0" y="162" width="1200" height="2" fill="#1a1a4a" opacity="0.5"/>
+  </svg>
+
+  <!-- ═══════ Phones ═══════ -->
+  <div class="phone-left">
+    <svg class="pixel-canvas" width="100" height="170" viewBox="0 0 100 170">
+      <rect x="0" y="0" width="100" height="170" rx="12" fill="#1a2a3e" stroke="#5DCAA5" stroke-width="2"/>
+      <rect x="6" y="10" width="88" height="126" rx="4" fill="#061018"/>
+      <rect x="10" y="14" width="80" height="60" rx="3" fill="#0a1a28"/>
+      <rect x="14" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.85"/>
+      <rect x="34" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.5"/>
+      <rect x="54" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+      <rect x="74" y="18" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+      <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.4"/>
+      <rect x="34" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.7"/>
+      <rect x="54" y="38" width="16" height="16" rx="2" fill="#1D9E75" opacity="0.3"/>
+      <rect x="74" y="38" width="16" height="16" rx="2" fill="#AFA9EC" opacity="0.4"/>
+      <rect x="14" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.6"/>
+      <rect x="34" y="58" width="16" height="12" rx="2" fill="#FAC775" opacity="0.4"/>
+      <rect x="54" y="58" width="16" height="12" rx="2" fill="#1D9E75" opacity="0.5"/>
+      <rect x="74" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="10" y="80" width="80" height="48" rx="3" fill="#0a1828"/>
+      <text font-family="'Press Start 2P', monospace" font-size="7" fill="#5DCAA5" x="50" y="102" text-anchor="middle">TRUSTED</text>
+      <text font-family="'Press Start 2P', monospace" font-size="5" fill="#1D9E75" x="50" y="118" text-anchor="middle">98 / 100</text>
+      <circle cx="50" cy="148" r="6" fill="#5DCAA5" opacity="0.6"/>
+      <rect x="30" y="158" width="40" height="6" rx="3" fill="#1a3a2a"/>
+      <text font-family="'Press Start 2P', monospace" font-size="4" fill="#5DCAA5" x="50" y="164" text-anchor="middle">HER · NODE A</text>
+    </svg>
+  </div>
+
+  <div class="phone-right">
+    <svg class="pixel-canvas" width="100" height="170" viewBox="0 0 100 170">
+      <rect x="0" y="0" width="100" height="170" rx="12" fill="#2a1a3e" stroke="#D4537E" stroke-width="2"/>
+      <rect x="6" y="10" width="88" height="126" rx="4" fill="#100610"/>
+      <rect x="10" y="14" width="80" height="60" rx="3" fill="#200a28"/>
+      <rect x="14" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.7"/>
+      <rect x="34" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.5"/>
+      <rect x="54" y="18" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+      <rect x="74" y="18" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="14" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.6"/>
+      <rect x="34" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.5"/>
+      <rect x="54" y="38" width="16" height="16" rx="2" fill="#534AB7" opacity="0.3"/>
+      <rect x="74" y="38" width="16" height="16" rx="2" fill="#D4537E" opacity="0.4"/>
+      <rect x="14" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.5"/>
+      <rect x="34" y="58" width="16" height="12" rx="2" fill="#534AB7" opacity="0.6"/>
+      <rect x="54" y="58" width="16" height="12" rx="2" fill="#D4537E" opacity="0.3"/>
+      <rect x="74" y="58" width="16" height="12" rx="2" fill="#AFA9EC" opacity="0.4"/>
+      <rect x="10" y="80" width="80" height="48" rx="3" fill="#180828"/>
+      <text font-family="'Press Start 2P', monospace" font-size="7" fill="#ED93B1" x="50" y="102" text-anchor="middle">TRUSTED</text>
+      <text font-family="'Press Start 2P', monospace" font-size="5" fill="#D4537E" x="50" y="118" text-anchor="middle">97 / 100</text>
+      <circle cx="50" cy="148" r="6" fill="#D4537E" opacity="0.6"/>
+      <rect x="30" y="158" width="40" height="6" rx="3" fill="#3a1a2a"/>
+      <text font-family="'Press Start 2P', monospace" font-size="4" fill="#ED93B1" x="50" y="164" text-anchor="middle">HIM · NODE B</text>
+    </svg>
+  </div>
+
+  <!-- ═══════ Thread + Pixel Heart ═══════ -->
+  <svg class="thread-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#5DCAA5" stop-opacity="0"/>
+        <stop offset="25%"  stop-color="#5DCAA5" stop-opacity="0.9"/>
+        <stop offset="50%"  stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset="75%"  stop-color="#D4537E" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+      </linearGradient>
+
+      <!-- radial gradient for the heart itself (teal→white→pink, read left-to-right) -->
+      <linearGradient id="heartFill" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#ED93B1"/>
+        <stop offset="45%"  stop-color="#D4537E"/>
+        <stop offset="100%" stop-color="#8A2B4E"/>
+      </linearGradient>
+      <radialGradient id="heartAura" cx="50%" cy="50%" r="55%">
+        <stop offset="0%"  stop-color="#D4537E" stop-opacity="0.45"/>
+        <stop offset="55%" stop-color="#D4537E" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#D4537E" stop-opacity="0"/>
+      </radialGradient>
+
+      <filter id="heartGlow">
+        <feGaussianBlur stdDeviation="1.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- arc that draws first -->
+    <path class="thread-path" d="M230 310 Q500 200 770 310"
+      fill="none" stroke="url(#threadGrad)" stroke-width="2.5"/>
+
+    <!-- ═════ PIXEL HEART (7×6 grid, 4u cells, centered at 500,255) ═════
+         bounding box: x 486..514, y 243..267
+         heart shape, classic 8-bit pattern:
+           .##.##.
+           #######
+           #######
+           .#####.
+           ..###..
+           ...#...
+    ═══════════════════════════════════════════════════════════════════ -->
+    <g
+      class="heart"
+      role="button"
+      tabindex="0"
+      aria-pressed="false"
+      aria-label="Toggle device name entry"
+    >
+      <circle class="heart-aura" cx="500" cy="255" r="34" fill="url(#heartAura)"/>
+      <g class="heart-gfx" filter="url(#heartGlow)" fill="url(#heartFill)">
+      <!-- row 0 (y=243) — two bumps -->
+      <rect x="490" y="243" width="4" height="4"/>
+      <rect x="494" y="243" width="4" height="4"/>
+      <rect x="502" y="243" width="4" height="4"/>
+      <rect x="506" y="243" width="4" height="4"/>
+      <!-- row 1 (y=247) — full width -->
+      <rect x="486" y="247" width="4" height="4"/>
+      <rect x="490" y="247" width="4" height="4"/>
+      <rect x="494" y="247" width="4" height="4"/>
+      <rect x="498" y="247" width="4" height="4"/>
+      <rect x="502" y="247" width="4" height="4"/>
+      <rect x="506" y="247" width="4" height="4"/>
+      <rect x="510" y="247" width="4" height="4"/>
+      <!-- row 2 (y=251) — full width -->
+      <rect x="486" y="251" width="4" height="4"/>
+      <rect x="490" y="251" width="4" height="4"/>
+      <rect x="494" y="251" width="4" height="4"/>
+      <rect x="498" y="251" width="4" height="4"/>
+      <rect x="502" y="251" width="4" height="4"/>
+      <rect x="506" y="251" width="4" height="4"/>
+      <rect x="510" y="251" width="4" height="4"/>
+      <!-- row 3 (y=255) — 5 wide, centered -->
+      <rect x="490" y="255" width="4" height="4"/>
+      <rect x="494" y="255" width="4" height="4"/>
+      <rect x="498" y="255" width="4" height="4"/>
+      <rect x="502" y="255" width="4" height="4"/>
+      <rect x="506" y="255" width="4" height="4"/>
+      <!-- row 4 (y=259) — 3 wide, centered -->
+      <rect x="494" y="259" width="4" height="4"/>
+      <rect x="498" y="259" width="4" height="4"/>
+      <rect x="502" y="259" width="4" height="4"/>
+      <!-- row 5 (y=263) — tip -->
+      <rect x="498" y="263" width="4" height="4"/>
+      </g>
+    </g>
+  </svg>
+
+  <!-- ═══════ Hero text ═══════ -->
+  <div class="hero-title">
+    <h1>LOVECLAW</h1>
+    <p>COMMIT &nbsp;·&nbsp; PROTECT &nbsp;·&nbsp; REMEMBER</p>
+  </div>
+  <div class="hero-sub">FORKED FROM OPENCLAW &nbsp;·&nbsp; BUILT FOR TWO</div>
+
+  <!-- chrome -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+  <div class="tag-l"><b>●</b> LOVECLAW / v2</div>
+  <div class="tag-c">MENU</div>
+  <div class="tag-r">OPEN AGENTS 2026</div>
+</div>
+
+<div class="device-tag-panel" aria-label="Open app with device tag" aria-hidden="true">
+  <div id="tag-toast" class="tag-toast" role="alert" aria-live="assertive" aria-atomic="true" aria-hidden="true"></div>
+  <div class="device-tag-panel-inner">
+    <form class="device-tag-form" id="tag-form" action="#" method="get">
+      <div class="device-tag-field-row">
         <input
           id="tag-input"
           name="tag"

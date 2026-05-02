@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSCameraUsageDescription</key>
+    <string>LoveClaw uses the camera to scan invite QR codes when you join an existing pact.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>LoveClaw uses your approximate location for the pact heartbeat signal.</string>
 </dict>
