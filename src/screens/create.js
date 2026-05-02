@@ -9,7 +9,8 @@ import { axl } from "../axl/client.js";
 import { startAxlPoll } from "../axl/poll.js";
 import { completePairing } from "../app/pairing.js";
 import { handleAxlMessage } from "../app/messages.js";
-import { callCreatePact, PACT_CONTRACT_ADDRESS, deriveContractAddresses } from "../lib/pact-contract.js";
+import { callCreatePact, PACT_CONTRACT_ADDRESS, deriveContractAddresses, TEST_MODE, testAddress } from "../lib/pact-contract.js";
+import { syncCancelInviteButton } from "./inviteCode.js";
 
 function setTriggerEnabled(id, on) {
     const set = new Set(state.triggers.filter(t => PACT_TRIGGER_IDS.includes(t)));
@@ -144,7 +145,7 @@ export function renderPactRuleToggles() {
     const ocHint = document.createElement("p");
     ocHint.className = "pact-rule-hint";
     ocHint.textContent =
-        `Stake will be locked in LoveClawPact (${PACT_CONTRACT_ADDRESS.slice(0, 6)}…${PACT_CONTRACT_ADDRESS.slice(-4)}) via MetaMask.`;
+        `Stake will be locked in LoveClawPact (${PACT_CONTRACT_ADDRESS.slice(0, 6)}…${PACT_CONTRACT_ADDRESS.slice(-4)}) via Connected Wallet.`;
 
     onchainWrap.appendChild(ocHeading);
     onchainWrap.appendChild(ocHint);
@@ -205,24 +206,35 @@ export function initCreateScreen() {
         if (state.stakeEth >= 0.001) {
             const statusEl = document.getElementById("pact-onchain-status");
 
+            const reset = (msg) => {
+                btn.textContent = origLabel;
+                btn.disabled = false;
+                if (statusEl) statusEl.textContent = msg || "";
+            };
+
+            // Step 1 — connect wallet and derive addresses
             btn.textContent = "connecting wallet…";
-            if (statusEl) statusEl.textContent = "confirm in MetaMask…";
+            if (statusEl) statusEl.textContent = "";
 
             let partnerB, agentA, agentB;
             try {
-                if (!window.ethereum) throw new Error("MetaMask not found.");
+                if (!window.ethereum) throw new Error("wallet not found");
                 const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
                 const wallet = accounts?.[0];
-                if (!wallet) throw new Error("No account selected.");
-                ({ partnerB, agentA, agentB } = await deriveContractAddresses(wallet));
+                if (!wallet) throw new Error("no account selected");
+                let _partnerB;
+                ({ partnerB: _partnerB, agentA, agentB } = await deriveContractAddresses(wallet));
+                partnerB = TEST_MODE ? testAddress : _partnerB;
             } catch (err) {
-                btn.textContent = origLabel;
-                btn.disabled = false;
-                if (statusEl) statusEl.textContent = `⚠ ${err.message}`;
+                const msg = String(err?.message || err);
+                const cancelled = /rejected|denied|cancel/i.test(msg);
+                reset(cancelled ? "" : `⚠ ${msg}`);
                 return;
             }
 
+            // Step 2 — send transaction (waiting for wallet signature)
             btn.textContent = "locking stake on-chain…";
+            if (statusEl) statusEl.textContent = "confirm in Wallet…";
 
             try {
                 const { txHash, pactId } = await callCreatePact({
@@ -231,25 +243,25 @@ export function initCreateScreen() {
                     agentB,
                     triggers: state.triggers,
                     stakeEth: state.stakeEth,
+                    onBroadcast: (hash) => {
+                        // Step 3 — tx submitted, waiting for on-chain confirmation
+                        btn.textContent = "waiting for confirmation…";
+                        if (statusEl) statusEl.textContent = `tx ${hash.slice(0, 10)}… pending`;
+                    },
                 });
 
                 state.pactContractId = pactId;
                 state.pactTxHash     = txHash;
-
-                if (statusEl) {
-                    statusEl.textContent =
-                        `✓ pact #${pactId} on-chain — tx ${txHash.slice(0, 10)}…`;
-                }
             } catch (err) {
-                btn.textContent = origLabel;
-                btn.disabled = false;
                 const msg = String(err?.message || err);
-                if (statusEl) statusEl.textContent = `✗ ${msg}`;
-                console.error("[pact-contract] createPact failed:", err);
+                const cancelled = /rejected|denied|cancel|ACTION_REJECTED/i.test(msg);
+                reset(cancelled ? "" : `⚠ ${msg}`);
+                if (!cancelled) console.error("[pact-contract] createPact failed:", err);
                 return;
             }
         }
 
+        // ── Proceed to invite screen once on-chain step is done (or skipped) ──
         btn.textContent = origLabel;
         btn.disabled = false;
         saveState(state);
@@ -258,6 +270,7 @@ export function initCreateScreen() {
         document.getElementById("invite-link").textContent = code;
         await renderQR(document.getElementById("qr-wrap"), code);
         renderInvitePactSummary(document.getElementById("invite-pact-summary"));
+        syncCancelInviteButton();
         showScreen("code");
 
         startAxlPoll(completePairing, handleAxlMessage);

@@ -3,6 +3,9 @@
 
 export const PACT_CONTRACT_ADDRESS = "0x597a01608952220f1d833c833111731E6762085c";
 
+export const TEST_MODE    = true;
+export const testAddress  = "0xa803c226c8281550454523191375695928DcFE92";
+
 const ABI = [
     {
         type: "function",
@@ -15,6 +18,13 @@ const ABI = [
         ],
         outputs: [{ name: "pactId", type: "uint256" }],
         stateMutability: "payable",
+    },
+    {
+        type: "function",
+        name: "dissolvePact",
+        inputs: [{ name: "_pactId", type: "uint256" }],
+        outputs: [],
+        stateMutability: "nonpayable",
     },
 ];
 
@@ -39,14 +49,15 @@ export function triggersToBitmask(triggerIds) {
  * Calls createPact on the deployed LoveClawPact contract via MetaMask (window.ethereum).
  *
  * @param {object} opts
- * @param {string} opts.partnerB  - partner B's Ethereum address
- * @param {string} opts.agentA    - agent wallet watching partner A
- * @param {string} opts.agentB    - agent wallet watching partner B
- * @param {string[]} opts.triggers - array of app trigger IDs (e.g. ["dating_app","location"])
- * @param {number} opts.stakeEth  - ETH amount to send as msg.value
+ * @param {string} opts.partnerB      - partner B's Ethereum address
+ * @param {string} opts.agentA        - agent wallet watching partner A
+ * @param {string} opts.agentB        - agent wallet watching partner B
+ * @param {string[]} opts.triggers    - array of app trigger IDs (e.g. ["dating_app","location"])
+ * @param {number} opts.stakeEth      - ETH amount to send as msg.value
+ * @param {function} [opts.onBroadcast] - called with txHash once tx is submitted, before confirmation
  * @returns {Promise<{ txHash: string, pactId: string|null }>}
  */
-export async function callCreatePact({ partnerB, agentA, agentB, triggers, stakeEth }) {
+export async function callCreatePact({ partnerB, agentA, agentB, triggers, stakeEth, onBroadcast }) {
     if (!window.ethereum) {
         throw new Error("MetaMask not found — install it to lock stake on-chain.");
     }
@@ -72,7 +83,8 @@ export async function callCreatePact({ partnerB, agentA, agentB, triggers, stake
     const bits  = triggersToBitmask(triggers);
     const value = ethers.parseEther(String(stakeEth));
 
-    const tx      = await contract.createPact(partnerB, agentA, agentB, bits, { value });
+    const tx = await contract.createPact(partnerB, agentA, agentB, bits, { value });
+    if (onBroadcast) onBroadcast(tx.hash);
     const receipt = await tx.wait();
 
     // Extract pactId from PactCreated event (first indexed topic = pactId)
@@ -88,6 +100,40 @@ export async function callCreatePact({ partnerB, agentA, agentB, triggers, stake
     }
 
     return { txHash: tx.hash, pactId };
+}
+
+/**
+ * Calls dissolvePact on the deployed contract via MetaMask.
+ * Only callable by partnerA or partnerB while the pact is Active.
+ *
+ * @param {string|number|bigint} pactId
+ * @param {function} [onBroadcast] - called with txHash once submitted
+ */
+export async function callDissolvePact(pactId, onBroadcast) {
+    if (!window.ethereum) throw new Error("wallet not found");
+
+    const { ethers } = await import("https://esm.sh/ethers@6.13.0");
+
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (!accounts?.length) throw new Error("no account selected");
+
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (Number(chainId) !== 1) {
+        await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x1" }],
+        });
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer   = await provider.getSigner();
+    const contract = new ethers.Contract(PACT_CONTRACT_ADDRESS, ABI, signer);
+
+    const tx = await contract.dissolvePact(BigInt(pactId));
+    if (onBroadcast) onBroadcast(tx.hash);
+    await tx.wait();
+
+    return tx.hash;
 }
 
 /**

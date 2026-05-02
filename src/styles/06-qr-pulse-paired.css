@@ -56,6 +56,40 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50%       { opacity: .3; transform: scale(.6); }
 }
+/* ── Cancel invitation ─────────────────────────────────── */
+.cancel-invite-wrap {
+    margin-top: 16px;
+}
+.btn-cancel-invite {
+    display: block;
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 10px;
+    font-family: 'Press Start 2P', monospace;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-cancel-invite:hover:not(:disabled) {
+    opacity: 1;
+    border-color: var(--red);
+    color: var(--red);
+}
+.btn-cancel-invite:disabled { cursor: default; opacity: 0.4; }
+.cancel-invite-status {
+    margin-top: 6px;
+    font-size: 8px;
+    color: var(--text-dim);
+    min-height: 1.2em;
+    padding: 0 2px;
+}
+
 /* ── Paired screen ─────────────────────────────────────── */
 .paired-icon {
     display: flex;
