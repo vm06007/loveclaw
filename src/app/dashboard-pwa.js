@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { wrapQrCanvas } from "../lib/invite.js";
 import { isTauri } from "../lib/tauri.js";
+import { bindInfoButtonWithTripleFullscreen } from "../lib/fullscreen-toggle.js";
 
 let deferredPrompt = null;
 
@@ -139,7 +140,7 @@ function initDashInfoToggle() {
         const tabId = getActiveTabId();
         hint.textContent = hintByTab[tabId] || hintByTab.today;
     };
-    btn.addEventListener("click", () => {
+    bindInfoButtonWithTripleFullscreen(btn, () => {
         updateHintForActiveTab();
         hint.classList.toggle("hidden");
         btn.classList.toggle("is-on", !hint.classList.contains("hidden"));

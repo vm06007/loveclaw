@@ -2,39 +2,13 @@ import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
 import { renderPactRuleToggles } from "./create.js";
 import { state, saveState } from "../lib/state.js";
+import { bindInfoButtonWithTripleFullscreen } from "../lib/fullscreen-toggle.js";
 
 export function initHomeScreen() {
-    const fullscreenPill = document.getElementById("home-fullscreen-pill");
-    if (fullscreenPill) {
-        const updateFullscreenPillUi = () => {
-            const isFullscreen = !!document.fullscreenElement;
-            fullscreenPill.classList.toggle("is-on", isFullscreen);
-            const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
-            fullscreenPill.title = label;
-            fullscreenPill.setAttribute("aria-label", label);
-            fullscreenPill.innerHTML = `<span class="LoveClaw-dot-sm" aria-hidden="true"></span>${isFullscreen ? "ACTIVE" : "FULL"}`;
-        };
-        fullscreenPill.addEventListener("click", async () => {
-            try {
-                if (document.fullscreenElement) {
-                    await document.exitFullscreen();
-                } else {
-                    await document.documentElement.requestFullscreen();
-                }
-            } catch {
-                /* ignore fullscreen permission failures */
-            } finally {
-                updateFullscreenPillUi();
-            }
-        });
-        document.addEventListener("fullscreenchange", updateFullscreenPillUi);
-        updateFullscreenPillUi();
-    }
-
     const infoPill = document.getElementById("home-info-pill");
     const infoHint = document.getElementById("home-info-hint");
     if (infoPill && infoHint) {
-        infoPill.addEventListener("click", () => {
+        bindInfoButtonWithTripleFullscreen(infoPill, () => {
             infoHint.classList.toggle("hidden");
             infoPill.classList.toggle("is-on", !infoHint.classList.contains("hidden"));
         });

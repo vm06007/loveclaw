@@ -243,15 +243,22 @@ export function initCreateScreen() {
                     agentB,
                     triggers: state.triggers,
                     stakeEth: state.stakeEth,
-                    onBroadcast: (hash) => {
-                        // Step 3 — tx submitted, waiting for on-chain confirmation
-                        btn.textContent = "waiting for confirmation…";
-                        if (statusEl) statusEl.textContent = `tx ${hash.slice(0, 10)}… pending`;
+                    onBroadcast: () => {
+                        // tx submitted — waiting for on-chain confirmation
+                        btn.innerHTML = `<span class="lc-agentic-spinner"></span>Creating Pact…`;
+                        btn.disabled = true;
+                        if (statusEl) statusEl.textContent = "";
                     },
                 });
 
                 state.pactContractId = pactId;
                 state.pactTxHash     = txHash;
+
+                // Confirmed — show "Done" briefly before navigating
+                btn.innerHTML = "Done";
+                btn.disabled = true;
+                if (statusEl) statusEl.textContent = "";
+                await new Promise(r => setTimeout(r, 800));
             } catch (err) {
                 const msg = String(err?.message || err);
                 const cancelled = /rejected|denied|cancel|ACTION_REJECTED/i.test(msg);
