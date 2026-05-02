@@ -1,25 +1,26 @@
-import { state } from "../lib/state.js";
+import { state, saveState } from "../lib/state.js";
 import { refreshVaultDisplay, getVaultAddress } from "../app/ping.js";
+
+const _streakClickTracker = { index: -1, count: 0, timer: null };
 
 function setTodayAvatarButton(el, initials, avatarDataUrl) {
     if (!el) {
         return;
     }
-    el.textContent = "";
-    el.style.backgroundSize = "";
-    el.style.backgroundPosition = "";
-    el.style.backgroundImage = "";
+    el.replaceChildren();
+    el.style.color = "";
     const url = typeof avatarDataUrl === "string" && avatarDataUrl.startsWith("data:image/")
         ? avatarDataUrl
         : "";
     if (url) {
-        el.style.backgroundImage = `url(${JSON.stringify(url)})`;
-        el.style.backgroundSize = "cover";
-        el.style.backgroundPosition = "center";
-        el.style.color = "transparent";
+        const img = document.createElement("img");
+        img.className = "lc-today-avatar-img";
+        img.alt = "";
+        img.draggable = false;
+        img.src = url;
+        el.appendChild(img);
     } else {
         el.textContent = initials;
-        el.style.color = "";
     }
 }
 
@@ -187,6 +188,30 @@ export function renderTodayTab() {
     }
     document.querySelectorAll("#today-streak-cells .today-streak-cell").forEach((el, i) => {
         el.classList.toggle("filled", i < Math.min(7, days));
+        if (!el.dataset.streakBound) {
+            el.dataset.streakBound = "1";
+            el.style.cursor = "pointer";
+            el.addEventListener("click", () => {
+                const targetDays = i + 1;
+                const t = _streakClickTracker;
+                if (t.index !== i) {
+                    t.index = i;
+                    t.count = 1;
+                } else {
+                    t.count += 1;
+                }
+                clearTimeout(t.timer);
+                if (t.count >= 3) {
+                    t.count = 0;
+                    t.index = -1;
+                    state.createdAt = Date.now() - (targetDays - 1) * 86400000;
+                    saveState(state);
+                    renderTodayTab();
+                } else {
+                    t.timer = setTimeout(() => { t.count = 0; t.index = -1; }, 800);
+                }
+            });
+        }
     });
 
     const sendBtn = document.getElementById("today-budget-send-btn");

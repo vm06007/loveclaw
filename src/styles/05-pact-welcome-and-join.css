@@ -199,6 +199,39 @@
     flex-shrink: 0;
 }
 .pact-stake-header-row { align-items: center; }
+
+/* On-chain pact block */
+.pact-onchain-block.pact-rule-block {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-top-width: 1px;
+}
+.pact-onchain-field-row {
+    margin-top: 10px;
+    align-items: center;
+    gap: 8px;
+}
+.pact-onchain-label {
+    font-size: 8px;
+    white-space: nowrap;
+    min-width: 7rem;
+    flex-shrink: 0;
+}
+.pact-onchain-input {
+    flex: 1;
+    min-width: 0;
+    font-size: 8px !important;
+    padding: 7px 8px !important;
+    font-family: monospace;
+}
+.pact-onchain-status {
+    margin-top: 6px;
+    color: var(--teal);
+    font-size: 8px;
+    min-height: 1.4em;
+    word-break: break-all;
+}
+
 .pact-partner-name { color: var(--teal); }
 .join-pact-preview {
     margin: 0 0 12px;

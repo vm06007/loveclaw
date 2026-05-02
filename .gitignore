@@ -23,3 +23,7 @@ scripts/dev-vite-or-skip.sh
 src-tauri/Cargo.lock
 bun.lockb
 package-lock.json
+/evm/cache
+/evm/lib/forge-std
+/evm/out
+/evm/broadcast

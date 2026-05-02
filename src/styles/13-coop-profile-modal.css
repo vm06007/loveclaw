@@ -61,6 +61,11 @@ button.today-avatar:not(:disabled):focus-visible {
     color: #fff;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
 }
+/* Partner sheet only: double-click title opens their /tag tab; avoid selecting label text. */
+.lc-profile-head-title--partner-secret {
+    user-select: none;
+    -webkit-user-select: none;
+}
 
 .lc-profile-card {
     flex: 1;
@@ -124,6 +129,12 @@ button.today-avatar:not(:disabled):focus-visible {
     box-shadow:
         0 0 0 1px rgba(0, 0, 0, 0.4),
         inset 0 0 12px rgba(0, 0, 0, 0.25);
+}
+.lc-profile-avatar-lg--partner.lc-profile-avatar-lg--tap:hover {
+    border-color: var(--purple-l);
+    box-shadow:
+        0 0 0 2px rgba(180, 120, 220, 0.35),
+        inset 0 0 12px rgba(0, 0, 0, 0.2);
 }
 .lc-profile-avatar-lg img {
     width: 100%;
@@ -465,29 +476,36 @@ button.today-avatar:not(:disabled):focus-visible {
     position: fixed;
     bottom: max(88px, env(safe-area-inset-bottom, 0px) + 80px);
     left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    right: auto;
+    width: 90%;
+    max-width: 90%;
+    margin: 0;
+    transform: translate(-50%, 20px);
     opacity: 0;
     pointer-events: none;
     z-index: 1100;
     display: flex;
     align-items: center;
     gap: 18px;
-    padding: 20px 26px;
+    padding: 20px max(26px, env(safe-area-inset-right, 0px)) 20px max(26px, env(safe-area-inset-left, 0px));
     background: rgba(10, 10, 24, 0.96);
     border: 1px solid rgba(175, 169, 236, 0.45);
-    border-radius: 14px;
+    border-radius: 14px 14px 0 0;
     box-shadow: 0 0 20px rgba(83, 74, 183, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: min(90vw, 600px);
+    box-sizing: border-box;
 }
 
 .lc-agent-reg-toast--show {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
+    transform: translate(-50%, 0);
 }
 
 .lc-agent-reg-toast__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
     color: var(--purple-l, #AFA9EC);
     font-family: 'Press Start 2P', monospace;
     font-size: 10px;

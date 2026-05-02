@@ -16,6 +16,24 @@ const relayEnabled = !!(process.env.LOVECLAW_RELAY || process.env.npm_config_rel
 const tauriHost = process.env.TAURI_DEV_HOST;
 const devServerHost = tauriHost || true;
 
+const parsedDevPort = Number.parseInt(String(process.env.LOVECLAW_DEV_PORT || process.env.PORT || "1420"), 10);
+const devPort = Number.isFinite(parsedDevPort) && parsedDevPort > 0 && parsedDevPort < 65536 ? parsedDevPort : 1420;
+/**
+ * `LOVECLAW_DEV_STRICT_PORT=1`: fail if `devPort` is busy (Tauri `scripts/tauri-dev.sh` sets this by default).
+ * Otherwise Vite uses the next free port from `LOVECLAW_DEV_PORT` / 1420 (`bun run dev` without strict).
+ */
+const strictDevPort = process.env.LOVECLAW_DEV_STRICT_PORT === "1";
+const parsedHmrPort = process.env.LOVECLAW_HMR_PORT != null && String(process.env.LOVECLAW_HMR_PORT).trim() !== ""
+    ? Number.parseInt(String(process.env.LOVECLAW_HMR_PORT), 10)
+    : NaN;
+const hmrPort = tauriHost
+    ? (Number.isFinite(parsedHmrPort) && parsedHmrPort > 0 ? parsedHmrPort : devPort + 1)
+    : undefined;
+
+/** Set by Tauri `beforeDevCommand` / `tauri-dev.sh` — hides Vite banner and HMR `[vite]` spam (dev server only). */
+const tauriDevChild = process.env.LOVECLAW_TAURI_DEV === "1";
+const viteServeOnly = !process.argv.some(a => a === "build" || a === "preview");
+
 /**
  * First non-internal IPv4, preferring typical LAN ranges (same idea as loveclaw/signal-relay.py /local-ip).
  * @returns {string | null}
@@ -150,14 +168,15 @@ export default defineConfig({
     "import.meta.env.VITE_RELAY": JSON.stringify(relayEnabled ? "1" : ""),
   },
   clearScreen: false,
+  logLevel: tauriDevChild && viteServeOnly ? "silent" : "info",
   server: {
-    port: 1420,
-    strictPort: true,
+    port: devPort,
+    strictPort: strictDevPort,
     host: devServerHost,
     /* So https://*.ngrok-free.app (etc.) proxied to this dev server passes Vite’s host check */
     allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app", ".ngrok.dev", ".loveclaw.app"],
-    hmr: tauriHost
-      ? { protocol: "ws", host: tauriHost, port: 1421 }
+    hmr: tauriHost && hmrPort != null
+      ? { protocol: "ws", host: tauriHost, port: hmrPort }
       : undefined,
     watch: { ignored: ["**/src-tauri/**"] },
     proxy: {
@@ -184,8 +203,8 @@ export default defineConfig({
   },
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   preview: {
-    port: 1420,
-    strictPort: true,
+    port: devPort,
+    strictPort: strictDevPort,
     host: true,
   },
   build: {

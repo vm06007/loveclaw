@@ -9,6 +9,7 @@ import { axl } from "../axl/client.js";
 import { startAxlPoll } from "../axl/poll.js";
 import { completePairing } from "../app/pairing.js";
 import { handleAxlMessage } from "../app/messages.js";
+import { callCreatePact, PACT_CONTRACT_ADDRESS, deriveContractAddresses } from "../lib/pact-contract.js";
 
 function setTriggerEnabled(id, on) {
     const set = new Set(state.triggers.filter(t => PACT_TRIGGER_IDS.includes(t)));
@@ -129,6 +130,37 @@ export function renderPactRuleToggles() {
     stakeBlock.appendChild(stakeRow);
     stakeBlock.appendChild(stakeHint);
     mount.appendChild(stakeBlock);
+
+    // ── On-chain block — visible only when stake >= 0.001 ETH ─────────────────
+    const onchainWrap = document.createElement("div");
+    onchainWrap.id = "pact-onchain-wrap";
+    onchainWrap.className = "pact-rule-block pact-onchain-block";
+    onchainWrap.style.display = state.stakeEth >= 0.001 ? "block" : "none";
+
+    const ocHeading = document.createElement("p");
+    ocHeading.className = "pact-rules-subheading pact-rules-subheading--spaced";
+    ocHeading.textContent = "on-chain pact";
+
+    const ocHint = document.createElement("p");
+    ocHint.className = "pact-rule-hint";
+    ocHint.textContent =
+        `Stake will be locked in LoveClawPact (${PACT_CONTRACT_ADDRESS.slice(0, 6)}…${PACT_CONTRACT_ADDRESS.slice(-4)}) via MetaMask.`;
+
+    onchainWrap.appendChild(ocHeading);
+    onchainWrap.appendChild(ocHint);
+
+    const onchainStatus = document.createElement("p");
+    onchainStatus.id = "pact-onchain-status";
+    onchainStatus.className = "pact-rule-hint pact-onchain-status";
+    onchainWrap.appendChild(onchainStatus);
+
+    mount.appendChild(onchainWrap);
+
+    // Toggle on-chain block when stake value changes (no wallet prompt here)
+    stakeInp.addEventListener("change", () => {
+        const wrap = document.getElementById("pact-onchain-wrap");
+        if (wrap) wrap.style.display = state.stakeEth >= 0.001 ? "block" : "none";
+    });
 }
 
 export function initCreateScreen() {
@@ -153,7 +185,7 @@ export function initCreateScreen() {
         }
 
         state.myName = name;
-        state.coupleId = generateKey().slice(0, 16);
+        state.coupleId = typeof crypto.randomUUID === "function" ? crypto.randomUUID() : generateKey();
         state.createdAt = Date.now();
         state.paired = false;
         state.partnerName = "";
@@ -167,6 +199,55 @@ export function initCreateScreen() {
         const axlUp = await axl.init();
         if (!axlUp && !state.myAxlKey) {
             state.myAxlKey = generateKey();
+        }
+
+        // ── On-chain pact creation when stake >= 0.001 ETH ─────────────────────
+        if (state.stakeEth >= 0.001) {
+            const statusEl = document.getElementById("pact-onchain-status");
+
+            btn.textContent = "connecting wallet…";
+            if (statusEl) statusEl.textContent = "confirm in MetaMask…";
+
+            let partnerB, agentA, agentB;
+            try {
+                if (!window.ethereum) throw new Error("MetaMask not found.");
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                const wallet = accounts?.[0];
+                if (!wallet) throw new Error("No account selected.");
+                ({ partnerB, agentA, agentB } = await deriveContractAddresses(wallet));
+            } catch (err) {
+                btn.textContent = origLabel;
+                btn.disabled = false;
+                if (statusEl) statusEl.textContent = `⚠ ${err.message}`;
+                return;
+            }
+
+            btn.textContent = "locking stake on-chain…";
+
+            try {
+                const { txHash, pactId } = await callCreatePact({
+                    partnerB,
+                    agentA,
+                    agentB,
+                    triggers: state.triggers,
+                    stakeEth: state.stakeEth,
+                });
+
+                state.pactContractId = pactId;
+                state.pactTxHash     = txHash;
+
+                if (statusEl) {
+                    statusEl.textContent =
+                        `✓ pact #${pactId} on-chain — tx ${txHash.slice(0, 10)}…`;
+                }
+            } catch (err) {
+                btn.textContent = origLabel;
+                btn.disabled = false;
+                const msg = String(err?.message || err);
+                if (statusEl) statusEl.textContent = `✗ ${msg}`;
+                console.error("[pact-contract] createPact failed:", err);
+                return;
+            }
         }
 
         btn.textContent = origLabel;

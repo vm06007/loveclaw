@@ -5,8 +5,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": "LOVECLAW_TAURI_DEV=1 bun --silent run dev",
+    "beforeBuildCommand": "bun run build"
   },
   "app": {
     "windows": [],

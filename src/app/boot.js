@@ -1,4 +1,5 @@
 import { state, getStorageKey, saveState, setStorageKeyAndReload, resetToDefault } from "../lib/state.js";
+import { parseInstanceTagFromLocation, setBootInstanceTag } from "../lib/instance-tag.js";
 import { isTauri, invoke } from "../lib/tauri.js";
 import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
@@ -8,41 +9,7 @@ import { startAxlPoll } from "../axl/poll.js";
 import { completePairing } from "./pairing.js";
 import { handleAxlMessage } from "./messages.js";
 import { renderPingStatus } from "./ping.js";
-
-/** Reserved one-segment paths (must not become storage keys). */
-const RESERVED_INSTANCE_TAGS = new Set([
-    "api",
-    "assets",
-    "welcome",
-    "favicon.ico",
-    "robots.txt",
-    "index.html",
-]);
-
-/**
- * `?role=mytag` or a single path segment `https://loveclaw.app/mytag` (see `vercel.json`).
- * Tag: lowercase letters, digits, `_`, `-`, max 48 chars. Query `role` wins if present.
- */
-function parseInstanceTagFromLocation() {
-    const q = new URLSearchParams(location.search).get("role");
-    if (q && String(q).trim()) {
-        const t = String(q).trim().toLowerCase();
-        return /^[a-z0-9_-]{1,48}$/.test(t) && !RESERVED_INSTANCE_TAGS.has(t) ? t : null;
-    }
-    const raw = (location.pathname || "/").replace(/\/+$/, "") || "/";
-    if (raw === "/") {
-        return null;
-    }
-    const m = /^\/([a-zA-Z0-9_-]{1,48})$/.exec(raw);
-    if (!m) {
-        return null;
-    }
-    const tag = m[1].toLowerCase();
-    if (RESERVED_INSTANCE_TAGS.has(tag)) {
-        return null;
-    }
-    return tag;
-}
+import { sendMyProfileToCoop } from "./coop-profile.js";
 
 /**
  * Match window title "LoveClaw — Alice": capitalize role when name matches role or name is absent.
@@ -97,6 +64,7 @@ export async function boot() {
     const urlRole = parseInstanceTagFromLocation();
     /** Same idea as title "LoveClaw — Alice"; fill inputs whenever they are still empty. */
     let instanceDisplayName = "";
+    let bootTagForProfile = urlRole || null;
 
     if (urlRole) {
         const roleKey = `loveclaw-state-${urlRole}`;
@@ -124,12 +92,14 @@ export async function boot() {
                 if (cfg.axlPort) {
                     axl.setPreferPort(cfg.axlPort);
                 }
+                bootTagForProfile = String(cfg.role || "").trim().toLowerCase() || null;
             }
             instanceDisplayName = displayNameFromInstance(cfg?.role, cfg?.name);
         } catch {
             /* */
         }
     }
+    setBootInstanceTag(bootTagForProfile);
 
     maybeTauriSessionReset();
 
@@ -183,6 +153,7 @@ export async function boot() {
             if (ok) {
                 startAxlPoll(completePairing, handleAxlMessage);
                 renderPingStatus();
+                void sendMyProfileToCoop();
             }
         });
         return;

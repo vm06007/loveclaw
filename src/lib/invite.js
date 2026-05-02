@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 import { state } from "./state.js";
+import { getEffectiveInstanceTag, normalizeInstanceTag } from "./instance-tag.js";
 import {
     PACT_TRIGGER_IDS,
     PACT_BREACH_TRIGGER_IDS,
@@ -233,6 +234,10 @@ export function buildPact() {
         ts: Date.now(),
         stakeEth,
     };
+    const inviterTag = normalizeInstanceTag(getEffectiveInstanceTag());
+    if (inviterTag) {
+        pact.instanceTag = inviterTag;
+    }
     return btoa(JSON.stringify(pact));
 }
 

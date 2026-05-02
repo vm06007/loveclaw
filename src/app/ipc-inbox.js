@@ -26,8 +26,16 @@ function routeIncoming(msg) {
         && !state.partnerAxlKey
         && String(state.myAxlKey || "").trim()
     ) {
+        const theirCid = String(msg.coupleId ?? "").trim().toLowerCase();
+        const mine = String(state.coupleId || "").trim().toLowerCase();
+        if (mine && theirCid && theirCid !== mine) {
+            console.warn("[loveclaw] ipc axl_handshake coupleId mismatch (pairing anyway)", {
+                mine: mine.slice(0, 18),
+                theirs: theirCid.slice(0, 18),
+            });
+        }
         state.partnerAxlKey = msg.key;
-        completePairing(msg.name);
+        completePairing(msg.name, { partnerInstanceTag: msg.instanceTag });
         return;
     }
     if (state.paired) {

@@ -42,11 +42,16 @@ async function resolveAxlNodes(preferPort) {
         add(9002, v9002);
     } else if (import.meta.env.DEV || import.meta.env.VITE_AXL_VERCEL_REWRITE === "1") {
         add(9002, "/axl9002");
+    } else if (isTauri()) {
+        // Release `tauri build` has no Vite proxy; talk to the local mesh directly (same as examples/axl-demo).
+        add(9002, "http://127.0.0.1:9002");
     }
     if (v9012) {
         add(9012, v9012);
     } else if (import.meta.env.DEV || import.meta.env.VITE_AXL_VERCEL_REWRITE === "1") {
         add(9012, "/axl9012");
+    } else if (isTauri()) {
+        add(9012, "http://127.0.0.1:9012");
     }
     if (nodes.length === 2) {
         return preferSort(nodes, preferPort);

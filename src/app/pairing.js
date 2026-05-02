@@ -1,4 +1,5 @@
-import { state, saveState } from "../lib/state.js";
+import { state, saveState, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
+import { normalizeInstanceTag } from "../lib/instance-tag.js";
 import { showScreen } from "../lib/router.js";
 import { renderDashboard } from "../dashboard/render.js";
 import { startHeartbeat } from "./heartbeat.js";
@@ -6,10 +7,20 @@ import { startHeartbeat } from "./heartbeat.js";
 /**
  * Unlocks the paired and dashboard flow after a successful handshake
  * (creator sees partner name from join; joiner has partner in pact state).
+ * @param {string} [partnerName]
+ * @param {{ partnerInstanceTag?: string }} [opts]
  */
-export function completePairing(partnerName) {
+export function completePairing(partnerName, opts = {}) {
     if (partnerName) {
         state.partnerName = partnerName;
+    }
+    const pit = normalizeInstanceTag(opts.partnerInstanceTag);
+    if (pit) {
+        state.partnerProfile = {
+            ...EMPTY_PARTNER_PROFILE,
+            ...(state.partnerProfile && typeof state.partnerProfile === "object" ? state.partnerProfile : {}),
+            instanceTag: pit,
+        };
     }
     state.paired = true;
     saveState(state);
@@ -20,11 +31,18 @@ export function completePairing(partnerName) {
     }
     showScreen("paired");
 
-    setTimeout(() => {
+    setTimeout(async () => {
         renderDashboard();
         showScreen("dashboard");
         startHeartbeat();
         _promptAgentRegistration();
+        try {
+            const { sendMyProfileToCoop } = await import("./coop-profile.js");
+            void sendMyProfileToCoop();
+            setTimeout(() => void sendMyProfileToCoop(), 6000);
+        } catch (e) {
+            console.warn("[loveclaw] post-pair profile sync", e);
+        }
     }, 2000);
 }
 

@@ -2,6 +2,7 @@
 // Updated in boot() when role is known from get_instance_config or ?role=.
 import { migrateTriggers, PACT_BREACH_TRIGGER_IDS } from "./pact-triggers.js";
 import { mergeSignalShares, applyPactAgentLocks } from "./signal-share-settings.js";
+import { normalizeInstanceTag } from "./instance-tag.js";
 
 const DEFAULT_KEY = "loveclaw-state";
 
@@ -24,6 +25,8 @@ export const EMPTY_PARTNER_PROFILE = {
     updatedAt: null,
     agenticTokenId: "",
     agentWalletAddress: "",
+    /** Partner's URL path tag (`/tag`) when they share profile over coop; used to open their tab. */
+    instanceTag: "",
 };
 
 const DEFAULT_STATE = {
@@ -156,4 +159,46 @@ export let state = loadState();
  */
 export function resetToDefault() {
     state = { ...DEFAULT_STATE };
+}
+
+/**
+ * Read another URL-tag slot’s saved couple id (same origin, localStorage).
+ * Both partners share the same `coupleId` after a valid join.
+ * @param {string} instanceTagRaw e.g. "boris" → key `loveclaw-state-boris`
+ * @returns {{ coupleId: string, paired: boolean, partnerName: string, partnerAxlKey: string } | null}
+ */
+export function readCoupleSnapshotForTag(instanceTagRaw) {
+    const tag = normalizeInstanceTag(instanceTagRaw);
+    if (!tag) {
+        return null;
+    }
+    const key = `loveclaw-state-${tag}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+        return null;
+    }
+    try {
+        const o = JSON.parse(raw);
+        return {
+            coupleId: String(o.coupleId || ""),
+            paired: Boolean(o.paired),
+            partnerName: String(o.partnerName || ""),
+            partnerAxlKey: String(o.partnerAxlKey || ""),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * True when this tab’s paired `coupleId` matches the other tag’s saved `coupleId`.
+ * @param {string} otherTag e.g. "boris" while on `/alice`
+ */
+export function isSameCoupleAsTag(otherTag) {
+    const mine = String(state.coupleId || "").trim();
+    if (!mine || !state.paired) {
+        return false;
+    }
+    const o = readCoupleSnapshotForTag(otherTag);
+    return Boolean(o?.paired && String(o.coupleId || "").trim() === mine);
 }

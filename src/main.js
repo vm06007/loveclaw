@@ -15,6 +15,7 @@ import { initDashboardTabs } from "./dashboard/tabs.js";
 import { initDashboardShell } from "./app/dashboard-pwa.js";
 import { initRelayNotify } from "./app/relay-notify.js";
 import { initCoopProfileUi } from "./app/coop-profile.js";
+import { state, getStorageKey, readCoupleSnapshotForTag, isSameCoupleAsTag } from "./lib/state.js";
 
 await initTauri();
 registerAxlPairing(completePairing);
@@ -32,4 +33,14 @@ initDashboardShell();
 initCoopProfileUi();
 
 await boot();
+
+if (import.meta.env.DEV && typeof window !== "undefined") {
+    window.loveclawCouple = {
+        coupleId: () => String(state.coupleId || "").trim(),
+        storageKey: getStorageKey,
+        snapshot: readCoupleSnapshotForTag,
+        isSameCoupleAsTag,
+    };
+}
+
 initRelayNotify();

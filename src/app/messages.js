@@ -154,7 +154,26 @@ export function handleAxlMessage(msg) {
             if (!state.paired || !msg.profile || typeof msg.profile !== "object") {
                 break;
             }
-            if (state.partnerAxlKey && msg._fromKey && msg._fromKey !== state.partnerAxlKey) {
+            const pk = String(state.partnerAxlKey || "").trim().toLowerCase();
+            const fk = String(msg._fromKey || "").trim().toLowerCase();
+            const ap = String(msg.profile?.agentPublicKey || "").trim().toLowerCase();
+            console.log("[coop_profile] via:", fk ? "axl" : "ipc", "| fk:", fk.slice(0,10)||"—", "| ap:", ap.slice(0,10)||"—", "| pk:", pk.slice(0,10)||"—");
+            // Only enforce key checks when the message arrived over AXL (fk is set).
+            // IPC-delivered messages (fk empty) are same-origin trusted; coupleId check below is sufficient.
+            if (pk && fk) {
+                if (fk !== pk && ap !== pk) {
+                    console.warn("[loveclaw] coop_profile: sender key mismatch; ignoring", {
+                        fromHeader: fk.slice(0, 12),
+                        fromProfile: ap.slice(0, 12),
+                        expected: pk.slice(0, 12),
+                    });
+                    break;
+                }
+            }
+            const incomingCid = msg.coupleId != null ? String(msg.coupleId).trim() : "";
+            const mine = String(state.coupleId || "").trim();
+            if (incomingCid && mine && incomingCid.toLowerCase() !== mine.toLowerCase()) {
+                console.warn("[loveclaw] coop_profile: coupleId mismatch; ignoring");
                 break;
             }
             applyCoopProfileFromMessage(msg);

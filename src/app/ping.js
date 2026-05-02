@@ -28,6 +28,11 @@ export function renderPingStatus() {
     const isBc = !axl.available;
     const myPort = axl.available ? `axl :${axl.port}` : "local IPC";
     const partnerPort = axl.available ? `axl :${axl.port === 9002 ? 9012 : 9002}` : "local IPC";
+    const onlineTitle = `Mesh control API on this tab: port ${axl.port}. Partner traffic uses the other demo port.`;
+    const offlineTitle =
+        "AXL mesh not connected — chat/ping use BroadcastChannel + localStorage only. "
+        + "Start the two nodes: from repo root run `python3 examples/axl-demo/a2a.py` (API :9002 and :9012). "
+        + "Tauri dev uses the Vite proxy (/axl9002); release builds call http://127.0.0.1:9002 unless you set VITE_AXL_NODE_*_BASE.";
 
     me.innerHTML = `
     <span class="ping-status-name">${state.myName || "me"}</span>
@@ -36,6 +41,9 @@ export function renderPingStatus() {
     partner.innerHTML = `
     <span class="ping-status-name">${state.partnerName || "partner"}</span>
     <span class="ping-status-port${isBc ? " bc" : ""}">${partnerPort}</span>`;
+
+    me.querySelector(".ping-status-port")?.setAttribute("title", axl.available ? onlineTitle : offlineTitle);
+    partner.querySelector(".ping-status-port")?.setAttribute("title", axl.available ? onlineTitle : offlineTitle);
 }
 
 export function sendPing() {

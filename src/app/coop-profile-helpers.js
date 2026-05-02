@@ -77,3 +77,50 @@ export function compressImageToAvatarDataUrl(file) {
         reader.readAsDataURL(file);
     });
 }
+
+/**
+ * Re-encode an existing data URL smaller for AXL POST body limits (mesh may reject large JSON).
+ * @param {string} dataUrl
+ * @param {number} [maxSide]
+ * @param {number} [quality] JPEG 0–1
+ * @returns {Promise<string>} smaller data URL or "" on failure
+ */
+export function shrinkAvatarDataUrlForMesh(dataUrl, maxSide = 96, quality = 0.68) {
+    return new Promise(resolve => {
+        const s = String(dataUrl || "");
+        if (!s.startsWith("data:image/")) {
+            resolve("");
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            try {
+                let w = img.naturalWidth || img.width;
+                let h = img.naturalHeight || img.height;
+                if (!w || !h) {
+                    resolve("");
+                    return;
+                }
+                if (w > maxSide || h > maxSide) {
+                    const sc = Math.min(maxSide / w, maxSide / h);
+                    w = Math.round(w * sc);
+                    h = Math.round(h * sc);
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                    resolve("");
+                    return;
+                }
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            } catch {
+                resolve("");
+            }
+        };
+        img.onerror = () => resolve("");
+        img.src = s;
+    });
+}

@@ -1,4 +1,5 @@
 import { state, saveState, EMPTY_MY_PROFILE, EMPTY_PARTNER_PROFILE } from "../lib/state.js";
+import { getEffectiveInstanceTag, normalizeInstanceTag } from "../lib/instance-tag.js";
 import { registerAgenticId, setupAgentWallet, agenticExplorerUrl, agentWalletExplorerUrl, silentLookup, CONTRACT_ADDRESS, EXPLORER_BASE } from "../lib/agentic-id.js";
 import { encryptAndStoreKey, hasEncryptedKey } from "../lib/agent-key-store.js";
 import { axl } from "../axl/client.js";
@@ -10,10 +11,14 @@ import {
     getDeviceSummary,
     initialsFromName,
     profileIconFilled,
+    shrinkAvatarDataUrlForMesh,
 } from "./coop-profile-helpers.js";
 
 /** Keep AXL / IPC payloads small enough for typical JSON bodies. */
 const MAX_AVATAR_DATA_URL_CHARS = 160_000;
+
+/** One-shot hint: two Tauri apps do not share BroadcastChannel / localStorage IPC. */
+let meshPhotoWarned = false;
 
 function profileFieldBlock(labelText, rowEl) {
     const block = document.createElement("div");
@@ -32,6 +37,23 @@ function profileInputRow(middleEl, iconEl) {
     wrap.appendChild(middleEl);
     wrap.appendChild(iconEl);
     return wrap;
+}
+
+/** New tab → partner path tag when known (reads live state). */
+function openPartnerLoveclawTabIfTagKnown() {
+    if (!state.paired) {
+        return;
+    }
+    const pp = { ...EMPTY_PARTNER_PROFILE, ...(state.partnerProfile || {}) };
+    const tag = normalizeInstanceTag(pp.instanceTag);
+    if (!tag) {
+        return;
+    }
+    const path = `/${encodeURIComponent(tag)}`;
+    const w = window.open(path, "_blank");
+    if (w) {
+        w.opener = null;
+    }
 }
 
 function showProfileToast(message) {
@@ -369,10 +391,7 @@ function _showPinSetup(plainPrivateKey) {
 
 function buildOutboundProfile() {
     const mp = state.myProfile || { ...EMPTY_MY_PROFILE };
-    let avatar = String(mp.avatarDataUrl || "");
-    if (avatar.length > MAX_AVATAR_DATA_URL_CHARS) {
-        avatar = "";
-    }
+    const avatar = String(mp.avatarDataUrl || "");
     return {
         walletAddress: String(mp.walletAddress || "").trim().slice(0, 66),
         ensName: String(mp.ensName || "").trim().slice(0, 128),
@@ -382,7 +401,31 @@ function buildOutboundProfile() {
         agentPublicKey: String(state.myAxlKey || "").trim().slice(0, 512),
         agenticTokenId: String(mp.agenticTokenId || "").trim().slice(0, 64),
         agentWalletAddress: String(mp.agentWalletAddress || "").trim().slice(0, 42),
+        instanceTag: normalizeInstanceTag(getEffectiveInstanceTag()),
     };
+}
+
+/**
+ * Mesh JSON bodies are tight; always re-encode avatars small for /send.
+ * (Keeps Alice→Boris and Boris→Alice symmetric even when one photo compresses smaller.)
+ */
+async function profileForMeshOutbound() {
+    const p = buildOutboundProfile();
+    const av = String(p.avatarDataUrl || "");
+    if (!av.startsWith("data:image/")) {
+        return p;
+    }
+    let out = await shrinkAvatarDataUrlForMesh(av, 80, 0.7);
+    out = out || av;
+    if (out.length > MAX_AVATAR_DATA_URL_CHARS) {
+        const mid = await shrinkAvatarDataUrlForMesh(out, 56, 0.62);
+        out = mid || out;
+    }
+    if (out.length > MAX_AVATAR_DATA_URL_CHARS) {
+        const tiny = await shrinkAvatarDataUrlForMesh(out, 40, 0.55);
+        out = tiny || "";
+    }
+    return { ...p, avatarDataUrl: out };
 }
 
 /**
@@ -394,10 +437,15 @@ export async function sendMyProfileToCoop() {
     if (!state.paired) {
         return false;
     }
+    if (!axl.available && String(state.partnerAxlKey || "").trim()) {
+        await axl.init(state.partnerAxlKey);
+    }
+    const profileMesh = await profileForMeshOutbound();
     const basePayload = () => ({
         type: "coop_profile",
         from: state.myName || "me",
-        profile: buildOutboundProfile(),
+        coupleId: String(state.coupleId || "").trim(),
+        profile: { ...profileMesh },
         ts: Date.now(),
     });
 
@@ -418,9 +466,34 @@ export async function sendMyProfileToCoop() {
     ipcSend(p1);
 
     if (axl.available && state.partnerAxlKey && !axlOk && p1.profile?.avatarDataUrl) {
+        const small = await shrinkAvatarDataUrlForMesh(p1.profile.avatarDataUrl, 96, 0.68);
+        if (small) {
+            const pMid = basePayload();
+            pMid.profile = { ...pMid.profile, avatarDataUrl: small };
+            await tryAxl(pMid);
+            if (axlOk) {
+                ipcSend(pMid);
+            }
+        }
+    }
+
+    if (axl.available && state.partnerAxlKey && !axlOk && p1.profile?.avatarDataUrl) {
+        console.warn("[loveclaw] coop_profile: sending without avatar (mesh rejected full payload); try a smaller photo or save & share again.");
         const p2 = basePayload();
         p2.profile = { ...p2.profile, avatarDataUrl: "" };
         await tryAxl(p2);
+        if (axlOk) {
+            ipcSend(p2);
+        }
+    }
+
+    const hadPhoto = Boolean(String(profileMesh.avatarDataUrl || "").trim());
+    if (hadPhoto && !axl.available && !meshPhotoWarned) {
+        meshPhotoWarned = true;
+        showProfileToast(
+            "AXL mesh offline — two separate Tauri windows cannot share photos over “local IPC”. "
+            + "Run examples/axl-demo (ports 9002/9012) or use two browser tabs on the same dev server.",
+        );
     }
 
     return axlOk;
@@ -439,7 +512,7 @@ function closeProfileModal() {
 
 /** Re-render modal body if it is open (so coop view updates without closing). */
 export function refreshCoopProfileModalIfOpen() {
-    const sheet = document.getElementById("modal-coop-profile");
+    const sheet = document.getElementById("modal-partner-profile");
     if (!profileModalWhoOpen || !sheet || sheet.classList.contains("hidden")) {
         return;
     }
@@ -466,6 +539,7 @@ export function openCoopProfile(who) {
     profileModalWhoOpen = who;
 
     headTitle.textContent = isMe ? "Your Profile" : `${coopName}'s profile`;
+    headTitle.classList.toggle("lc-profile-head-title--partner-secret", who === "partner");
 
     body.innerHTML = "";
     saveBtn.classList.toggle("hidden", !isMe);
@@ -700,14 +774,31 @@ export function openCoopProfile(who) {
             avatar.textContent = nPt;
         }
 
+        const partnerTag = normalizeInstanceTag(pp.instanceTag);
+        if (partnerTag) {
+            avatar.classList.add("lc-profile-avatar-lg--tap");
+            avatar.setAttribute("role", "button");
+            avatar.setAttribute("tabindex", "0");
+            avatar.setAttribute("aria-label", `Open ${coopName}'s LoveClaw page in a new tab`);
+            avatar.title = `Open /${partnerTag} in a new tab`;
+            avatar.addEventListener("click", () => openPartnerLoveclawTabIfTagKnown());
+            avatar.addEventListener("keydown", ev => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                    ev.preventDefault();
+                    openPartnerLoveclawTabIfTagKnown();
+                }
+            });
+        }
+
         const nameEl = document.createElement("h3");
         nameEl.className = "lc-profile-name lc-profile-name--partner";
         nameEl.textContent = coopName;
 
         const lede = document.createElement("p");
         lede.className = "lc-profile-lede";
-        lede.textContent =
-            "Read-only. They update this when they save & share from their device.";
+        lede.textContent = partnerTag
+            ? "Read-only. Tap their photo or double-click the title to open their URL on this site. That tab uses its own storage (like a second account) — it only shows paired if this browser has already joined as that tag, or use it on their phone where they run LoveClaw. They update details when they save & share."
+            : "Read-only. Their tag isn’t known here yet — re-pair with a fresh invite or wait for sync. Then tap their photo or double-click the title; that URL uses separate storage until paired as that tag.";
 
         hero.appendChild(avatar);
         hero.appendChild(nameEl);
@@ -793,9 +884,20 @@ export function applyCoopProfileFromMessage(msg) {
     }
     const p = msg.profile;
     const avatarRaw = String(p.avatarDataUrl || "");
+    if (avatarRaw.startsWith("data:image/") && avatarRaw.length > MAX_AVATAR_DATA_URL_CHARS) {
+        void shrinkAvatarDataUrlForMesh(avatarRaw, 96, 0.72).then(small => {
+            if (!small || !state.paired) {
+                return;
+            }
+            applyCoopProfileFromMessage({ ...msg, profile: { ...p, avatarDataUrl: small } });
+        });
+        return;
+    }
     const avatarOk = avatarRaw.startsWith("data:image/") && avatarRaw.length <= MAX_AVATAR_DATA_URL_CHARS
         ? avatarRaw
         : "";
+    const tagFromMsg = normalizeInstanceTag(p.instanceTag);
+    const tagKeep = tagFromMsg || normalizeInstanceTag(state.partnerProfile?.instanceTag);
     state.partnerProfile = {
         ...EMPTY_PARTNER_PROFILE,
         walletAddress: String(p.walletAddress || "").trim().slice(0, 66),
@@ -806,6 +908,7 @@ export function applyCoopProfileFromMessage(msg) {
         deviceLabel: String(p.deviceLabel || "").trim().slice(0, 400),
         agenticTokenId: String(p.agenticTokenId || "").trim().slice(0, 64),
         agentWalletAddress: String(p.agentWalletAddress || "").trim().slice(0, 42),
+        instanceTag: tagKeep,
         updatedAt: typeof msg.ts === "number" ? msg.ts : Date.now(),
     };
     saveState(state);
@@ -820,6 +923,17 @@ export function initCoopProfileUi() {
 
     meBtn?.addEventListener("click", () => openCoopProfile("me"));
     ptBtn?.addEventListener("click", () => openCoopProfile("partner"));
+
+    const headTitle = document.getElementById("profile-head-title");
+    headTitle?.addEventListener("dblclick", () => {
+        if (!sheet || sheet.classList.contains("hidden")) {
+            return;
+        }
+        if (profileModalWhoOpen !== "partner") {
+            return;
+        }
+        openPartnerLoveclawTabIfTagKnown();
+    });
 
     closeBtn?.addEventListener("click", () => closeProfileModal());
     saveBtn?.addEventListener("click", () => {

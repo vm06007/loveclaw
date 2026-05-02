@@ -152,6 +152,12 @@ export function onBreakPactProposeReceived(msg) {
     if (!state.paired) {
         return;
     }
+    const incomingCid = msg?.coupleId != null ? String(msg.coupleId).trim() : "";
+    const mine = String(state.coupleId || "").trim();
+    if (incomingCid && mine && incomingCid !== mine) {
+        console.warn("[loveclaw] break_pact_propose: coupleId mismatch, ignoring");
+        return;
+    }
     const from = (msg.from && String(msg.from).trim()) || "partner";
     state.breakPactIncoming = { from, ts: msg.ts || Date.now() };
     state.pactChangesIncoming = null;
@@ -219,6 +225,7 @@ export function initBreakPactUi() {
         transportPartnerMessage({
             type: "break_pact_propose",
             from: state.myName || "me",
+            coupleId: state.coupleId || "",
             ts: Date.now(),
         });
     });
@@ -234,6 +241,7 @@ export function initBreakPactUi() {
         transportPartnerMessage({
             type: "break_pact_grant",
             from: state.myName || "me",
+            coupleId: state.coupleId || "",
             ts: Date.now(),
         });
         applyBreakPactUnpair();
@@ -244,6 +252,7 @@ export function initBreakPactUi() {
         transportPartnerMessage({
             type: "break_pact_deny",
             from: state.myName || "me",
+            coupleId: state.coupleId || "",
             ts: Date.now(),
         });
         addBreakPactDenySentLine();
