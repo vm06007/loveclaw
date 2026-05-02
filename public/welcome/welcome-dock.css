@@ -68,7 +68,7 @@
     min-height: 200px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: center;
 }
 @media (prefers-reduced-motion: reduce) {
     .device-tag-panel {
@@ -213,6 +213,16 @@
     .btn-tag-help {
         width: 26px;
         height: 26px;
+    }
+}
+
+/* prevent iOS auto-zoom on input focus (requires font-size >= 16px on touch devices) */
+@media (hover: none) {
+    .device-tag-panel .tag-form-input {
+        font-size: 16px;
+    }
+    .device-tag-panel .tag-form-input::placeholder {
+        font-size: 16px;
     }
 }
 

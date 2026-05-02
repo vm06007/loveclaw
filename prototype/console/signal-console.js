@@ -78,6 +78,28 @@ function connect() {
                 renderAll();
                 return;
             }
+            // If this is a breach update (same _id, adds tx_hash), patch in-place
+            if (sig.type === 'breach' && sig.tx_hash && sig._id != null) {
+                const existing = allEntries.find(s => s._id === sig._id);
+                if (existing) {
+                    existing.tx_hash = sig.tx_hash;
+                    const el = document.querySelector(`[data-id="${sig._id}"]`);
+                    if (el) {
+                        const card = el.querySelector('.breach-card');
+                        if (card && !card.querySelector('.penalty-tx')) {
+                            const link = document.createElement('a');
+                            link.className = 'penalty-tx';
+                            link.href = `https://etherscan.io/tx/${sig.tx_hash}`;
+                            link.target = '_blank';
+                            link.rel = 'noopener';
+                            link.textContent = `⛓ Penalty applied: ${sig.tx_hash}`;
+                            link.onclick = e => e.stopPropagation();
+                            card.appendChild(link);
+                        }
+                    }
+                    return;
+                }
+            }
             allEntries.push(sig);
             updateStats(sig);
             if (!paused) appendEntry(sig);
@@ -231,13 +253,18 @@ function makeEntryEl(sig) {
     const isBreachEntry = type.includes('breach');
     el.className = 'entry' + (isBreachEntry ? ' breach-entry' : '');
     el.dataset.type = type;
+    if (sig._id != null) el.dataset.id = sig._id;
 
     const ts   = (sig._ts || '').slice(11, 19);
     const det  = detail(sig);
     const json = JSON.stringify(sig, null, 2);
 
+    const txHtml = (type === 'breach' && sig.tx_hash)
+        ? `<a class="penalty-tx" href="https://etherscan.io/tx/${sig.tx_hash}" target="_blank" rel="noopener"
+            onclick="event.stopPropagation()">⛓ Penalty applied: ${sig.tx_hash}</a>`
+        : '';
     const narrativeHtml = (type === 'breach' && sig.narrative)
-        ? `<div class="breach-card"><div class="breach-card-label">AI ASSESSMENT</div>${escHtml(sig.narrative)}</div>`
+        ? `<div class="breach-card"><div class="breach-card-label">AI ASSESSMENT</div>${escHtml(sig.narrative)}${txHtml}</div>`
         : '';
 
     const lat = sig.lat || sig.latitude;

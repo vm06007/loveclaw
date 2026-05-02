@@ -36,7 +36,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 16px;
+    padding: 12px 16px;
     background: linear-gradient(90deg, #1a0d0d, #2a0d1a);
     border-bottom: 1px solid var(--pink, #D4537E);
     flex-shrink: 0;
@@ -47,7 +47,7 @@
     left: 0;
     right: 0;
     z-index: 300;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
     border-bottom: none;
     border-top: 1px solid var(--pink, #D4537E);
 }
@@ -68,7 +68,6 @@
     color: var(--pink-l, #ED93B1);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    margin-bottom: 20px;
 }
 .notif-banner-dismiss {
     font-family: var(--font);

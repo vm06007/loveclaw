@@ -23,7 +23,7 @@ export async function initRelayNotify() {
     if (Notification.permission === "granted") {
         await _subscribePush();
     } else {
-        _showBanner();
+        // _showBanner();
     }
 
     if (RELAY_ENABLED) _connectSse();

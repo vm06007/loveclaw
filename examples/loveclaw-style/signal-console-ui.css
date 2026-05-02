@@ -297,10 +297,10 @@
     background: #1a0404;
     border: 1px solid var(--red);
     border-radius: 6px;
-    font-family: Georgia, serif;
-    font-size: 12px;
+    font-family: var(--px);
+    font-size: 7px;
     color: #f0a0a0;
-    line-height: 1.8;
+    line-height: 2;
 }
 .lc-signal-console .breach-card-label {
     font-family: var(--px);
@@ -308,6 +308,20 @@
     color: var(--red);
     letter-spacing: 2px;
     margin-bottom: 8px;
+}
+
+.lc-signal-console .penalty-tx {
+    display: block;
+    margin-top: 10px;
+    font-family: var(--px);
+    font-size: 6px;
+    color: var(--amber, #FAC775);
+    text-decoration: none;
+    letter-spacing: 1px;
+    word-break: break-all;
+}
+.lc-signal-console .penalty-tx:hover {
+    text-decoration: underline;
 }
 
 .lc-signal-console .empty {

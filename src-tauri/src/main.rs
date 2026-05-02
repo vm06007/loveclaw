@@ -446,8 +446,8 @@ fn main() {
                 tauri::WebviewUrl::App(url_path),
             )
             .title(&title)
-            .inner_size(430.0, 900.0)
-            .min_inner_size(390.0, 700.0)
+            .inner_size(442.0, 790.0)
+            .min_inner_size(390.0, 600.0)
             .center()
             .build()?;
 
