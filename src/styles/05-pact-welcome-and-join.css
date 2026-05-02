@@ -233,6 +233,17 @@
 }
 
 .pact-partner-name { color: var(--teal); }
+
+.join-stake-notice {
+    font-size: 8px;
+    color: var(--amber);
+    background: rgba(250, 199, 117, 0.06);
+    border: 1px solid rgba(250, 199, 117, 0.25);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
 .join-pact-preview {
     margin: 0 0 12px;
 }

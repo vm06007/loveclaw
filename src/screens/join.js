@@ -13,11 +13,20 @@ import { initJoinQrScan } from "./join-qr-scan.js";
 function runJoinPactPreview() {
     const raw = document.getElementById("join-code")?.value ?? "";
     const el = document.getElementById("join-pact-preview");
-    if (!el) {
-        return;
-    }
+    if (!el) return;
     const p = parsePactFromInviteField(raw);
     renderJoinPactPreview(el, p);
+
+    const notice = document.getElementById("join-stake-notice");
+    if (!notice) return;
+    const stake = p ? Number(p.stakeEth) : 0;
+    if (Number.isFinite(stake) && stake > 0) {
+        notice.textContent = `This pact requires a stake of ${stake} ETH. You can join now — you will have 24 hours to deposit the required amount.`;
+        notice.classList.remove("hidden");
+    } else {
+        notice.textContent = "";
+        notice.classList.add("hidden");
+    }
 }
 
 export function initJoinScreen() {

@@ -1,6 +1,6 @@
 # 0G Integration
 
-LoveClaw integrates **0G** at two levels. The first is **0G Memory** (powered by EverMemOS), which stores every relationship event as a structured, searchable memory that persists on the 0G testnet. The second is **0G Storage**, which lets partners archive complete diary snapshots as permanent, content-addressed files on the Galileo testnet using the `@0gfoundation/0g-ts-sdk`. There is also a **0G Compute** option in the AI settings for routing inference through 0G instead of a centralised provider.
+LoveClaw integrates **0G** across three layers. Every partner gets an **AI agent minted as an ERC-7857 NFT on 0G Galileo testnet**. That agent wallet then signs 0G Storage uploads and is recorded on the LoveClawPact smart contract as the authorised breach-filing address. On top of that, **0G Memory** (powered by EverMemOS) stores every relationship event as a structured, searchable memory that also persists on the 0G testnet. There is also a **0G Compute** option in the AI settings for routing inference through 0G instead of a centralised provider.
 
 ## How the pieces fit together
 
@@ -18,6 +18,126 @@ prototype/relay/  ----HTTP---->  memory_router.py  (port 9091)
 ```
 
 Nothing in the app or relay talks to EverMemOS directly. Everything goes through `memory_router.py`, which acts as a thin HTTP wrapper.
+
+## 0G Agentic ID: minting an AI agent as an NFT
+
+File: [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js)
+
+Each partner mints a personal AI agent on the 0G Galileo testnet using the **ERC-7857 Agentic ID** standard. The NFT represents the agent's identity. After minting, the app generates a fresh Ethereum wallet for that agent and authorises it on-chain so it can sign transactions and file breach evidence on the partner's behalf.
+
+### Contract and network
+
+| Line | Detail |
+|---|---|
+| [L1 file header](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L1) | Identifies the file as "0G Agentic ID (ERC-7857) on 0G Galileo testnet" |
+| [L3 `CONTRACT_ADDRESS`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L3) | `0x2700F6A3e505402C9daB154C5c6ab9cAEC98EF1F` — the ERC-7857 contract on 0G Galileo |
+| [L4 `ZG_CHAIN_ID = 16602`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L4) | 0G Galileo testnet chain ID |
+
+### Contract ABI functions used
+
+| Line | Function |
+|---|---|
+| [L25 `mintFee`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L25) | Reads the current minting fee from the contract before calling `iMint` |
+| [L32 `iMint`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L32) | Mints the ERC-7857 NFT, receiving the agent's name, model, capabilities, and system prompt as data hashes |
+| [L66 `authorizeUsage`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L66) | Authorises a wallet address to act on behalf of the NFT |
+| [L11 `delegateAccess`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L11) | Delegates signing rights to the agent wallet so it can transact on the owner's behalf |
+
+### Minting and agent wallet setup: `registerAgenticId()`
+
+| Line | What it does |
+|---|---|
+| [L138 function entry](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L138) | `registerAgenticId(agentName, onStatus)` — the main registration flow |
+| [L154 contract setup](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L154) | Creates an ethers `Contract` instance pointed at the ERC-7857 contract on 0G Galileo |
+| [L156 read mint fee](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L156) | Calls `contract.mintFee()` to get the required payment |
+| [L167 mint NFT](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L167) | Calls `contract.iMint(walletAddress, datas, { value: mintFee })` — mints the agent NFT and pays the fee |
+| [L188 generate agent wallet](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L188) | `ethers.Wallet.createRandom()` — creates a fresh throwaway wallet to act as the agent |
+| [L190 authorize agent](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L190) | `contract.authorizeUsage(tokenId, agentWallet.address)` — links the agent wallet to the NFT on-chain |
+| [L195 delegate agent](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L195) | `contract.delegateAccess(agentWallet.address)` — grants the agent wallet signing rights |
+
+### Setting up an agent wallet for an existing NFT: `setupAgentWallet()`
+
+If a user already owns the NFT but has not yet authorised an agent wallet (for example after switching devices), this function handles it.
+
+| Line | What it does |
+|---|---|
+| [L208 function entry](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L208) | `setupAgentWallet(tokenId, onStatus)` |
+| [L225 authorize](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L225) | `contract.authorizeUsage(tokenId, agentWallet.address)` |
+| [L229 delegate](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L229) | `contract.delegateAccess(agentWallet.address)` |
+
+### Silent lookup and explorer links
+
+| Line | What it does |
+|---|---|
+| [L239 `silentLookup()`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L239) | Checks MetaMask silently (no user prompt) to see if the connected wallet already owns an agent NFT |
+| [L254 `lookupAgenticTokenId(walletAddress)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L254) | Read-only lookup on the 0G RPC to find a token ID for any wallet address |
+| [L269 `agenticExplorerUrl(tokenId)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js#L269) | Returns a direct link to the NFT on the 0G Chainscan explorer |
+
+## 0G Agentic ID: agent key encryption
+
+File: [`src/lib/agent-key-store.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js)
+
+After the agent wallet is generated, its private key is encrypted with a PIN and stored in localStorage so the user never has to paste it again. The same module handles the couple's shared vault key.
+
+| Line | What it does |
+|---|---|
+| [L8-L10 constants](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js#L8-L10) | `PBKDF2_ITERATIONS = 150_000`, storage keys for agent and vault |
+| [L20 `_deriveKey(pin, salt)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js#L20) | Derives an AES-GCM key from the user's PIN using PBKDF2 with SHA-256 |
+| [L38 `encryptAndStoreKey(privateKey, pin)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js#L38) | Encrypts the agent private key with AES-GCM and saves it to localStorage |
+| [L55 `decryptStoredKey(pin)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js#L55) | Decrypts and returns the agent private key; throws if the PIN is wrong |
+| [L69 `hasEncryptedKey()`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js#L69) | Returns true if an encrypted key exists in localStorage |
+
+## 0G Agentic ID: profile display and agent registration UI
+
+File: [`src/app/coop-profile.js`](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js)
+
+The profile screen is where users mint their agent NFT, see their "OG Agent Address NFT ID", and view their partner's agent identity.
+
+| Line | What it does |
+|---|---|
+| [L3 imports](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L3) | Imports `registerAgenticId`, `setupAgentWallet`, `silentLookup`, `CONTRACT_ADDRESS`, and explorer URL helpers from `agentic-id.js` |
+| [L290 register button](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L290) | Calls `registerAgenticId(agentName, ...)` when the user taps the register button |
+| [L296 save token ID](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L296) | Stores `agenticTokenId` in the user's profile after minting |
+| [L298 save wallet address](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L298) | Stores `agentWalletAddress` in the user's profile |
+| [L203 setup existing NFT](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L203) | Calls `setupAgentWallet(tokenId, ...)` if the user has an NFT but no agent wallet yet |
+| [L208 save wallet after setup](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L208) | Saves the newly created `agentWalletAddress` to the profile |
+| [L670 "OG Agent Address" label](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L670) | Renders the "OG Agent Address" label in the profile UI |
+| [L673 NFT ID link](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L673) | Shows `NFT ID #X` as a clickable link to the 0G Chainscan explorer |
+| [L689 existing NFT display](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L689) | Renders `NFT ID #X` for users who already have an agent registered |
+| [L701 silent lookup on load](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L701) | Calls `silentLookup()` when the profile opens to auto-fill the NFT ID if MetaMask is already connected |
+| [L710 auto-fill label](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L710) | Updates the label to show `OG Agent Address NFT ID #X` after a successful silent lookup |
+| [L815-L825 partner's agent](https://github.com/vm06007/loveclaw/blob/master/src/app/coop-profile.js#L815-L825) | Reads the partner's `agenticTokenId` from their synced profile and shows their NFT ID with an explorer link |
+
+Both `agenticTokenId` and `agentWalletAddress` are part of the app's state schema, so they sync to the partner over AXL when profiles are shared. Their empty defaults live in [`src/lib/state.js L14-L15`](https://github.com/vm06007/loveclaw/blob/master/src/lib/state.js#L14-L15) (own profile) and [`L26-L27`](https://github.com/vm06007/loveclaw/blob/master/src/lib/state.js#L26-L27) (partner profile).
+
+## 0G Agentic ID: agent address flows into the smart contract
+
+File: [`src/lib/pact-contract.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js)
+
+When creating a LoveClawPact on Ethereum, the agent addresses are derived deterministically from each partner's wallet. These are the on-chain addresses that the smart contract will accept breach filings from.
+
+| Line | What it does |
+|---|---|
+| [L147 `deriveContractAddresses(walletAddress)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js#L147) | Derives `agentA` and `agentB` addresses by hashing the wallet address with a fixed salt |
+| [L153 `agentA`](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js#L153) | `keccak256(walletAddress + ":lc:agentA")` |
+| [L154 `agentB`](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js#L154) | `keccak256(walletAddress + ":lc:agentB")` |
+| [L60 `callCreatePact(...)`](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js#L60) | Accepts `agentA` and `agentB` as parameters |
+| [L86 on-chain call](https://github.com/vm06007/loveclaw/blob/master/src/lib/pact-contract.js#L86) | `contract.createPact(partnerB, agentA, agentB, bits, { value })` — commits both agent addresses permanently to Ethereum |
+
+In [`src/screens/create.js`](https://github.com/vm06007/loveclaw/blob/master/src/screens/create.js), [L226](https://github.com/vm06007/loveclaw/blob/master/src/screens/create.js#L226) calls `deriveContractAddresses(wallet)` and [L242-L243](https://github.com/vm06007/loveclaw/blob/master/src/screens/create.js#L242-L243) passes the result into `callCreatePact`.
+
+## 0G Agentic ID: agent wallet signs 0G Storage uploads
+
+File: [`src/dashboard/zg-store.js`](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js)
+
+When a partner taps "Store on 0G", the agent wallet private key is decrypted and used as the signer for the 0G Storage upload. The diary snapshot also includes the agent wallet address in its metadata so the stored file is permanently linked to the on-chain agent identity.
+
+| Line | What it does |
+|---|---|
+| [L352 agent wallet check](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js#L352) | Blocks the upload if no `agentWalletAddress` is registered yet |
+| [L423 include in snapshot](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js#L423) | Adds `agentWalletAddress` to the diary JSON snapshot that gets stored on 0G |
+| [L438 set agent address](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js#L438) | Sets `data.agentAddress` so the upload carries the agent's identity |
+
+The agent wallet also serves as the swapper identity in [`src/app/lovclaw-ai.js L464`](https://github.com/vm06007/loveclaw/blob/master/src/app/lovclaw-ai.js#L464), where `agentWalletAddress` is used as the `swapper` parameter for on-chain operations.
 
 ## 0G Memory: the Python client
 

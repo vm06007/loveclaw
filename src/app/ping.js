@@ -178,11 +178,28 @@ export function initPingActions() {
 
         document.getElementById("quick-pact")?.addEventListener("click", () => {
             closeMenu();
-            const input = document.getElementById("chat-input");
-            if (input) {
-                input.value = "@loveclaw new rule: no centralized exchange apps allowed";
-                input.focus();
-            }
+            const modal = document.getElementById("pact-inspire-modal");
+            if (modal) modal.classList.remove("hidden");
+        });
+
+        document.getElementById("pact-inspire-close")?.addEventListener("click", () => {
+            document.getElementById("pact-inspire-modal")?.classList.add("hidden");
+        });
+
+        document.getElementById("pact-inspire-modal")?.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.add("hidden");
+        });
+
+        document.querySelectorAll(".pact-inspire-item").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const text = btn.dataset.pact;
+                const input = document.getElementById("chat-input");
+                if (input && text) {
+                    input.value = text;
+                    input.focus();
+                }
+                document.getElementById("pact-inspire-modal")?.classList.add("hidden");
+            });
         });
     }
 

@@ -145,6 +145,7 @@
           <button type="button" class="btn btn-ghost join-scan-qr-btn" id="btn-join-scan-qr">scan QR</button>
         </div>
         <div id="join-pact-preview" class="join-pact-preview hidden" role="status" aria-live="polite"></div>
+        <div id="join-stake-notice" class="join-stake-notice hidden" role="status" aria-live="polite"></div>
         <button class="btn btn-primary" id="btn-join-submit">Join</button>
       </div>
     </div>
@@ -172,6 +173,68 @@
         <input type="file" id="join-qr-photo" class="join-qr-photo-input" accept="image/*" capture="environment" />
         <label for="join-qr-photo" class="btn btn-ghost join-qr-photo-label">use camera photo</label>
         <button type="button" class="btn btn-ghost join-qr-scan-cancel" id="btn-join-scan-cancel">cancel</button>
+      </div>
+    </div>
+
+    <!-- ── PACT INSPIRATION MODAL ───────────────────────── -->
+    <div id="pact-inspire-modal" class="pact-inspire-overlay hidden" role="dialog" aria-modal="true" aria-label="Pact inspiration">
+      <div class="pact-inspire-sheet">
+        <div class="pact-inspire-header">
+          <span class="pact-inspire-title">Command Examples, Be Creative! Ask for Anything!</span>
+          <button type="button" class="pact-inspire-close" id="pact-inspire-close" aria-label="Close">✕</button>
+        </div>
+        <p class="pact-inspire-sub">tap an example to load it into the agent — then edit before sending</p>
+        <div class="pact-inspire-list">
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: no dating apps allowed — flag any install of Tinder, Bumble, Hinge, Grindr or similar">
+            <span class="pact-inspire-icon">🚫</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">No dating apps</span>
+              <span class="pact-inspire-desc">Monitors for Tinder, Bumble, Hinge, Grindr, Badoo and triggers a breach alert if any are detected on either device.</span>
+            </span>
+          </button>
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: max 2 hours of social media per day — alert if Instagram, TikTok or Twitter screen time exceeds the limit">
+            <span class="pact-inspire-icon">📵</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">Screen time limit — 2h social media/day</span>
+              <span class="pact-inspire-desc">Tracks daily screen time on Instagram, TikTok and Twitter/X. Alerts both partners when either one exceeds 2 hours.</span>
+            </span>
+          </button>
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: no centralized exchange apps — only non-custodial wallets allowed, flag Coinbase, Binance, Kraken or Gemini installs">
+            <span class="pact-inspire-icon">🔐</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">DeFi only — no CEX apps</span>
+              <span class="pact-inspire-desc">Detects custodian exchange apps (Coinbase, Binance, Kraken, Gemini). Only self-custody wallets like MetaMask, Rainbow or Uniswap are permitted.</span>
+            </span>
+          </button>
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: no gambling apps — flag any betting, casino or lottery app installs on either device">
+            <span class="pact-inspire-icon">🎰</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">Zero gambling apps</span>
+              <span class="pact-inspire-desc">Flags sports-betting, casino and lottery apps the moment they appear on either device. Breach alert fires immediately.</span>
+            </span>
+          </button>
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: no secret purchases above $100 — alert if luxury shopping apps are used without sharing">
+            <span class="pact-inspire-icon">💸</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">Spending transparency — no hidden shopping</span>
+              <span class="pact-inspire-desc">Triggers when high-value shopping apps (Farfetch, Net-a-Porter, StockX) are opened. Encourages shared spending decisions above the agreed threshold.</span>
+            </span>
+          </button>
+
+          <button type="button" class="pact-inspire-item" data-pact="@loveclaw new rule: digital curfew at midnight — alert if device is active after 12am on weeknights">
+            <span class="pact-inspire-icon">🌙</span>
+            <span class="pact-inspire-body">
+              <span class="pact-inspire-name">Digital curfew — phones off by midnight</span>
+              <span class="pact-inspire-desc">Monitors device activity after midnight on weeknights. Sends a gentle nudge to both partners when either is still on-screen past curfew.</span>
+            </span>
+          </button>
+
+        </div>
       </div>
     </div>
 
