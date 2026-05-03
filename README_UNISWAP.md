@@ -1,5 +1,7 @@
 # Uniswap Integration
 
+**Uniswap prize eligibility — builder feedback:** see [`FEEDBACK.md`](./FEEDBACK.md) in the repo root (experience with the Trading API, docs, and [uniswap-ai](https://github.com/Uniswap/uniswap-ai)).
+
 LoveClaw uses Uniswap in two ways. The **Trading API** powers a shared couple vault where partners can get quotes and execute token swaps together. The **LoveClawPact smart contract** lets both partners lock real ETH stakes on Ethereum to back their relationship trust commitments.
 
 ## Uniswap Trading API v1

@@ -8,6 +8,55 @@ LoveClaw is a relationship trust app for two people who opt into mutual accounta
 
 > Hackathon prototype. Not production security, custody, or legal advice.
 
+---
+
+### Submission requirements
+
+**Project name and short description**  
+**LoveClaw — The AI Arbiter for Connected Couples.** Two people pair phones (QR or invite), stay in sync over **AXL** with no central couples server, and run **local agents** on consented device signals. They agree on a **pact**; breaches alert the partner, write to **0G Memory**, and can tie to **ETH** locked in **LoveClawPact** on Ethereum mainnet. The **Today** tab adds a **mutual portfolio**: shared vault balances and **Uniswap Trading API** swaps that **both** partners must approve before anything is broadcast.
+
+**Contract deployment addresses**
+
+| What | Network | Address |
+|---|---|---|
+| **LoveClawPact** (stakes, breaches, dissolve) | Ethereum mainnet (chain `1`) | [`0x597a01608952220f1d833c833111731E6762085c`](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c) — [verified source](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c#code) |
+| **ERC-7857 Agentic ID** (per-partner AI agent NFT) | 0G Galileo testnet (chain `16602`) | `0x2700F6A3e505402C9daB154C5c6ab9cAEC98EF1F` (used in [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js)) |
+
+**Public GitHub repo and setup**  
+- **Repo:** [https://github.com/vm06007/loveclaw](https://github.com/vm06007/loveclaw)  
+- **Setup:** Clone, copy `.env.example` → `.env`, `bun install`, then **[Running locally](#running-locally)** (`bun run dev`, optional `prototype/signal-relay.py` on `9090`, optional `memory_router.py` on `9091`, `bun run dev:alice` / `dev:boris` for two roles). Stack detail: [README_0G.md](./README_0G.md), [README_UNISWAP.md](./README_UNISWAP.md), [README_AXL.md](./README_AXL.md).
+
+**Demo video and live demo**  
+- **Live demo:** [https://loveclaw.app/](https://loveclaw.app/) · pairing-focused shell: [https://web.loveclaw.app/](https://web.loveclaw.app/)  
+- **Demo video (≤3 min):** *[Add your YouTube or Loom URL here before submission.]*
+
+**Protocol features and SDKs used**  
+- **0G:** ERC-7857 **Agentic ID** mint on Galileo; **0G Storage** via `@0gfoundation/0g-ts-sdk` (browser + `prototype/relay/zg_upload.ts`); **0G Memory** via EverMemOS + `memory_router.py` / `memory_client.py`; optional **0G Compute** in AI settings.  
+- **AXL:** P2P mesh for couple messages (`src/axl/`).  
+- **Ethereum:** `LoveClawPact` for stakes and breach lifecycle (`evm/`).  
+- **Uniswap:** Trading API v1 `quote` / `swap` ([README_UNISWAP.md](./README_UNISWAP.md)).  
+- **OpenClaw:** Local consent-first agent model and lineage (“forked from OpenClaw, reimagined for two” — see the welcome copy on [loveclaw.app](https://loveclaw.app/)).
+
+**Team (Telegram & X)**  
+
+| Name | Telegram | X |
+|---|---|---|
+| Vitaliy | *add @ before submit* | *add @ before submit* |
+| Yiying | *add @ before submit* | *add @ before submit* |
+
+GitHub: [@vm06007](https://github.com/vm06007).
+
+### You must also include
+
+**Example agent (code)**  
+- **On-chain agent:** Each partner mints an **ERC-7857** NFT and bound **agent wallet** in [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js) (`iMint`, `authorizeUsage`, `delegateAccess`). That wallet signs **0G Storage** uploads and is the address authorised on **LoveClawPact** to file / confirm breaches.  
+- **In-app copilot:** Pact and chat flows in [`src/app/lovclaw-ai.js`](https://github.com/vm06007/loveclaw/blob/master/src/app/lovclaw-ai.js) (`@loveclaw`, structured JSON to `pact_changes_propose` over AXL).
+
+**Architecture diagram (OpenClaw + 0G Storage / Compute)**  
+See **[Architecture overview](#architecture-overview)** below: **OpenClaw-style local LoveClaw agent** (`LoveClaw agent :18789`), **AXL**, relay, **memory router → EverMemOS → 0G testnet**, **0G Galileo** for agent NFTs, **0G Storage** path for diary uploads, optional **0G Compute**, plus **Ethereum** for `LoveClawPact`. EverMemOS / `zgs_kv` detail: [README_0G.md — How the pieces fit together](./README_0G.md#how-the-pieces-fit-together).
+
+---
+
 ## Screenshots
 
 <p align="center">
@@ -72,7 +121,7 @@ Phone A                                      Phone B
 
 ### `@loveclaw` command examples (in-app presets)
 
-The paired **chat** flow includes a **“Command Examples, Be Creative! Ask for Anything!”** sheet (`#pact-inspire-modal` in [`index.html`](./index.html)). Each row injects an `@loveclaw …` starter into the composer—*tap an example to load it into the agent — then edit before sending*. Presets shipped in the UI:
+The paired **chat** flow includes a **“Command Examples, Be Creative! Ask for Anything!”** sheet (`#pact-inspire-modal` in the chat UI). Each row injects an `@loveclaw …` starter into the composer—*tap an example to load it into the agent — then edit before sending*. Presets shipped in the UI:
 
 - **No dating apps** — Monitors for Tinder, Bumble, Hinge, Grindr, Badoo and triggers a breach alert if any are detected on either device.
 - **Screen time limit — 2h social media/day** — Tracks daily screen time on Instagram, TikTok and Twitter/X. Alerts both partners when either one exceeds 2 hours.
@@ -153,6 +202,8 @@ Partners can type natural-language swap commands like "swap 0.1 ETH for USDC". T
 The vault display shows live ETH and USDC balances and prices ETH in USD using a real-time Uniswap quote. The Uniswap API is proxied through Vite in development (`/uniswap` rewrites to `trade-api.gateway.uniswap.org`) and through Vercel in production.
 
 Full technical reference: [README_UNISWAP.md](./README_UNISWAP.md)
+
+Uniswap builder feedback (API, docs, DX): [FEEDBACK.md](./FEEDBACK.md)
 
 ---
 
@@ -252,7 +303,7 @@ bun run dev:boris
 ## Architecture overview
 
 ```
-Browser (index.html + src/)  or  Tauri desktop app
+Browser (Vite web client + src/)  or  Tauri desktop app
     |
     +-- LoveClaw agent   :18789   reads device signals
     +-- AXL mesh         :9002 / :9012   P2P partner sync

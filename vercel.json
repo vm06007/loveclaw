@@ -14,7 +14,7 @@
             "destination": "/web/index.html"
         },
         {
-            "source": "/((?!api/|assets/|css/|images/|welcome/|web/|prototype/|uniswap/|relay/|favicon\\.ico|robots\\.txt|icon\\.svg).*)",
+            "source": "/((?!api/|assets/|css/|images/|img/|welcome/|web/|prototype/|uniswap/|relay/|favicon\\.ico|robots\\.txt|icon\\.svg).*)",
             "destination": "/index.html"
         }
     ]
