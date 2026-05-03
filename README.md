@@ -2,11 +2,23 @@
 
 **The AI Arbiter for Connected Couples**
 
-Built for AgentHack 2026.
+**Open Agents 2026** · ETHGlobal
 
 LoveClaw is a relationship trust app for two people who opt into mutual accountability. Each partner installs it on their device, pairs over a QR code or invite link, and from that point on their phones stay in sync peer-to-peer over the AXL mesh network. There is no central couples server. Every AI agent gets minted as an NFT on the 0G Galileo testnet, relationship events are stored permanently on-chain via 0G Memory, and both partners can lock real ETH stakes in a deployed smart contract on Ethereum mainnet.
 
 > Hackathon prototype. Not production security, custody, or legal advice.
+
+## Screenshots
+
+<p align="center">
+    <img src="./img/pact.jpg" width="780" alt="LoveClaw pact command examples modal (@loveclaw presets)" /><br />
+    <sub><b>Pact</b> — Command Examples modal in chat (<code>@loveclaw</code> presets)</sub>
+</p>
+
+<p align="center">
+    <img src="./img/journal.jpg" width="780" alt="LoveClaw diary tab journal day with sticky note and scene art" /><br />
+    <sub><b>Diary</b> — auto-generated journal day (sticky + illustration)</sub>
+</p>
 
 ---
 
@@ -38,6 +50,21 @@ Phone A                                      Phone B
   (ETH stake locked on Ethereum mainnet)
   penalty applied if confirmed by both agents
 ```
+
+### Pact rules: natural language and what “enforceable” means
+
+At pairing time you mix **preset triggers** (dating installs, location, diary, etc.) with **custom rules in plain language**—full sentences, quoted lines, in-jokes, or “house norms” written however you like. The product stance is permissive: **anything both partners explicitly agree to can live in the pact text**, as long as you understand what automation can actually see. **Automated breach paths only fire when** local agents can **approximate** a violation from **consented signals** they already have (installed apps / package names, coarse GPS and presence, notification *categories* without message bodies, screen-on patterns, shared diary and chat context, heartbeats, and similar). A rule that would require evidence the stack cannot access, or surveillance outside those channels, remains a **mutual promise** between you—it is not silently enforced as a hard tripwire. Use **`@loveclaw`** in the chat tab to draft or rephrase rules; anything that changes monitoring still goes to your partner as **`pact_changes_propose`** over AXL until they accept.
+
+### `@loveclaw` command examples (in-app presets)
+
+The paired **chat** flow includes a **“Command Examples, Be Creative! Ask for Anything!”** sheet (`#pact-inspire-modal` in [`index.html`](./index.html)). Each row injects an `@loveclaw …` starter into the composer—*tap an example to load it into the agent — then edit before sending*. Presets shipped in the UI:
+
+- **No dating apps** — Monitors for Tinder, Bumble, Hinge, Grindr, Badoo and triggers a breach alert if any are detected on either device.
+- **Screen time limit — 2h social media/day** — Tracks daily screen time on Instagram, TikTok and Twitter/X. Alerts both partners when either one exceeds 2 hours.
+- **DeFi only — no CEX apps** — Detects custodian exchange apps (Coinbase, Binance, Kraken, Gemini). Only self-custody wallets like MetaMask, Rainbow or Uniswap are permitted.
+- **Zero gambling apps** — Flags sports-betting, casino and lottery apps the moment they appear on either device. Breach alert fires immediately.
+- **Spending transparency — no hidden shopping** — Triggers when high-value shopping apps (Farfetch, Net-a-Porter, StockX) are opened. Encourages shared spending decisions above the agreed threshold.
+- **Digital curfew — phones off by midnight** — Monitors device activity after midnight on weeknights. Sends a gentle nudge to both partners when either is still on-screen past curfew.
 
 ---
 
@@ -169,7 +196,7 @@ A Python service in `prototype/relay/` runs at port 9090. It ingests signal batc
 
 ## AI diary and copilot
 
-The diary tab generates a daily narrative from a context bundle of recent signals, shared notes, and past 0G Memory episodes (pulled via semantic search). The result is a pixel-art style diary entry that both partners see. Entries sync over AXL.
+The **diary** tab builds an **auto-generated** daily narrative from a context bundle: recent signals, calendar notes, semantic hits from **0G Memory**, and partner-visible history. The write-up is styled like a **retro journal** (sticky date + body copy); the day view can pair that text with a **scene image**—either a **stock illustration** from the shared `prototype/diary/images/` pool or an **AI-generated cover** when you run diary image generation (OpenRouter image path). Both partners see the same entry; updates sync over AXL.
 
 Type `@loveclaw` in the chat tab to use the pact architect: propose new rules, get help phrasing triggers, or ask questions about the pact. The AI responds with structured JSON (`propose_rule`, `need_info`, `chat`) and if a rule is proposed it gets sent to the partner as a `pact_changes_propose` message over AXL for their approval.
 
