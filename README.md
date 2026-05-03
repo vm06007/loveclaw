@@ -37,11 +37,6 @@ LoveClaw is a relationship trust app for two people who opt into mutual accounta
 
 ## How it works
 
-<p align="center">
-    <img src="./img/hownew.png" width="780" alt="LoveClaw: Trust and Accountability System — agent-to-agent flow, breach evaluation, smart contract outcomes" /><br />
-    <sub>Trust &amp; accountability flow · <code>hownew.png</code></sub>
-</p>
-
 ### Moving parts (simple)
 
 LoveClaw is a **mobile app** built on an **OpenClaw**-style fork: each phone runs a **local agent** that **collects consented signals** (apps, rough location, notification categories—not message bodies, screen-on patterns, and similar). After pairing, those signals feed **local** checks against the **pact** you both agreed on, and the two devices **share updates with each other**—chat, diary, pact changes, heartbeats, and swap handshakes—**peer-to-peer over AXL**, with **no central “couples server.”**
@@ -82,6 +77,11 @@ Phone A                                      Phone B
   (ETH stake locked on Ethereum mainnet)
   penalty applied if confirmed by both agents
 ```
+
+<p align="center">
+    <img src="./img/hownew.png" width="780" alt="LoveClaw: Trust and Accountability System — agent-to-agent flow, breach evaluation, smart contract outcomes" /><br />
+    <sub>Trust &amp; accountability flow · <code>hownew.png</code></sub>
+</p>
 
 ### Pact rules: natural language and what “enforceable” means
 
