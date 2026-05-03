@@ -220,7 +220,7 @@ export function renderTodayTab() {
         sendBtn.addEventListener("click", async (ev) => {
             ev.stopPropagation();
             if (!window.ethereum) {
-                alert("MetaMask not found. Please install MetaMask to send ETH.");
+                alert("No wallet found. Connect a wallet to send ETH.");
                 return;
             }
             try {

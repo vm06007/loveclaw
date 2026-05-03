@@ -59,7 +59,7 @@ export function triggersToBitmask(triggerIds) {
  */
 export async function callCreatePact({ partnerB, agentA, agentB, triggers, stakeEth, onBroadcast }) {
     if (!window.ethereum) {
-        throw new Error("MetaMask not found — install it to lock stake on-chain.");
+        throw new Error("No wallet found — connect a wallet to lock stake on-chain.");
     }
 
     const { ethers } = await import("https://esm.sh/ethers@6.13.0");

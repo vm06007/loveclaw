@@ -268,12 +268,12 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
 
     const statusEl = document.createElement("div");
     statusEl.className = "lc-profile-static lc-agentic-unregistered";
-    statusEl.textContent = window.ethereum ? "not registered" : "MetaMask required";
+    statusEl.textContent = window.ethereum ? "not registered" : "wallet required";
 
     const regBtn = document.createElement("button");
     regBtn.type = "button";
     regBtn.className = "lc-agentic-register-btn";
-    regBtn.textContent = window.ethereum ? "Register Agent" : "Install MetaMask";
+    regBtn.textContent = window.ethereum ? "Register Agent" : "Connect Wallet";
     regBtn.disabled = !window.ethereum;
 
     regBtn.addEventListener("click", async () => {
@@ -312,7 +312,7 @@ function makeAgenticIdSection(tokenId, agentName, onRegistered, agentWalletAddr)
             const msg = String(err?.message || err);
             if (msg.includes("rejected") || msg.includes("denied")) {
                 statusEl.textContent = "rejected";
-            } else if (msg.includes("MetaMask")) {
+            } else if (msg.includes("wallet") || msg.includes("MetaMask")) {
                 statusEl.textContent = msg;
             } else {
                 statusEl.textContent = "error — check console";

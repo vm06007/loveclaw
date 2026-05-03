@@ -279,3 +279,33 @@ body {
 .web-footer a:hover {
     text-decoration: underline;
 }
+
+/* Triple-click claw → dissolvePact(9) feedback */
+.web-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    max-width: min(420px, 92vw);
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    font-size: 7px;
+    line-height: 1.8;
+    color: var(--teal);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    word-break: break-word;
+}
+
+.web-toast.is-hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.web-toast--err {
+    color: var(--red);
+    border-color: rgba(226, 75, 74, 0.45);
+}

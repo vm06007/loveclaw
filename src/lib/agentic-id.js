@@ -139,7 +139,7 @@ export async function registerAgenticId(agentName, onStatus) {
     const emit = s => onStatus?.(s);
 
     if (!window.ethereum) {
-        throw new Error("MetaMask not found. Install MetaMask to register your agent.");
+        throw new Error("No wallet found. Connect a wallet to register your agent.");
     }
     const ethers = await loadEthers();
 
@@ -207,7 +207,7 @@ export async function registerAgenticId(agentName, onStatus) {
  */
 export async function setupAgentWallet(tokenId, onStatus) {
     const emit = s => onStatus?.(s);
-    if (!window.ethereum) throw new Error("MetaMask not found.");
+    if (!window.ethereum) throw new Error("No wallet found.");
     const ethers = await loadEthers();
 
     emit("connecting...");
