@@ -8,21 +8,11 @@
 
 LoveClaw is a relationship trust app for two people who opt into mutual accountability. Each partner installs it on their device, pairs over a QR code or invite link, and from that point on their phones stay in sync peer-to-peer over the AXL mesh network. There is no central couples server. Every AI agent gets minted as an NFT on the 0G Galileo testnet, relationship events are stored permanently on-chain via 0G Memory, and both partners can lock real ETH stakes in a deployed smart contract on Ethereum mainnet. **Together they also manage a mutual on-chain portfolio** from the **Today** dashboard: shared **ETH / USDC** vault balances, live pricing, and **co-approved** token swaps (quotes and execution stay peer-negotiated over AXL until both sides agree).
 
-> Hackathon prototype. Not a
+> Hackathon prototype. Not a financial or relationship advice.
 
 ---
 
-
 ## Screenshots
-
-<p align="center">
-    <img src="./img/p1.jpg" width="250" alt="LoveClaw mobile — signals consent and pact-driven locks" />
-    &nbsp;
-    <img src="./img/p2.jpg" width="250" alt="LoveClaw mobile — diary with sticky note and store on 0G" />
-    &nbsp;
-    <img src="./img/p3.jpg" width="250" alt="LoveClaw app icon on home screen" />
-</p>
-<p align="center"><sub>Phone captures · <code>p1.jpg</code> · <code>p2.jpg</code> · <code>p3.jpg</code></sub></p>
 
 <p align="center">
     <img src="./img/journal.jpg" width="780" alt="LoveClaw diary tab journal day with sticky note and scene art" /><br />
@@ -34,16 +24,37 @@ LoveClaw is a relationship trust app for two people who opt into mutual accounta
     <sub><b>Pact</b> — Command Examples modal in chat (<code>@loveclaw</code> presets)</sub>
 </p>
 
+<p align="center">
+    <img src="./img/p1.jpg" width="250" alt="LoveClaw mobile — Signals tab (agent vs partner relay, pact-locked rows)" />
+    &nbsp;
+    <img src="./img/p2.jpg" width="250" alt="LoveClaw mobile — Diary tab with sticky note and store on 0G" />
+    &nbsp;
+    <img src="./img/p3.jpg" width="250" alt="LoveClaw mobile — lock screen breach alert and on-chain payout notification" />
+</p>
+<p align="center"><sub>Phone captures · <code>p1.jpg</code> · <code>p2.jpg</code> · <code>p3.jpg</code></sub></p>
+
 ---
 
 ## How it works
 
 <p align="center">
-    <img src="./img/hownew.png" width="400" alt="LoveClaw trust and accountability flow (illustrated diagram)" />
-    &nbsp;&nbsp;
-    <img src="./img/howold.png" width="400" alt="LoveClaw trust and accountability flow (pixel diagram)" />
+    <img src="./img/hownew.png" width="780" alt="LoveClaw: Trust and Accountability System — agent-to-agent flow, breach evaluation, smart contract outcomes" /><br />
+    <sub>Trust &amp; accountability flow · <code>hownew.png</code></sub>
 </p>
-<p align="center"><sub>Trust &amp; accountability · <code>hownew.png</code> (left) · <code>howold.png</code> (right)</sub></p>
+
+### Moving parts (simple)
+
+LoveClaw is a **mobile app** built on an **OpenClaw**-style fork: each phone runs a **local agent** that **collects consented signals** (apps, rough location, notification categories—not message bodies, screen-on patterns, and similar). After pairing, those signals feed **local** checks against the **pact** you both agreed on, and the two devices **share updates with each other**—chat, diary, pact changes, heartbeats, and swap handshakes—**peer-to-peer over AXL**, with **no central “couples server.”**
+
+**Signals** can also be batched through a small **Python relay** in `prototype/relay/` for a stronger breach pass (model + fallback), an operator console stream, and **typed episodes** into **0G Memory** (router → EverMemOS → search + durable storage, including `zgs_kv` on testnet). Roughly: *signals in → “does this break our rules?” → memory and optional demo logging.*
+
+**When something looks like a breach**, the other person gets an **alert over AXL**, the moment can be **remembered in 0G Memory**, and if you turned on **ETH stakes**, **LoveClawPact** on **Ethereum mainnet** is where the serious on-chain breach / dissolve story runs (that contract is exercised with **Foundry** tests in `evm/`).
+
+**AXL** is the **private wire between the two phones**: chat, diary sync, pact edits, heartbeats, and swap coordination (`swap_confirm` / `swap_execute`) all ride that mesh—direct partner-to-partner paths, not a shared backend for couple traffic.
+
+**0G** shows up in three practical ways: mint an **ERC-7857 Agentic ID** on **Galileo** with **ethers + MetaMask**, push diary snapshots to **0G Storage** with **`@0gfoundation/0g-ts-sdk`**, and optionally pick **0G Compute** in settings like any other AI provider.
+
+**Uniswap (Trading API v1)** powers quotes and swaps from the **Today** tab. **Swaps mirror the two-party pact idea**: one partner proposes in plain language, the app fetches a **quote**, the **other phone must confirm over AXL**, you **re-quote at execute time** (routes go stale fast), then call **`/swap`** and broadcast with the **vault signer** via **ethers**. Mutual money moves stay **co-signed**, not solo.
 
 Each partner runs a local AI agent that reads consented device signals: app usage metadata, GPS location, notification categories (not message bodies), screen activity, and presence patterns. The couple agrees on a pact that defines what counts as a breach. If the agents detect a violation, a breach alert fires, the partner is notified over AXL, the event is written to 0G Memory, and if ETH was staked the on-chain penalty logic kicks in.
 
@@ -271,9 +282,9 @@ A Python service in `prototype/relay/` runs at port 9090. It ingests signal batc
 
 ---
 
-## AI diary and copilot
+## AI journal and copilot
 
-The **diary** tab builds an **auto-generated** daily narrative from a context bundle: recent signals, calendar notes, semantic hits from **0G Memory**, and partner-visible history. The write-up is styled like a **retro journal** (sticky date + body copy); the day view can pair that text with a **scene image**—either a **stock illustration** from the shared `prototype/diary/images/` pool or an **AI-generated cover** when you run diary image generation (OpenRouter image path). Both partners see the same entry; updates sync over AXL.
+The **Diary** tab is your couple’s **AI journal**: each day it composes a narrative from a context bundle—recent signals, calendar notes, semantic hits from **0G Memory**, and partner-visible history. The write-up is styled like a **retro journal** (sticky date + body copy); the day view can pair that text with a **scene image**—either a **stock illustration** from the shared `prototype/diary/images/` pool or an **AI-generated cover** when you run diary image generation (OpenRouter image path). Both partners see the same entry; updates sync over AXL.
 
 Type `@loveclaw` in the chat tab to use the pact architect: propose new rules, get help phrasing triggers, or ask questions about the pact. The AI responds with structured JSON (`propose_rule`, `need_info`, `chat`) and if a rule is proposed it gets sent to the partner as a `pact_changes_propose` message over AXL for their approval.
 
