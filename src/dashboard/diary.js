@@ -157,7 +157,7 @@ function renderDiaryCal(feed, year, month, selectedKey) {
             } else {
                 feed.dataset.diaryHasImage = "1";
                 const imgIdx = sd % DIARY_IMG_POOL.length;
-                const imgSrc = generatedImg?.url || `prototype/diary/images/${DIARY_IMG_POOL[imgIdx]}`;
+                const imgSrc = generatedImg?.url || `/prototype/diary/images/${DIARY_IMG_POOL[imgIdx]}`;
                 const locPool = DIARY_IMG_LOCATIONS[imgIdx];
                 const location = locPool[Math.abs(hash * 1234567 | 0) % locPool.length];
                 const placeholder = AI_PLACEHOLDERS[imgIdx].replace("{loc}", location);

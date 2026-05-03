@@ -64,6 +64,12 @@ function welcomeRootPlugin() {
     const handler = (req, _res, next) => {
         const u = req.url || "";
         const pathname = u.split("?")[0];
+        if (pathname === "/web") {
+            const qs = u.includes("?") ? u.slice(u.indexOf("?")) : "";
+            req.url = `/web/index.html${qs}`;
+            next();
+            return;
+        }
         if (pathname !== "/" && pathname !== "/index.html") {
             next();
             return;
@@ -99,6 +105,9 @@ function pathInstanceSpaPlugin() {
         || p.startsWith("/assets/")
         || p.startsWith("/welcome/")
         || p === "/welcome"
+        || p === "/web"
+        || p.startsWith("/web/")
+        || p.startsWith("/prototype/")
         || p.startsWith("/@")
         || p.startsWith("/node_modules/")
         || p.startsWith("/src/")

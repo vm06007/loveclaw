@@ -27,6 +27,11 @@ def static_file_path(url_path):
         return None
     if os.path.isfile(local):
         return local
+    # Diary stock photos live under public/ for Vite deploy; relay still serves /prototype/diary/images/…
+    if p.startswith("/prototype/diary/images/"):
+        pub_local = os.path.normpath(os.path.join(config.REPO_ROOT, "public", *rel.split("/")))
+        if (pub_local + os.sep).startswith(os.path.normpath(os.path.join(rootn, "public")) + os.sep) and os.path.isfile(pub_local):
+            return pub_local
     return None
 
 def static_content_type(path):

@@ -5,6 +5,8 @@ import urllib.request
 from datetime import datetime
 
 from . import config
+from . import penalty
+from . import push_notify
 from . import store
 from .memory_client import mem_episode
 from .ssl_ctx import get_ssl_ctx
@@ -240,7 +242,19 @@ def analyse_async(sig, broadcast_fn, signals_list, counter_ref):
     print(f"  {config.R}{narrative}{config.RESET}")
     print(f'  {config.R + config.BOLD}{"─" * 60}{config.RESET}\n')
 
-    broadcast_fn(breach)
+    def _on_penalty(tx_hash, err):
+        if tx_hash:
+            breach["tx_hash"] = tx_hash
+            with store.lock:
+                for s in signals_list:
+                    if s.get("_id") == breach["_id"]:
+                        s["tx_hash"] = tx_hash
+                        break
+        broadcast_fn(breach)
+        push_body = f"{narrative}\nPenalty applied: {tx_hash}" if tx_hash else narrative
+        push_notify.send_to("all", f"🚨 Breach detected — {app_name}", push_body)
+
+    penalty.apply_penalty_async(_on_penalty)
 
     mem_episode(
         "breach",

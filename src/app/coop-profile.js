@@ -741,7 +741,7 @@ export function openCoopProfile(who) {
 
         const noteTa = document.createElement("textarea");
         noteTa.className = "lc-profile-textarea";
-        noteTa.placeholder = "Short note visible to coop…";
+        noteTa.placeholder = `Short note visible to ${coopName}…`;
         noteTa.value = mp.note || "";
         noteTa.maxLength = 500;
         noteTa.rows = 3;

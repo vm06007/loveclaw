@@ -4,16 +4,16 @@
 window.PIXEL_VER = 3;
 
 var HOME_BG_FILES = [
-  'images/carcamping.png',   // 1  FOREST
-  'images/beachparty.jpg',   // 2  SEASIDE
-  'images/citywalk.jpg',     // 3  CITY
-  'images/diving.jpg',       // 4  DIVING
-  'images/citymotor.jpg',    // 5  MOTO
-  'images/driving.jpg',      // 6  DRIVE
-  'images/working.png',      // 7  WORK
-  'images/sleep.png',        // 8  SLEEP
-  'images/movie.png',        // 9  MOVIE
-  'images/adventure.png'     // 10 ADVENTURE
+  '/prototype/diary/images/carcamping.png',   // 1  FOREST
+  '/prototype/diary/images/beachparty.jpg',   // 2  SEASIDE
+  '/prototype/diary/images/citywalk.jpg',     // 3  CITY
+  '/prototype/diary/images/diving.jpg',       // 4  DIVING
+  '/prototype/diary/images/citymotor.jpg',    // 5  MOTO
+  '/prototype/diary/images/driving.jpg',      // 6  DRIVE
+  '/prototype/diary/images/working.png',      // 7  WORK
+  '/prototype/diary/images/sleep.png',        // 8  SLEEP
+  '/prototype/diary/images/movie.png',        // 9  MOVIE
+  '/prototype/diary/images/adventure.png'     // 10 ADVENTURE
 ];
 
 var HOME_LABELS = ['FOREST', 'SEASIDE', 'CITY', 'DIVING', 'MOTO', 'DRIVE', 'WORK', 'SLEEP', 'MOVIE', 'ADVENTURE'];
@@ -62,7 +62,7 @@ function dayKey(d) {
 }
 
 function homeBgUrl(n) {
-  var path = HOME_BG_FILES[n - 1] || 'images/home' + n + '.png';
+  var path = HOME_BG_FILES[n - 1] || '/prototype/diary/images/home' + n + '.png';
   var sep = path.indexOf('?') >= 0 ? '&' : '?';
   return path + sep + 'v=' + encodeURIComponent(HOME_ASSET_V);
 }

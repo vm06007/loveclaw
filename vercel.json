@@ -9,7 +9,12 @@
             "destination": "https://loveclaw-relay.ngrok.app/:path*"
         },
         {
-            "source": "/((?!api/|assets/|welcome/|uniswap/|relay/|favicon\\.ico|robots\\.txt).*)",
+            "source": "/",
+            "has": [{ "type": "host", "value": "web.loveclaw.app" }],
+            "destination": "/web/index.html"
+        },
+        {
+            "source": "/((?!api/|assets/|welcome/|web/|prototype/|uniswap/|relay/|favicon\\.ico|robots\\.txt).*)",
             "destination": "/index.html"
         }
     ]

@@ -78,28 +78,8 @@ function connect() {
                 renderAll();
                 return;
             }
-            // If this is a breach update (same _id, adds tx_hash), patch in-place
-            if (sig.type === 'breach' && sig.tx_hash && sig._id != null) {
-                const existing = allEntries.find(s => s._id === sig._id);
-                if (existing) {
-                    existing.tx_hash = sig.tx_hash;
-                    const el = document.querySelector(`[data-id="${sig._id}"]`);
-                    if (el) {
-                        const card = el.querySelector('.breach-card');
-                        if (card && !card.querySelector('.penalty-tx')) {
-                            const link = document.createElement('a');
-                            link.className = 'penalty-tx';
-                            link.href = `https://etherscan.io/tx/${sig.tx_hash}`;
-                            link.target = '_blank';
-                            link.rel = 'noopener';
-                            link.textContent = `⛓ Penalty applied: ${sig.tx_hash}`;
-                            link.onclick = e => e.stopPropagation();
-                            card.appendChild(link);
-                        }
-                    }
-                    return;
-                }
-            }
+            // Deduplicate replayed signals (SSE replays last 50 on reconnect)
+            if (sig._id != null && allEntries.some(s => s._id === sig._id)) return;
             allEntries.push(sig);
             updateStats(sig);
             if (!paused) appendEntry(sig);

@@ -14,6 +14,21 @@ def handle_get(handler):
     """Return True if request was handled (including errors)."""
     path = handler.path.split("?")[0]
 
+    if path == "/vapid-public-key":
+        keys_path = os.path.join(os.path.dirname(__file__), "vapid_keys.json")
+        try:
+            with open(keys_path) as f:
+                data = json.load(f)
+            body = json.dumps({"publicKey": data["public_key"]}).encode()
+            handler.send_response(200)
+            handler.send_header("Content-Type", "application/json")
+            handler.cors_headers()
+            handler.end_headers()
+            handler.wfile.write(body)
+        except Exception as e:
+            handler.send_error(500, str(e))
+        return True
+
     if path == "/signals":
         body = json.dumps(store.signals).encode()
         handler.send_response(200)

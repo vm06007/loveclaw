@@ -397,7 +397,7 @@ export async function onDiaryStoreClick(btn) {
     // Resolve image path for this day
     const imgIdx  = sd % DIARY_IMG_POOL.length;
     const imgFile = DIARY_IMG_POOL[imgIdx];
-    const imgPath = `prototype/diary/images/${imgFile}`;
+    const imgPath = `/prototype/diary/images/${imgFile}`;
 
     const prevHTML = btn.innerHTML;
     btn.disabled = true;

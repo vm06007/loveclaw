@@ -9,6 +9,9 @@ clients: list = []
 lock = threading.Lock()
 signal_counter_ref = [0]
 
+# push_subscriptions: { name_lower -> subscription_dict }
+push_subscriptions: dict = {}
+
 def color_for(t):
     for k, v in config.TYPE_COLORS.items():
         if k in t:
