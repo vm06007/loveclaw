@@ -4,20 +4,20 @@
 
 **Open Agents 2026** · ETHGlobal
 
-LoveClaw is a relationship trust app for two people who opt into mutual accountability. Each partner installs it on their device, pairs over a QR code or invite link, and from that point on their phones stay in sync peer-to-peer over the AXL mesh network. There is no central couples server. Every AI agent gets minted as an NFT on the 0G Galileo testnet, relationship events are stored permanently on-chain via 0G Memory, and both partners can lock real ETH stakes in a deployed smart contract on Ethereum mainnet.
+LoveClaw is a relationship trust app for two people who opt into mutual accountability. Each partner installs it on their device, pairs over a QR code or invite link, and from that point on their phones stay in sync peer-to-peer over the AXL mesh network. There is no central couples server. Every AI agent gets minted as an NFT on the 0G Galileo testnet, relationship events are stored permanently on-chain via 0G Memory, and both partners can lock real ETH stakes in a deployed smart contract on Ethereum mainnet. **Together they also manage a mutual on-chain portfolio** from the **Today** dashboard: shared **ETH / USDC** vault balances, live pricing, and **co-approved** token swaps (quotes and execution stay peer-negotiated over AXL until both sides agree).
 
 > Hackathon prototype. Not production security, custody, or legal advice.
 
 ## Screenshots
 
 <p align="center">
-    <img src="./img/pact.jpg" width="780" alt="LoveClaw pact command examples modal (@loveclaw presets)" /><br />
-    <sub><b>Pact</b> — Command Examples modal in chat (<code>@loveclaw</code> presets)</sub>
+    <img src="./img/journal.jpg" width="780" alt="LoveClaw diary tab journal day with sticky note and scene art" /><br />
+    <sub><b>Diary</b> — auto-generated journal day (sticky + illustration)</sub>
 </p>
 
 <p align="center">
-    <img src="./img/journal.jpg" width="780" alt="LoveClaw diary tab journal day with sticky note and scene art" /><br />
-    <sub><b>Diary</b> — auto-generated journal day (sticky + illustration)</sub>
+    <img src="./img/pact.jpg" width="780" alt="LoveClaw pact command examples modal (@loveclaw presets)" /><br />
+    <sub><b>Pact</b> — Command Examples modal in chat (<code>@loveclaw</code> presets)</sub>
 </p>
 
 ---
@@ -53,7 +53,22 @@ Phone A                                      Phone B
 
 ### Pact rules: natural language and what “enforceable” means
 
-At pairing time you mix **preset triggers** (dating installs, location, diary, etc.) with **custom rules in plain language**—full sentences, quoted lines, in-jokes, or “house norms” written however you like. The product stance is permissive: **anything both partners explicitly agree to can live in the pact text**, as long as you understand what automation can actually see. **Automated breach paths only fire when** local agents can **approximate** a violation from **consented signals** they already have (installed apps / package names, coarse GPS and presence, notification *categories* without message bodies, screen-on patterns, shared diary and chat context, heartbeats, and similar). A rule that would require evidence the stack cannot access, or surveillance outside those channels, remains a **mutual promise** between you—it is not silently enforced as a hard tripwire. Use **`@loveclaw`** in the chat tab to draft or rephrase rules; anything that changes monitoring still goes to your partner as **`pact_changes_propose`** over AXL until they accept.
+**What goes in the pact.** At pairing you combine **preset triggers** (dating installs, location, diary, and similar) with **custom rules in plain language**—full sentences, quoted lines, in-jokes, or “house norms,” however you write them.
+
+**Permissive by design.** **Anything both of you explicitly agree to can live in the pact text.** The only catch is being honest about what the app can *see*: if you both sign up for a rule, it should match what your devices and consent model actually expose.
+
+**What “automated enforcement” really means.** **Automated breach paths only fire** when local agents can **roughly infer** a violation from **signals you already consented to share.** Those signals include things like:
+
+- Installed apps / package names  
+- Coarse GPS and presence  
+- Notification **categories** (not message bodies)  
+- Screen-on patterns  
+- Shared diary and chat context  
+- Heartbeats and similar device metadata  
+
+**When a rule is only a mutual promise.** If a rule would need proof the stack **cannot** access—or surveillance **outside** those channels—it stays a **mutual promise** between you. Nothing silently trips a “hard” automated breach for that; the product does not pretend it can enforce what it cannot observe.
+
+**Drafting and changes.** Use **`@loveclaw`** in the chat tab to draft or rephrase rules. If a change would alter what gets monitored, it still goes to your partner as **`pact_changes_propose`** over AXL and only applies after they accept.
 
 ### `@loveclaw` command examples (in-app presets)
 
@@ -96,7 +111,7 @@ When you tap "Register Agent" in your profile:
 
 1. The app reads the mint fee from the contract and calls `iMint` with your agent's name, model (`claude-sonnet-4-6`), capabilities, and system prompt hashed as data fields.
 2. A fresh Ethereum wallet is generated locally and linked to your NFT on-chain via `authorizeUsage` and `delegateAccess`.
-3. The agent wallet private key is encrypted with AES-GCM (PBKDF2, 150k iterations) and saved to localStorage so you never handle it directly.
+3. The agent wallet private key is encrypted with AES-GCM (PBKDF2, 150k iterations) and kept on-device for signing; you never handle the raw key in the UI.
 4. Your profile now shows an "OG Agent Address NFT ID #X" badge with a link to the 0G Chainscan explorer. Your partner sees your NFT ID in their profile view of you.
 5. The agent wallet address is passed into the `LoveClawPact` smart contract as your authorised breach-filing address. Only that address can submit evidence on-chain.
 
@@ -131,6 +146,8 @@ Full technical reference: [README_0G.md](./README_0G.md)
 
 LoveClaw includes a shared couple vault backed by the Uniswap Trading API v1.
 
+**Mutual portfolio.** After pairing, the **Today** tab is the couple’s **shared money view**: one place to see **mutual budget**, **combined ETH and USDC** balances for the vault narrative, and **ETH priced in USD** from a live Uniswap quote—both partners read the **same** numbers. **Swap** flows are explicitly **two-party**: you propose in natural language, the app fetches a quote, and the **other partner must confirm on their device** over AXL (`swap_confirm` → `swap_execute`) before any signed transaction is broadcast. Neither side can move **mutual** funds alone.
+
 Partners can type natural-language swap commands like "swap 0.1 ETH for USDC". The app parses the intent, fetches a quote from `POST /uniswap/v1/quote`, and then negotiates the swap peer-to-peer over AXL before broadcasting anything. Both partners must confirm before `POST /uniswap/v1/swap` is called and the signed transaction is broadcast via ethers.
 
 The vault display shows live ETH and USDC balances and prices ETH in USD using a real-time Uniswap quote. The Uniswap API is proxied through Vite in development (`/uniswap` rewrites to `trade-api.gateway.uniswap.org`) and through Vercel in production.
@@ -155,21 +172,6 @@ Both partners lock ETH when creating and joining a pact. Each partner assigns an
 
 The contract supports two breach modes. In instant breach, both agents must agree before any funds move. In delayed breach, one agent files evidence and the accused partner has a dispute window (default 24 hours, max 7 days) to challenge it. If unchallenged, the innocent partner claims the full stake.
 
-Breach trigger bitmask:
-
-| Constant | Value | Meaning |
-|---|---|---|
-| `TRIGGER_DATING_APP` | 1 | Dating app detected |
-| `TRIGGER_LOCATION` | 2 | Location anomaly |
-| `TRIGGER_CONTACT` | 4 | Contact anomaly |
-| `TRIGGER_DIARY` | 8 | Diary signal |
-
-```bash
-cd evm
-forge test -vv
-forge script script/Deploy.s.sol:Deploy --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast --verify
-```
-
 ---
 
 ## Screens and flows
@@ -179,7 +181,7 @@ screen-home
   screen-create  -->  screen-code (QR + invite link, AXL key embedded)
   screen-join    -->  (joiner enters name and invite code)
   screen-paired  -->  screen-dashboard
-                        tab: today    (trust score, vault balance, swap)
+                        tab: today    (trust score, mutual portfolio / vault, co-approved swaps)
                         tab: signals  (heartbeat map, activity)
                         tab: diary    (AI-generated entries, Store on 0G button)
                         tab: pact     (rules, trigger amendment flow)
@@ -268,39 +270,6 @@ Browser (index.html + src/)  or  Tauri desktop app
 Ethereum mainnet    (LoveClawPact contract, ETH stakes)
 Uniswap Trading API (quotes and swaps, proxied)
 ```
-
----
-
-## Repository layout
-
-| Path | What is here |
-|---|---|
-| `src/app/` | Core app modules: AXL client, boot, transport, vault, swap, AI, profiles, breach |
-| `src/dashboard/` | Dashboard tabs: diary, pact, swap proposal, 0G store |
-| `src/lib/` | Shared utilities: agentic ID (ERC-7857), agent key store, pact contract, state |
-| `src/screens/` | Pairing screens: home, create, join, paired |
-| `src/axl/` | AXL client and polling loop |
-| `evm/src/` | Solidity contracts: LoveClawPact |
-| `evm/test/` | Foundry tests |
-| `prototype/relay/` | Python signal relay and breach AI |
-| `memory_router.py` | 0G Memory HTTP adapter |
-| `examples/axl-demo/` | AXL mesh node binaries and configs |
-| `api/` | Vercel serverless functions (AXL proxy, push notifications) |
-
----
-
-## Design system
-
-Dark cyberpunk / 8-bit retro. Font: `'Press Start 2P'` from Google Fonts.
-
-| Token | Value |
-|---|---|
-| Teal | `#5DCAA5` |
-| Purple | `#534AB7` |
-| Pink | `#D4537E` |
-| Amber | `#FAC775` |
-| Red | `#E24B4A` |
-| Background | `#07070f` / `#0d0d1e` |
 
 ---
 
