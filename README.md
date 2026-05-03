@@ -4,60 +4,25 @@
 
 **Open Agents 2026** · ETHGlobal
 
+![LoveClaw promo](https://loveclaw.app/img/promo-love.jpg)
+
 LoveClaw is a relationship trust app for two people who opt into mutual accountability. Each partner installs it on their device, pairs over a QR code or invite link, and from that point on their phones stay in sync peer-to-peer over the AXL mesh network. There is no central couples server. Every AI agent gets minted as an NFT on the 0G Galileo testnet, relationship events are stored permanently on-chain via 0G Memory, and both partners can lock real ETH stakes in a deployed smart contract on Ethereum mainnet. **Together they also manage a mutual on-chain portfolio** from the **Today** dashboard: shared **ETH / USDC** vault balances, live pricing, and **co-approved** token swaps (quotes and execution stay peer-negotiated over AXL until both sides agree).
 
-> Hackathon prototype. Not production security, custody, or legal advice.
+> Hackathon prototype. Not a
 
 ---
 
-### Submission requirements
-
-**Project name and short description**
-**LoveClaw — The AI Arbiter for Connected Couples.** Two people pair phones (QR or invite), stay in sync over **AXL** with no central couples server, and run **local agents** on consented device signals. They agree on a **pact**; breaches alert the partner, write to **0G Memory**, and can tie to **ETH** locked in **LoveClawPact** on Ethereum mainnet. The **Today** tab adds a **mutual portfolio**: shared vault balances and **Uniswap Trading API** swaps that **both** partners must approve before anything is broadcast.
-
-**Contract deployment addresses**
-
-| What | Network | Address |
-|---|---|---|
-| **LoveClawPact** (stakes, breaches, dissolve) | Ethereum mainnet (chain `1`) | [`0x597a01608952220f1d833c833111731E6762085c`](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c) — [verified source](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c#code) |
-| **ERC-7857 Agentic ID** (per-partner AI agent NFT) | 0G Galileo testnet (chain `16602`) | `0x2700F6A3e505402C9daB154C5c6ab9cAEC98EF1F` (used in [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js)) |
-
-**Public GitHub repo and setup**
-- **Repo:** [https://github.com/vm06007/loveclaw](https://github.com/vm06007/loveclaw)
-- **Setup:** Clone, copy `.env.example` → `.env`, `bun install`, then **[Running locally](#running-locally)** (`bun run dev`, optional `prototype/signal-relay.py` on `9090`, optional `memory_router.py` on `9091`, `bun run dev:alice` / `dev:boris` for two roles). Stack detail: [README_0G.md](./README_0G.md), [README_UNISWAP.md](./README_UNISWAP.md), [README_AXL.md](./README_AXL.md).
-
-**Demo video and live demo**
-- **Live demo:** [https://loveclaw.app/](https://loveclaw.app/) · pairing-focused shell: [https://web.loveclaw.app/](https://web.loveclaw.app/)
-- **Demo video (≤3 min):** *[Add your YouTube or Loom URL here before submission.]*
-
-**Protocol features and SDKs used**
-- **0G:** ERC-7857 **Agentic ID** mint on Galileo; **0G Storage** via `@0gfoundation/0g-ts-sdk` (browser + `prototype/relay/zg_upload.ts`); **0G Memory** via EverMemOS + `memory_router.py` / `memory_client.py`; optional **0G Compute** in AI settings.
-- **AXL:** P2P mesh for couple messages (`src/axl/`).
-- **Ethereum:** `LoveClawPact` for stakes and breach lifecycle (`evm/`).
-- **Uniswap:** Trading API v1 `quote` / `swap` ([README_UNISWAP.md](./README_UNISWAP.md)).
-- **OpenClaw:** Local consent-first agent model and lineage (“forked from OpenClaw, reimagined for two” — see the welcome copy on [loveclaw.app](https://loveclaw.app/)).
-
-**Team (Telegram & X)**
-
-| Name | Telegram | X |
-|---|---|---|
-| Vitaliy Marinchenko | [@EthVitCom](https://t.me/EthVitCom) | [@EthVitally](https://x.com/EthVitally) |
-| Yiying Zhu | [@EthVitCom](https://t.me/EthVitCom) | [@EthVitally](https://x.com/EthVitally) |
-
-GitHub: [@vm06007](https://github.com/vm06007).
-
-### You must also include
-
-**Example agent (code)**
-- **On-chain agent:** Each partner mints an **ERC-7857** NFT and bound **agent wallet** in [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js) (`iMint`, `authorizeUsage`, `delegateAccess`). That wallet signs **0G Storage** uploads and is the address authorised on **LoveClawPact** to file / confirm breaches.
-- **In-app copilot:** Pact and chat flows in [`src/app/lovclaw-ai.js`](https://github.com/vm06007/loveclaw/blob/master/src/app/lovclaw-ai.js) (`@loveclaw`, structured JSON to `pact_changes_propose` over AXL).
-
-**Architecture diagram (OpenClaw + 0G Storage / Compute)**
-See **[Architecture overview](#architecture-overview)** below: **OpenClaw-style local LoveClaw agent** (`LoveClaw agent :18789`), **AXL**, relay, **memory router → EverMemOS → 0G testnet**, **0G Galileo** for agent NFTs, **0G Storage** path for diary uploads, optional **0G Compute**, plus **Ethereum** for `LoveClawPact`. EverMemOS / `zgs_kv` detail: [README_0G.md — How the pieces fit together](./README_0G.md#how-the-pieces-fit-together).
-
----
 
 ## Screenshots
+
+<p align="center">
+    <img src="./img/p1.jpg" width="250" alt="LoveClaw mobile — signals consent and pact-driven locks" />
+    &nbsp;
+    <img src="./img/p2.jpg" width="250" alt="LoveClaw mobile — diary with sticky note and store on 0G" />
+    &nbsp;
+    <img src="./img/p3.jpg" width="250" alt="LoveClaw app icon on home screen" />
+</p>
+<p align="center"><sub>Phone captures · <code>p1.jpg</code> · <code>p2.jpg</code> · <code>p3.jpg</code></sub></p>
 
 <p align="center">
     <img src="./img/journal.jpg" width="780" alt="LoveClaw diary tab journal day with sticky note and scene art" /><br />
@@ -72,6 +37,13 @@ See **[Architecture overview](#architecture-overview)** below: **OpenClaw-style 
 ---
 
 ## How it works
+
+<p align="center">
+    <img src="./img/hownew.png" width="400" alt="LoveClaw trust and accountability flow (illustrated diagram)" />
+    &nbsp;&nbsp;
+    <img src="./img/howold.png" width="400" alt="LoveClaw trust and accountability flow (pixel diagram)" />
+</p>
+<p align="center"><sub>Trust &amp; accountability · <code>hownew.png</code> (left) · <code>howold.png</code> (right)</sub></p>
 
 Each partner runs a local AI agent that reads consented device signals: app usage metadata, GPS location, notification categories (not message bodies), screen activity, and presence patterns. The couple agrees on a pact that defines what counts as a breach. If the agents detect a violation, a breach alert fires, the partner is notified over AXL, the event is written to 0G Memory, and if ETH was staked the on-chain penalty logic kicks in.
 
@@ -182,6 +154,8 @@ Before generating a diary entry, the app queries 0G Memory with a semantic searc
 **0G Storage**
 
 Partners can tap "Store on 0G" in the diary tab to upload a cover image and a full JSON diary snapshot to the 0G Galileo testnet using `@0gfoundation/0g-ts-sdk`. The upload uses `Indexer` and `MemData` from the SDK, signs with the agent wallet, and returns a `rootHash` and `txHash` with direct links to the Galileo storage and chain explorers.
+
+**Hackathon journal uploads (Galileo).** All diary **“Store on 0G”** submissions from the Open Agents 2026 build are listed under one address on **0G StorageScan**: [`0xD319693b334FBAb00aA455a119C36763F00Ca3bB` on Galileo testnet](https://storagescan-galileo.0g.ai/address/0xD319693b334FBAb00aA455a119C36763F00Ca3bB).
 
 **0G Compute**
 

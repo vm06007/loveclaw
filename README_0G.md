@@ -2,43 +2,7 @@
 
 LoveClaw integrates **0G** across three layers. Every partner gets an **AI agent minted as an ERC-7857 NFT on 0G Galileo testnet**. That agent wallet then signs 0G Storage uploads and is recorded on the LoveClawPact smart contract as the authorised breach-filing address. On top of that, **0G Memory** (powered by EverMemOS) stores every relationship event as a structured, searchable memory that also persists on the 0G testnet. There is also a **0G Compute** option in the AI settings for routing inference through 0G instead of a centralised provider.
 
----
-
-## Qualification requirements (Open Agents 2026)
-
-Same checklist as the main README, answered here for judges reading the **0G** track only. Full narrative + screenshots: [README.md](./README.md).
-
-### Submission requirements
-
-**Project name and short description**  
-**LoveClaw** — two-person relationship app: **0G Agentic ID** (ERC-7857 NFT per partner on Galileo), **0G Storage** for diary snapshots, **0G Memory** (EverMemOS + `memory_router.py`) for durable relationship episodes, optional **0G Compute** for inference, plus **Ethereum LoveClawPact** for ETH stakes and **AXL** P2P sync. See the opening paragraph of this file and [README.md](./README.md).
-
-**Contract deployment addresses**
-
-| What | Network | Address |
-|---|---|---|
-| **ERC-7857 Agentic ID** | 0G Galileo (`16602`) | `0x2700F6A3e505402C9daB154C5c6ab9cAEC98EF1F` |
-| **LoveClawPact** | Ethereum mainnet (`1`) | [`0x597a01608952220f1d833c833111731E6762085c`](https://etherscan.io/address/0x597a01608952220f1d833c833111731e6762085c) |
-
-**Public GitHub repo and setup**  
-[https://github.com/vm06007/loveclaw](https://github.com/vm06007/loveclaw) — `bun install`, `.env` from `.env.example`, `bun run dev`; optional `memory_router.py` + Docker EverMemOS per [Docker setup](#docker-setup) below. Main setup walkthrough: [README.md — Running locally](./README.md#running-locally).
-
-**Demo video and live demo**  
-[https://loveclaw.app/](https://loveclaw.app/) · [https://web.loveclaw.app/](https://web.loveclaw.app/) · **Video (≤3 min):** *[Add YouTube/Loom URL before submission.]*
-
-**0G (and related) protocol features / SDKs**  
-ERC-7857 mint / delegate in [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js); encrypted agent keys in [`src/lib/agent-key-store.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agent-key-store.js); **0g-ts-sdk** `Indexer` + `MemData` + `upload` in [`src/dashboard/zg-store.js`](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js) and [`prototype/relay/zg_upload.ts`](https://github.com/vm06007/loveclaw/blob/master/prototype/relay/zg_upload.ts); Memory HTTP via [`prototype/relay/memory_client.py`](https://github.com/vm06007/loveclaw/blob/master/prototype/relay/memory_client.py) to a **memory router** on port `9091` (EverMemOS adapter; operator script described in [CLAUDE.md](./CLAUDE.md)); **0G Compute** URL in AI settings ([`src/app/ai-settings.js`](https://github.com/vm06007/loveclaw/blob/master/src/app/ai-settings.js)). Uniswap / AXL / OpenClaw: [README.md](./README.md#qualification-requirements-open-agents-2026).
-
-**Team (Telegram & X)**  
-Vitaliy, Yiying — *fill Telegram and X @handles before submit* · GitHub [@vm06007](https://github.com/vm06007).
-
-### You must also include
-
-**Example agent**  
-Working **ERC-7857** agent NFT + wallet flow: [`src/lib/agentic-id.js`](https://github.com/vm06007/loveclaw/blob/master/src/lib/agentic-id.js). Copilot behaviour: [`src/app/lovclaw-ai.js`](https://github.com/vm06007/loveclaw/blob/master/src/app/lovclaw-ai.js).
-
-**Architecture diagram (OpenClaw + 0G Storage / Compute)**  
-ASCII diagram in **[How the pieces fit together](#how-the-pieces-fit-together)** below (app → `memory_router.py` → EverMemOS → `zgs_kv` → 0G testnet). OpenClaw lineage + full-stack (agent :18789, AXL, mainnet pact): [README.md — Architecture overview](./README.md#architecture-overview).
+Repo, live demos, team, deployed contracts, and full stack overview: [README.md](./README.md) (**Sponsors and integrations**, **Smart contract: LoveClawPact**, **Running locally**, **Architecture overview**).
 
 ---
 
@@ -243,6 +207,8 @@ When the relay detects that both partners are in the same place at the same time
 File: [`src/dashboard/zg-store.js`](https://github.com/vm06007/loveclaw/blob/master/src/dashboard/zg-store.js)
 
 When a partner taps the "Store on 0G" button in the diary tab, the app uploads both a cover image and a full JSON snapshot to the 0G Galileo testnet using the official TypeScript SDK.
+
+**Hackathon uploads:** all diary **Store on 0G** files from the hackathon demo are visible on [0G StorageScan for `0xD319693b334FBAb00aA455a119C36763F00Ca3bB`](https://storagescan-galileo.0g.ai/address/0xD319693b334FBAb00aA455a119C36763F00Ca3bB) (Galileo testnet).
 
 ### Network endpoints
 
