@@ -272,4 +272,352 @@ contract LoveClawPactTest is Test {
     }
 
     // ─── Delayed breach ───────────────────────────────────────────────────────
+
+    function test_fileBreachWithDelay_defaultWindow() public {
+        uint256 id = _createAndJoin();
+
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "ipfs://QmFakeEvidenceCID", 0);
+
+        LoveClawPact.Pact memory p = pact.getPact(id);
+        assertEq(uint8(p.state), uint8(LoveClawPact.PactState.Breached));
+        assertEq(p.breacher, bob);
+        assertEq(p.breachEvidence, "ipfs://QmFakeEvidenceCID");
+        assertEq(p.breachWindow, 24 hours);
+        assertGt(p.breachFiledAt, 0);
     }
+
+    function test_fileBreachWithDelay_customWindow() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentBob);
+        pact.fileBreachWithDelay(id, alice, "evidence", 48 hours);
+
+        assertEq(pact.getPact(id).breachWindow, 48 hours);
+    }
+
+    function test_fileBreachWithDelay_emitsEvent() public {
+        uint256 id = _createAndJoin();
+        vm.expectEmit(true, true, true, false);
+        emit BreachFiled(id, agentAlice, bob, "evidence", 24 hours, block.timestamp);
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+    }
+
+    function test_disputeBreach() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+
+        vm.prank(bob);
+        pact.disputeBreach(id);
+
+        assertTrue(pact.getPact(id).disputeFiled);
+    }
+
+    function test_claimBreachPayout() public {
+        uint256 id = _createAndJoin(1 ether, 1 ether);
+        uint256 aliceBefore = alice.balance;
+
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "tinder detected", 0);
+
+        vm.warp(block.timestamp + 25 hours);
+
+        vm.prank(alice);
+        pact.claimBreachPayout(id);
+
+        assertEq(alice.balance, aliceBefore + 2 ether);
+        assertEq(pact.totalStake(id), 0);
+        assertEq(pact.activePactOf(alice), 0);
+        assertEq(pact.activePactOf(bob), 0);
+    }
+
+    function test_claimBreachPayout_emitsEvent() public {
+        uint256 id = _createAndJoin(1 ether, 1 ether);
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        vm.warp(block.timestamp + 25 hours);
+
+        vm.expectEmit(true, true, false, true);
+        emit BreachConfirmed(id, alice, 2 ether);
+        vm.prank(alice);
+        pact.claimBreachPayout(id);
+    }
+
+    function test_isDisputeWindowOpen() public {
+        uint256 id = _createAndJoin();
+        assertFalse(pact.isDisputeWindowOpen(id));
+
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        assertTrue(pact.isDisputeWindowOpen(id));
+
+        vm.warp(block.timestamp + 25 hours);
+        assertFalse(pact.isDisputeWindowOpen(id));
+    }
+
+    function test_revert_claimBreachPayout_windowStillOpen() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+
+        vm.warp(block.timestamp + 12 hours);
+        vm.prank(alice);
+        vm.expectRevert(DisputeWindowOpen.selector);
+        pact.claimBreachPayout(id);
+    }
+
+    function test_revert_claimBreachPayout_breacherCannotClaim() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        vm.warp(block.timestamp + 25 hours);
+
+        vm.prank(bob);
+        vm.expectRevert(NotBreacher.selector);
+        pact.claimBreachPayout(id);
+    }
+
+    function test_revert_claimBreachPayout_noBreachFiled() public {
+        uint256 id = _createAndJoin();
+        vm.prank(alice);
+        vm.expectRevert(NoBreachFiled.selector);
+        pact.claimBreachPayout(id);
+    }
+
+    function test_revert_disputeBreach_windowClosed() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        vm.warp(block.timestamp + 25 hours);
+
+        vm.prank(bob);
+        vm.expectRevert(DisputeWindowClosed.selector);
+        pact.disputeBreach(id);
+    }
+
+    function test_revert_fileBreachWithDelay_invalidWindow() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        vm.expectRevert(InvalidDisputeWindow.selector);
+        pact.fileBreachWithDelay(id, bob, "evidence", 8 days);
+    }
+
+    // ─── Unequal stakes ──────────────────────────────────────────────────────
+
+    function test_claimBreachPayout_unequalStakes() public {
+        uint256 id = _createAndJoin(3 ether, 1 ether);
+        uint256 aliceBefore = alice.balance;
+
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        vm.warp(block.timestamp + 25 hours);
+
+        vm.prank(alice);
+        pact.claimBreachPayout(id);
+
+        assertEq(alice.balance, aliceBefore + 4 ether);
+    }
+
+    // ─── Dissolution ─────────────────────────────────────────────────────────
+
+    function test_dissolvePact_equalStakes() public {
+        uint256 id = _createAndJoin(2 ether, 2 ether);
+        uint256 aliceBefore = alice.balance;
+        uint256 bobBefore   = bob.balance;
+
+        vm.prank(alice);
+        pact.dissolvePact(id);
+
+        assertEq(alice.balance, aliceBefore + 2 ether);
+        assertEq(bob.balance,   bobBefore   + 2 ether);
+        assertEq(pact.activePactOf(alice), 0);
+        assertEq(pact.activePactOf(bob),   0);
+        assertEq(uint8(pact.getPact(id).state), uint8(LoveClawPact.PactState.Dissolved));
+    }
+
+    function test_dissolvePact_oddStake() public {
+        uint256 id = _createAndJoin(2, 1);
+        uint256 aliceBefore = alice.balance;
+        uint256 bobBefore   = bob.balance;
+
+        vm.prank(alice);
+        pact.dissolvePact(id);
+
+        assertEq(alice.balance, aliceBefore + 2);
+        assertEq(bob.balance,   bobBefore   + 1);
+    }
+
+    function test_dissolvePact_emitsEvent() public {
+        uint256 id = _createAndJoin(2 ether, 2 ether);
+        vm.expectEmit(true, true, false, true);
+        emit PactDissolved(id, alice, 2 ether);
+        vm.prank(alice);
+        pact.dissolvePact(id);
+    }
+
+    function test_revert_dissolvePact_notPartner() public {
+        uint256 id = _createAndJoin();
+        vm.prank(carol);
+        vm.expectRevert(NotPartner.selector);
+        pact.dissolvePact(id);
+    }
+
+    function test_revert_dissolvePact_alreadyBreached() public {
+        uint256 id = _createAndJoin();
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+
+        vm.prank(alice);
+        vm.expectRevert(PactNotActive.selector);
+        pact.dissolvePact(id);
+    }
+
+    // ─── Trigger amendment ───────────────────────────────────────────────────
+
+    function test_amendTriggers() public {
+        uint256 id = _createAndJoin();
+        uint8 newTriggers = uint8(8);
+
+        vm.prank(alice);
+        pact.proposeTriggerAmendment(id, newTriggers);
+        assertEq(pact.getPact(id).triggers, DEFAULT_TRIGGERS); // unchanged yet
+
+        vm.prank(bob);
+        pact.acceptTriggerAmendment(id);
+
+        assertEq(pact.getPact(id).triggers, newTriggers);
+        assertFalse(pact.hasTrigger(id, uint8(1)));
+        assertTrue(pact.hasTrigger(id, uint8(8)));
+    }
+
+    function test_amendTriggers_emitsEvents() public {
+        uint256 id = _createAndJoin();
+        uint8 newTriggers = uint8(4);
+
+        vm.expectEmit(true, true, false, true);
+        emit AmendmentProposed(id, alice, newTriggers);
+        vm.prank(alice);
+        pact.proposeTriggerAmendment(id, newTriggers);
+
+        vm.expectEmit(true, false, false, true);
+        emit TriggersAmended(id, DEFAULT_TRIGGERS, newTriggers);
+        vm.prank(bob);
+        pact.acceptTriggerAmendment(id);
+    }
+
+    function test_revert_acceptAmendment_noProposal() public {
+        uint256 id = _createAndJoin();
+        vm.prank(bob);
+        vm.expectRevert(AmendmentNotPending.selector);
+        pact.acceptTriggerAmendment(id);
+    }
+
+    function test_revert_acceptAmendment_proposerCannotAccept() public {
+        uint256 id = _createAndJoin();
+        vm.prank(alice);
+        pact.proposeTriggerAmendment(id, uint8(8));
+
+        vm.prank(alice);
+        vm.expectRevert(NotAmendmentProposer.selector);
+        pact.acceptTriggerAmendment(id);
+    }
+
+    function test_revert_amendTriggers_zeroTriggers() public {
+        uint256 id = _createAndJoin();
+        vm.prank(alice);
+        vm.expectRevert(InvalidTriggers.selector);
+        pact.proposeTriggerAmendment(id, 0);
+    }
+
+    function test_revert_amendTriggers_notActive() public {
+        uint256 id = _createAndJoin();
+        vm.prank(alice);
+        pact.dissolvePact(id);
+
+        vm.prank(alice);
+        vm.expectRevert(PactNotActive.selector);
+        pact.proposeTriggerAmendment(id, uint8(8));
+    }
+
+    // ─── No-stake pact ───────────────────────────────────────────────────────
+
+    function test_noStakePact_instantBreach() public {
+        vm.prank(alice);
+        uint256 id = pact.createPact{value: 0}(bob, agentAlice, agentBob, uint8(1));
+        vm.prank(bob);
+        pact.joinPact{value: 0}(id);
+
+        vm.prank(agentBob);
+        pact.initiateInstantBreach(id, bob, "evidence");
+
+        uint256 aliceBefore = alice.balance;
+        vm.prank(agentAlice);
+        pact.confirmInstantBreach(id);
+        assertEq(alice.balance, aliceBefore); // no change, no stake
+    }
+
+    function test_noStakePact_delayedBreach() public {
+        vm.prank(alice);
+        uint256 id = pact.createPact{value: 0}(bob, agentAlice, agentBob, uint8(1));
+        vm.prank(bob);
+        pact.joinPact{value: 0}(id);
+
+        vm.prank(agentAlice);
+        pact.fileBreachWithDelay(id, bob, "evidence", 0);
+        vm.warp(block.timestamp + 25 hours);
+
+        uint256 aliceBefore = alice.balance;
+        vm.prank(alice);
+        pact.claimBreachPayout(id);
+        assertEq(alice.balance, aliceBefore);
+    }
+
+    // ─── Fuzz tests ──────────────────────────────────────────────────────────
+
+    function testFuzz_createPact_stakePreserved(uint96 stakeA, uint96 stakeB) public {
+        vm.assume(stakeA <= 5 ether);
+        vm.assume(stakeB <= 5 ether);
+        vm.deal(alice, stakeA);
+        vm.deal(bob,   stakeB);
+
+        vm.prank(alice);
+        uint256 id = pact.createPact{value: stakeA}(bob, agentAlice, agentBob, DEFAULT_TRIGGERS);
+        vm.prank(bob);
+        pact.joinPact{value: stakeB}(id);
+
+        assertEq(pact.totalStake(id), uint256(stakeA) + uint256(stakeB));
+    }
+
+    function testFuzz_dissolveSplitsEvenly(uint96 stakeA, uint96 stakeB) public {
+        vm.assume(stakeA <= 5 ether);
+        vm.assume(stakeB <= 5 ether);
+        vm.deal(alice, stakeA);
+        vm.deal(bob,   stakeB);
+
+        uint256 aliceBefore = alice.balance;
+        uint256 bobBefore   = bob.balance;
+
+        vm.prank(alice);
+        uint256 id = pact.createPact{value: stakeA}(bob, agentAlice, agentBob, DEFAULT_TRIGGERS);
+        vm.prank(bob);
+        pact.joinPact{value: stakeB}(id);
+
+        vm.prank(alice);
+        pact.dissolvePact(id);
+
+        uint256 total = uint256(stakeA) + uint256(stakeB);
+        assertEq(alice.balance + bob.balance, aliceBefore + bobBefore);
+        uint256 diff = alice.balance > bob.balance
+            ? alice.balance - bob.balance
+            : bob.balance - alice.balance;
+        assertLe(diff, total % 2 + 1);
+    }
+
+    function testFuzz_triggers_bitmask(uint8 triggers) public {
+        vm.assume(triggers != 0);
+        vm.prank(alice);
+        uint256 id = pact.createPact{value: 0}(bob, agentAlice, agentBob, triggers);
+        assertEq(pact.getPact(id).triggers, triggers);
+    }
+}
